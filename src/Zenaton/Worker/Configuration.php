@@ -89,7 +89,7 @@ class Configuration
             self::MS_TASKS_NAME_ONLY => isset($tasksNamesOnly) ? $tasksNamesOnly : [],
             self::MS_WORKFLOWS_NAME_EXCEPT => isset($workflowsNamesToExcept) ? $workflowsNamesToExcept : [],
             self::MS_TASKS_NAME_EXCEPT => isset($tasksNamesToExcept) ? $tasksNamesToExcept : [],
-            self::WORKER_SCRIPT => getcwd(). '/scripts/slave.php',
+            self::WORKER_SCRIPT => getcwd(). '/vendor/zenaton/zenaton-php/scripts/slave.php',
             self::AUTOLOAD_PATH => getcwd(). '/'. $this->autoload,
             self::PROGRAMMING_LANGUAGE => self::PHP
         ];
