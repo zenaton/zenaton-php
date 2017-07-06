@@ -5,8 +5,7 @@
             "Zenaton\\" : "src/Zenaton/"
         },
         "files": [
-            "src/Zenaton/functions.php",
-            "zenaton"
+            "src/Zenaton/functions.php"
         ]
     },
     "type": "library",
