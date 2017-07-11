@@ -80,6 +80,13 @@ class MicroServer
         return $this->http->post($url, $body)->msg;
     }
 
+    public function stop($body)
+    {
+        $url = $this->microServerUrl('/stop');
+
+        return $this->http->post($url, $body)->msg;
+    }
+
     public function getWorkflowToExecute()
     {
         return $this->sendDecision(['action' => 'start']);

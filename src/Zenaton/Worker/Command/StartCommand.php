@@ -40,7 +40,7 @@ class StartCommand extends Command
             return $output->writeln('Error! Unabled to find '.$autoload.' file.'.PHP_EOL);
         }
 
-        $feedback = (new Configuration($dotenv, $autoload))->sendBackToMicroServer();
+        $feedback = (new Configuration($dotenv, $autoload))->startMicroserver();
 
         return $output->writeln($feedback);
     }
