@@ -20,7 +20,7 @@ class Api
     const PROGRAMMING_LANGUAGE = 'programming_language';
     const PHP = 'PHP';
     const NAME = 'name';
-    const STATE = 'state';
+    const MODE = 'mode';
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
@@ -60,12 +60,12 @@ class Api
 
     }
 
-    public function updateInstance($customerId, $workflowName,  $state)
+    public function updateInstance($customerId, $workflowName, $mode)
     {
         return $this->http->put($this->getInstanceDetailsURL($customerId), [
             self::NAME => $workflowName,
             self::PROGRAMMING_LANGUAGE => self::PHP,
-            self::STATE => $state
+            self::MODE => $mode
         ]);
     }
 
