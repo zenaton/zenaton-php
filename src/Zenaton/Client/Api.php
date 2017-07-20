@@ -55,7 +55,7 @@ class Api
 
     public function getInstanceDetails($customerId, $name)
     {
-        $params = self::NAME.'='.$name.'?'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
+        $params = self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
         return $this->http->get($this->getInstanceDetailsURL($customerId, $params));
 
     }
