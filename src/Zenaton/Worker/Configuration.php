@@ -40,7 +40,7 @@ class Configuration
     protected $autoload;
 
 
-    public function __construct($envPath, $autoload = null)
+    public function __construct($envPath = null, $autoload = null)
     {
         $this->envPath = $envPath;
         $this->autoload = $autoload;
@@ -81,6 +81,10 @@ class Configuration
         return $this->microserver->sendEnv($body);
     }
 
+    public function status()
+    {
+        return $this->microserver->status();
+    }
 
     public function stopMicroserver()
     {

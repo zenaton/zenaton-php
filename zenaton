@@ -7,6 +7,7 @@ use Symfony\Component\Console\Application;
 
 use Zenaton\Worker\Command\StartCommand;
 use Zenaton\Worker\Command\StopCommand;
+use Zenaton\Worker\Command\StatusCommand;
 
 $application = new Application();
 
@@ -14,5 +15,6 @@ $application = new Application();
 
 $application->add(new StartCommand());
 $application->add(new StopCommand());
+$application->add(new StatusCommand());
 
 $application->run();

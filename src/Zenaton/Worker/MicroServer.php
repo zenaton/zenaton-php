@@ -92,6 +92,12 @@ class MicroServer
         return $this->sendDecision(['action' => 'start']);
     }
 
+    public function status()
+    {
+        $url = $this->microServerUrl('/status');
+        return $this->http->get($url);
+    }
+
     public function execute($boxes)
     {
         $body['action'] = 'execute';
