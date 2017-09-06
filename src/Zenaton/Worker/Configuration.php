@@ -40,33 +40,17 @@ class Configuration
     protected $autoload;
 
 
-    public function __construct($envPath, $autoload)
+    public function __construct($envPath = null, $autoload = null)
     {
         $this->envPath = $envPath;
         $this->autoload = $autoload;
         $this->microserver = MicroServer::getInstance();
     }
 
-    public function sendBackToMicroServer()
+    public function startMicroserver()
     {
 
-        $dotenv = new Dotenv(dirname($this->envPath), basename($this->envPath));
-        $dotenv->load();
-
-
-        if ( ! getenv(self::ENV_APP_ID)) {
-            return 'Error! Environment variable '.self::ENV_APP_ID.' not set';
-        }
-
-        if ( ! getenv(self::ENV_API_TOKEN)) {
-            return 'Error! Environment variable '.self::ENV_API_TOKEN.' not set';
-        }
-
-        if ( ! getenv(self::ENV_APP_ENV)) {
-            echo 'Error! Environment variable '.self::ENV_APP_ENV.' not set';
-
-            return;
-        }
+        $this->checkCredentials();
 
         if(getenv(self::ENV_HANDLE_ONLY)) {
             list($workflowsNamesOnly, $tasksNamesOnly) = $this->verifyClass(getenv(self::ENV_HANDLE_ONLY));
@@ -95,6 +79,45 @@ class Configuration
         ];
 
         return $this->microserver->sendEnv($body);
+    }
+
+    public function status()
+    {
+        return $this->microserver->status();
+    }
+
+    public function stopMicroserver()
+    {
+        $this->checkCredentials();
+
+        $body = [
+            self::MS_APP_ID => getenv(self::ENV_APP_ID),
+            self::MS_API_TOKEN => getenv(self::ENV_API_TOKEN),
+            self::MS_APP_ENV => getenv(self::ENV_APP_ENV),
+            self::PROGRAMMING_LANGUAGE => self::PHP
+        ];
+
+        return $this->microserver->stop($body);
+    }
+
+    protected function checkCredentials()
+    {
+        (new Dotenv(dirname($this->envPath), basename($this->envPath)))->load();
+
+        if ( ! getenv(self::ENV_APP_ID)) {
+            echo 'Error! Environment variable '.self::ENV_APP_ID.' not set';
+            die();
+        }
+
+        if ( ! getenv(self::ENV_API_TOKEN)) {
+            echo 'Error! Environment variable '.self::ENV_API_TOKEN.' not set';
+            die();
+        }
+
+        if ( ! getenv(self::ENV_APP_ENV)) {
+            echo 'Error! Environment variable '.self::ENV_APP_ENV.' not set';
+            die();
+        }
     }
 
     protected function verifyClass($request)

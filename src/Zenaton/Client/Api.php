@@ -9,7 +9,7 @@ class Api
 {
     use SingletonTrait;
 
-    const ZENATON_URL = 'https://barbouze.fr/api';
+    const ZENATON_URL = 'https://zenaton.com/api';
 
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
@@ -20,7 +20,7 @@ class Api
     const PROGRAMMING_LANGUAGE = 'programming_language';
     const PHP = 'PHP';
     const NAME = 'name';
-    const STATE = 'state';
+    const MODE = 'mode';
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
@@ -55,17 +55,17 @@ class Api
 
     public function getInstanceDetails($customerId, $name)
     {
-        $params = self::NAME.'='.$name.'?'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
+        $params = self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
         return $this->http->get($this->getInstanceDetailsURL($customerId, $params));
 
     }
 
-    public function updateInstance($customerId, $workflowName,  $state)
+    public function updateInstance($customerId, $workflowName, $mode)
     {
         return $this->http->put($this->getInstanceDetailsURL($customerId), [
             self::NAME => $workflowName,
             self::PROGRAMMING_LANGUAGE => self::PHP,
-            self::STATE => $state
+            self::MODE => $mode
         ]);
     }
 

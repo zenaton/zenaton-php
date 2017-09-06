@@ -97,8 +97,11 @@ class Helpers
             // Set properties for last execution
             $this->flow->setProperties($response->properties);
 
+
             // return outputs
             $outputs = $response->outputs;
+            // var_dump($outputs);
+
             return (count($outputs) > 1) ? $outputs : $outputs[0];
         }
 
