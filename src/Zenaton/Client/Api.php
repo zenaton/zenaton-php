@@ -9,7 +9,7 @@ class Api
 {
     use SingletonTrait;
 
-    const ZENATON_URL = 'https://zenaton.com/api';
+    const ZENATON_URL = 'https://barbouze.fr/api';
 
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
