@@ -9,7 +9,7 @@ class Api
 {
     use SingletonTrait;
 
-    const ZENATON_URL = 'https://zenaton.com/api';
+    const ZENATON_API_URL = 'https://zenaton.com/api';
 
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
@@ -49,15 +49,15 @@ class Api
             self::CUSTOM_ID => $customId,
             self::DATA => $data,
             self::NAME => $name,
-            self::PROGRAMMING_LANGUAGE => self::PHP
+            self::PROGRAMMING_LANGUAGE => self::PHP,
         ]);
     }
 
     public function getInstanceDetails($customerId, $name)
     {
         $params = self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
-        return $this->http->get($this->getInstanceDetailsURL($customerId, $params));
 
+        return $this->http->get($this->getInstanceDetailsURL($customerId, $params));
     }
 
     public function updateInstance($customerId, $workflowName, $mode)
@@ -65,7 +65,7 @@ class Api
         return $this->http->put($this->getInstanceDetailsURL($customerId), [
             self::NAME => $workflowName,
             self::PROGRAMMING_LANGUAGE => self::PHP,
-            self::MODE => $mode
+            self::MODE => $mode,
         ]);
     }
 
@@ -78,28 +78,33 @@ class Api
             self::EVENT_INPUT => $input,
             self::EVENT_NAME => $name,
             self::NAME => $workflowName,
-            self::PROGRAMMING_LANGUAGE => self::PHP
+            self::PROGRAMMING_LANGUAGE => self::PHP,
         ];
 
         return $this->http->post($url, $body);
     }
 
-    protected function getStartWorkflowURL()
+    protected function getApiUrl()
     {
-        return $this->addIdentification(self::ZENATON_URL.'/instances');
+        return getenv('ZENATON_API_URL') !== false ? getenv('ZENATON_API_URL') : self::ZENATON_API_URL;
     }
 
-    protected function getInstanceDetailsURL($customerId, $params = "")
+    protected function getStartWorkflowURL()
     {
-        return $this->addIdentification(self::ZENATON_URL.'/instances/'.$customerId, $params);
+        return $this->addIdentification($this->getApiUrl().'/instances');
+    }
+
+    protected function getInstanceDetailsURL($customerId, $params = '')
+    {
+        return $this->addIdentification($this->getApiUrl().'/instances/'.$customerId, $params);
     }
 
     protected function getSendEventURL()
     {
-        return $this->addIdentification(self::ZENATON_URL.'/events');
+        return $this->addIdentification($this->getApiUrl().'/events');
     }
 
-    protected function addIdentification($url, $params = "")
+    protected function addIdentification($url, $params = '')
     {
         return $url.'?'.self::APP_ENV.'='.$this->env.'&'.self::APP_ID.'='.$this->appId.'&'.self::API_TOKEN.'='.$this->apiToken.'&'.$params;
     }
