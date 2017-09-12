@@ -26,7 +26,7 @@
         "post-install-cmd": [
             "@installZenatonScript"
         ],
-        "pre-update-cmd": [
+        "post-update-cmd": [
             "@installZenatonScript"
         ],
         "installZenatonScript": "cp -f ./vendor/zenaton/zenaton-php/zenaton .; chmod +x ./zenaton"
