@@ -21,14 +21,5 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0"
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "@installZenatonScript"
-        ],
-        "post-update-cmd": [
-            "@installZenatonScript"
-        ],
-        "installZenatonScript": "cp -f ./vendor/zenaton/zenaton-php/zenaton .; chmod +x ./zenaton"
     }
 }
