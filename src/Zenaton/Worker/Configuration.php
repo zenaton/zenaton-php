@@ -5,6 +5,7 @@ namespace Zenaton\Worker;
 use Dotenv\Dotenv;
 use Zenaton\Common\Traits\IsImplementationOfTrait;
 use Zenaton\Common\Exceptions\ExternalZenatonException;
+use Zenaton\Common\Exceptions\EnvironmentNotSetException;
 use Zenaton\Common\Interfaces\TaskInterface;
 use Zenaton\Common\Interfaces\WorkflowInterface;
 
@@ -39,7 +40,6 @@ class Configuration
     protected $microserver;
     protected $autoload;
 
-
     public function __construct($envPath = null, $autoload = null)
     {
         $this->envPath = $envPath;
@@ -49,18 +49,17 @@ class Configuration
 
     public function startMicroserver()
     {
-
         $this->checkCredentials();
 
-        if(getenv(self::ENV_HANDLE_ONLY)) {
+        if (getenv(self::ENV_HANDLE_ONLY)) {
             list($workflowsNamesOnly, $tasksNamesOnly) = $this->verifyClass(getenv(self::ENV_HANDLE_ONLY));
         }
 
-        if(getenv(self::ENV_HANDLE_EXCEPT)) {
+        if (getenv(self::ENV_HANDLE_EXCEPT)) {
             list($workflowsNamesToExcept, $tasksNamesToExcept) = $this->verifyClass(getenv(self::ENV_HANDLE_EXCEPT));
         }
 
-        if(getenv(self::ENV_CONCURRENT_MAX)) {
+        if (getenv(self::ENV_CONCURRENT_MAX)) {
             $concurrentMax = getenv(self::ENV_CONCURRENT_MAX);
         }
 
@@ -73,9 +72,9 @@ class Configuration
             self::MS_TASKS_NAME_ONLY => isset($tasksNamesOnly) ? $tasksNamesOnly : [],
             self::MS_WORKFLOWS_NAME_EXCEPT => isset($workflowsNamesToExcept) ? $workflowsNamesToExcept : [],
             self::MS_TASKS_NAME_EXCEPT => isset($tasksNamesToExcept) ? $tasksNamesToExcept : [],
-            self::WORKER_SCRIPT => getcwd(). '/vendor/zenaton/zenaton-php/scripts/slave.php',
-            self::AUTOLOAD_PATH => getcwd(). '/'. $this->autoload,
-            self::PROGRAMMING_LANGUAGE => self::PHP
+            self::WORKER_SCRIPT => getcwd().'/vendor/zenaton/zenaton-php/scripts/slave.php',
+            self::AUTOLOAD_PATH => $this->autoload,
+            self::PROGRAMMING_LANGUAGE => self::PHP,
         ];
 
         return $this->microserver->sendEnv($body);
@@ -94,7 +93,7 @@ class Configuration
             self::MS_APP_ID => getenv(self::ENV_APP_ID),
             self::MS_API_TOKEN => getenv(self::ENV_API_TOKEN),
             self::MS_APP_ENV => getenv(self::ENV_APP_ENV),
-            self::PROGRAMMING_LANGUAGE => self::PHP
+            self::PROGRAMMING_LANGUAGE => self::PHP,
         ];
 
         return $this->microserver->stop($body);
@@ -104,19 +103,17 @@ class Configuration
     {
         (new Dotenv(dirname($this->envPath), basename($this->envPath)))->load();
 
-        if ( ! getenv(self::ENV_APP_ID)) {
-            echo 'Error! Environment variable '.self::ENV_APP_ID.' not set';
+        if (!getenv(self::ENV_APP_ID)) {
+            throw new EnvironmentNotSetException('Error! Environment variable '.self::ENV_APP_ID.' not set');
+        }
+
+        if (!getenv(self::ENV_API_TOKEN)) {
+            throw new EnvironmentNotSetException('Error! Environment variable '.self::ENV_API_TOKEN.' not set');
             die();
         }
 
-        if ( ! getenv(self::ENV_API_TOKEN)) {
-            echo 'Error! Environment variable '.self::ENV_API_TOKEN.' not set';
-            die();
-        }
-
-        if ( ! getenv(self::ENV_APP_ENV)) {
-            echo 'Error! Environment variable '.self::ENV_APP_ENV.' not set';
-            die();
+        if (!getenv(self::ENV_APP_ENV)) {
+            throw new EnvironmentNotSetException('Error! Environment variable '.self::ENV_APP_ENV.' not set');
         }
     }
 
@@ -127,7 +124,7 @@ class Configuration
         $classes = array_map('trim', explode(',', $request));
 
         foreach ($classes as $key => $class) {
-            if($this->isImplementationOf($class, WorkflowInterface::class)) {
+            if ($this->isImplementationOf($class, WorkflowInterface::class)) {
                 $workflowsNames[] = $class;
             } elseif ($this->isImplementationOf($class, TaskInterface::class)) {
                 $tasksNames[] = $class;
