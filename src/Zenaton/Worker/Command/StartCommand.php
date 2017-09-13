@@ -24,9 +24,8 @@ class StartCommand extends Command
             ->setName('start')
             ->setDescription('Start Zenaton worker')
             ->addOption(self::LARAVEL, null, InputOption::VALUE_NONE, 'Use this option if using Laravel')
-            // ->addOption(self::SYMFONY, null, InputOption::VALUE_NONE, 'Use this option if using Symfony')
-            ->addOption(self::DOTENV, null, InputOption::VALUE_OPTIONAL, 'Define location of your .env file', $this->getDefaultEnv())
-            ->addOption(self::AUTOLOAD, null, InputOption::VALUE_OPTIONAL, 'Define location of your autoload file', $this->getDefaultAutoload())
+            ->addOption(self::DOTENV, null, InputOption::VALUE_REQUIRED, 'Define location of your .env file')
+            ->addOption(self::AUTOLOAD, null, InputOption::VALUE_REQUIRED, 'Define location of your autoload file')
             ->setHelp('Start Zenaton worker');
     }
 
@@ -42,6 +41,9 @@ class StartCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $dotenv_default = false;
+        $autoload_default = false;
+
         // --laravel option
         if ($input->getOption(self::LARAVEL)) {
             $file = getcwd().'/bootstrap/autoload.php';
@@ -59,47 +61,47 @@ class StartCommand extends Command
             $autoload = getcwd().'/vendor/zenaton/zenaton-php/bootstrap/laravel.php';
         }
 
-        // --symphony option
-        // if ($input->getOption(self::SYMFONY)) {
-        //     $file = getcwd().'/bootstrap/autoload.php';
-        //     if (! file_exists($file)) {
-        //         return $output->writeln('<error>Error in Symfony configuration (Unable to find '.$file.' file).</error>');
-        //     }
-
-        //     $dotenv = getcwd().'/.env';
-        //     $autoload = getcwd()."/vendor/zenaton/zenaton-php/bootstrap/symfony.php";
-        // }
-
         // --env option
         if (!isset($dotenv)) {
             $dotenv = $input->getOption(self::DOTENV);
-            if (!$this->isAbsolutePath($dotenv)) {
-                $dotenv = getcwd().'/'.$dotenv;
+            if (!$dotenv) {
+                $dotenv = $this->getDefaultEnv();
+                $dotenv_default = true;
             }
         }
 
+        // enforce absolute path
+        if (!$this->isAbsolutePath($dotenv)) {
+            $dotenv = getcwd().'/'.$dotenv;
+        }
+
         if (!file_exists($dotenv)) {
-            if ($dotenv === $this->getDefaultEnv()) {
+            if ($dotenv_default) {
                 return $output->writeln('<info>Please locate your env file with'
                     .' --'.self::LARAVEL
-                    // . ', --'.self::SYMFONY
                     .', or --'.self::DOTENV.' option.</info>'
                 );
             }
 
-            return $output->writeln('<error>Unabled to find '.$dotenv.' file.</error>');
+            return $output->writeln('<error>Unable to find '.$dotenv.' file.</error>');
         }
 
         // --autoload option
         if (!isset($autoload)) {
             $autoload = $input->getOption(self::AUTOLOAD);
-            if (!$this->isAbsolutePath($autoload)) {
-                $autoload = getcwd().'/'.$autoload;
+            if (!$autoload) {
+                $autoload = $this->getDefaultAutoload();
+                $autoload_default = true;
             }
         }
 
+        // enforce absolute path
+        if (!$this->isAbsolutePath($autoload)) {
+            $autoload = getcwd().'/'.$autoload;
+        }
+
         if (!file_exists($autoload)) {
-            if ($autoload === $this->getDefaultAutoload()) {
+            if ($autoload_default) {
                 return $output->writeln('<info>Please locate your autoload file with'
                     .' --'.self::LARAVEL
                     // . ', --'.self::SYMFONY
@@ -107,7 +109,7 @@ class StartCommand extends Command
                 );
             }
 
-            return $output->writeln('<error>Unabled to find '.$autoload.' file.</error>');
+            return $output->writeln('<error>Unable to find '.$autoload.' file.</error>');
         }
 
         // start worker
