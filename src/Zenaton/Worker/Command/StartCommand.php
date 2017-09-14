@@ -2,145 +2,96 @@
 
 namespace Zenaton\Worker\Command;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Zenaton\Worker\Configuration;
-use Zenaton\Common\Exceptions\EnvironmentNotSetException;
 
 class StartCommand extends Command
 {
-    const LARAVEL = 'laravel';
-    const SYMFONY = 'symfony';
-    const DOTENV = 'env';
-    const AUTOLOAD = 'autoload';
+    const MS_WORKFLOWS_NAME_ONLY = 'workflows_name_only';
+    const MS_TASKS_NAME_ONLY = 'tasks_name_only';
 
-    protected $dir;
+    const MS_WORKFLOWS_NAME_EXCEPT = 'workflows_name_except';
+    const MS_TASKS_NAME_EXCEPT = 'tasks_name_except';
+
+    const MS_CONCURRENT_MAX = 'concurrent_max';
+    const WORKER_SCRIPT = 'worker_script';
+    const AUTOLOAD_PATH = 'autoload_path';
 
     protected function configure()
     {
         $this
             ->setName('start')
             ->setDescription('Start Zenaton worker')
-            ->addOption(self::LARAVEL, null, InputOption::VALUE_NONE, 'Use this option if using Laravel')
-            ->addOption(self::DOTENV, null, InputOption::VALUE_REQUIRED, 'Define location of your .env file')
-            ->addOption(self::AUTOLOAD, null, InputOption::VALUE_REQUIRED, 'Define location of your autoload file')
-            ->setHelp('Start Zenaton worker');
-    }
-
-    protected function getDefaultEnv()
-    {
-        return getcwd().'/.env';
-    }
-
-    protected function getDefaultAutoload()
-    {
-        return getcwd().'/autoload.php';
+            ->setHelp('Start Zenaton worker')
+            ->addOption(self::OPTION_LARAVEL, null, InputOption::VALUE_NONE, 'Use this option if using Laravel')
+            ->addOption(self::OPTION_DOTENV, null, InputOption::VALUE_REQUIRED, 'Define location of your .env file')
+            ->addOption(self::OPTION_AUTOLOAD, null, InputOption::VALUE_REQUIRED, 'Define location of your autoload file');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $dotenv_default = false;
-        $autoload_default = false;
+        $envFile = null;
+        $bootFile = null;
 
-        // --laravel option
-        if ($input->getOption(self::LARAVEL)) {
-            $file = getcwd().'/bootstrap/autoload.php';
-            if (!file_exists($file)) {
-                return $output->writeln('<error>Error in Laravel configuration (Unable to find '.$file.' file).</error>');
+        // default value for --laravel option
+        if ($input->getOption(self::OPTION_LARAVEL)) {
+            if ($this->checkLaravel($input, $output) === false) {
+                return;
             }
-            $file = getcwd().'/bootstrap/app.php';
-            if (!file_exists($file)) {
-                return $output->writeln('<error>Error in Laravel configuration (Unable to find '.$file.' file).</error>');
-            }
-            $dotenv = getcwd().'/.env';
-            if (!file_exists($file)) {
-                return $output->writeln('<error>Error in Laravel configuration (Unable to find '.$dotenv.' file).</error>');
-            }
-            $autoload = getcwd().'/vendor/zenaton/zenaton-php/bootstrap/laravel.php';
+            list($envFile, $bootFile) = $this->getLaravelDefault();
         }
 
-        // --env option
-        if (!isset($dotenv)) {
-            $dotenv = $input->getOption(self::DOTENV);
-            if (!$dotenv) {
-                $dotenv = $this->getDefaultEnv();
-                $dotenv_default = true;
-            }
+        // get and check --env option
+        $envFile = $this->getEnvOption($input, $output, $envFile);
+        if ($envFile === false) {
+            return;
         }
 
-        // enforce absolute path
-        if (!$this->isAbsolutePath($dotenv)) {
-            $dotenv = getcwd().'/'.$dotenv;
+        // get and check --autoload option
+        $bootFile = $this->getBootOption($input, $output, $bootFile);
+        if ($bootFile === false) {
+            return;
         }
 
-        if (!file_exists($dotenv)) {
-            if ($dotenv_default) {
-                return $output->writeln('<info>Please locate your env file with'
-                    .' --'.self::LARAVEL
-                    .', or --'.self::DOTENV.' option.</info>'
-                );
-            }
-
-            return $output->writeln('<error>Unable to find '.$dotenv.' file.</error>');
+        // load env file and check app_id, app_env and app_token parameters
+        $this->loadEnvFile($envFile);
+        if ($this->checkEnvAppParameters($output) === false) {
+            return;
         }
 
-        // --autoload option
-        if (!isset($autoload)) {
-            $autoload = $input->getOption(self::AUTOLOAD);
-            if (!$autoload) {
-                $autoload = $this->getDefaultAutoload();
-                $autoload_default = true;
-            }
+        // load boot file and check ZENATON_HANDLE_EXCEPT and ZENATON_HANDLE_ONLY parameters
+        $this->loadBootFile($bootFile);
+        if ($this->checkEnvHandleParameters($output) === false) {
+            return;
         }
 
-        // enforce absolute path
-        if (!$this->isAbsolutePath($autoload)) {
-            $autoload = getcwd().'/'.$autoload;
-        }
-
-        if (!file_exists($autoload)) {
-            if ($autoload_default) {
-                return $output->writeln('<info>Please locate your autoload file with'
-                    .' --'.self::LARAVEL
-                    // . ', --'.self::SYMFONY
-                    .', or --'.self::AUTOLOAD.' option.</info>'
-                );
-            }
-
-            return $output->writeln('<error>Unable to find '.$autoload.' file.</error>');
+        if ($this->checkConcurrentMaxParameter($output) === false) {
+            return;
         }
 
         // start worker
-        try {
-            $feedback = (new Configuration($dotenv, $autoload))->startMicroserver();
+        $feedback = $this->start($bootFile);
 
-            return $output->writeln('<info>'.$feedback.'</info>');
-        } catch (EnvironmentNotSetException $e) {
-            return $output->writeln('<error>'.$e->getMessage().'</error>');
-        }
+        return $output->writeln('<info>'.$feedback.'</info>');
     }
 
-     /**
-      * Returns whether the file path is an absolute path.
-      *
-      * @param string $file A file path
-      *
-      * @return bool
-      */
-     private function isAbsolutePath($file)
-     {
-         if ($file[0] === '/' || $file[0] === '\\'
-             || (strlen($file) > 3 && ctype_alpha($file[0])
-                 && $file[1] === ':'
-                 && ($file[2] === '\\' || $file[2] === '/')
-             )
-             || null !== parse_url($file, PHP_URL_SCHEME)
-         ) {
-             return true;
-         }
+    public function start($bootFile)
+    {
+        $body = [
+            self::MS_APP_ID => getenv(self::ENV_APP_ID),
+            self::MS_API_TOKEN => getenv(self::ENV_API_TOKEN),
+            self::MS_APP_ENV => getenv(self::ENV_APP_ENV),
+            self::MS_CONCURRENT_MAX => $this->getConcurrentMaxParameter(),
+            self::MS_WORKFLOWS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, WorkflowInterface::class),
+            self::MS_TASKS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, TaskInterface::class),
+            self::MS_WORKFLOWS_NAME_EXCEPT => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_EXCEPT, WorkflowInterface::class),
+            self::MS_TASKS_NAME_EXCEPT => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_EXCEPT, TaskInterface::class),
+            self::WORKER_SCRIPT => getcwd().'/vendor/zenaton/zenaton-php/scripts/slave.php',
+            self::AUTOLOAD_PATH => $bootFile,
+            self::PROGRAMMING_LANGUAGE => self::PHP,
+        ];
 
-         return false;
-     }
+        return $this->microserver->sendEnv($body);
+    }
 }
