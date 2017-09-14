@@ -1,12 +1,18 @@
 <?php
 
+// (from vendor/zenaton/zenaton-php/bootstrap)
+
+
 /*
 |--------------------------------------------------------------------------
 | Register The Auto Loader
 |--------------------------------------------------------------------------
-| (from vendor/zenaton/zenaton-php/bootstrap)
 */
-require __DIR__.'/../../../../bootstrap/autoload.php';
+$autoload = __DIR__.'/../../../../bootstrap/autoload.php';
+if (! file_exists($autoload)) {
+    $autoload = __DIR__.'/../../../../vendor/autoload.php';
+}
+require $autoload;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,13 +21,19 @@ require __DIR__.'/../../../../bootstrap/autoload.php';
 | (from vendor/zenaton/zenaton-php/bootstrap)
 */
 
-$app = require_once __DIR__.'/../../../../bootstrap/app.php';
+// laravel 5.*
+$bootstrap = __DIR__.'/../../../../bootstrap/app.php';
+if (file_exists($bootstrap)) {
+    $app = require_once $bootstrap;
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    return;
+} 
 
-/*
-|--------------------------------------------------------------------------
-| Boot the application
-|--------------------------------------------------------------------------
-*/
-
-$kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
+// laravel 4.*
+$bootstrap = __DIR__.'/../../../../bootstrap/start.php';
+if (file_exists($bootstrap)) {
+    $app = require_once $bootstrap;
+    $app->boot();
+    return;
+}

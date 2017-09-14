@@ -42,13 +42,7 @@ class Command extends SymfonyCommand
 
     protected function checkLaravel($input, $output)
     {
-        $file = './bootstrap/autoload.php';
-        if (!file_exists($file)) {
-            $output->writeln('<error>Does not look like a Laravel project (Unable to find '.$file.' file).</error>');
-
-            return false;
-        }
-        $file = './bootstrap/app.php';
+        $file = './artisan';
         if (!file_exists($file)) {
             $output->writeln('<error>Does not look like a Laravel project (Unable to find '.$file.' file).</error>');
 
