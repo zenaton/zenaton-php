@@ -97,7 +97,7 @@ class Command extends SymfonyCommand
         return $envFile;
     }
 
-    protected function getAutoloadOption($input, $output, $autoload = null)
+    protected function getBootOption($input, $output, $autoload = null)
     {
         $usingDefault = false;
 
