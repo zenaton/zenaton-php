@@ -137,19 +137,22 @@ class Command extends SymfonyCommand
 
     protected function checkEnvAppParameters($output)
     {
-        if (getenv(self::ENV_APP_ID) === false) {
+        $appId = getenv(self::ENV_APP_ID);
+        if ($appId === false || $appId === '') {
             $output->writeln('<error>Error! Environment variable '.self::ENV_APP_ID.' not set.</error>');
 
             return false;
         }
 
-        if (getenv(self::ENV_API_TOKEN) === false) {
+        $apiToken = getenv(self::ENV_API_TOKEN);
+        if ($apiToken === false || $apiToken === '') {
             $output->writeln('<error>Error! Environment variable '.self::ENV_API_TOKEN.' not set.</error>');
 
             return false;
         }
 
-        if (getenv(self::ENV_APP_ENV) === false) {
+        $appEnv = getenv(self::ENV_APP_ENV);
+        if ($appEnv === false || $appEnv === '') {
             $output->writeln('<error>Error! Environment variable '.self::ENV_APP_ENV.' not set.</error>');
 
             return false;
