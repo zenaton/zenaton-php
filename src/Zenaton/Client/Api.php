@@ -45,7 +45,7 @@ class Api
 
     public function startWorkflow($name, $data, $customId)
     {
-        return $this->http->post($this->getStartWorkflowURL(), [
+        return $this->http->post($this->getInstanceUrl(), [
             self::CUSTOM_ID => $customId,
             self::DATA => $data,
             self::NAME => $name,
@@ -53,16 +53,17 @@ class Api
         ]);
     }
 
-    public function getInstanceDetails($customerId, $name)
+    public function getInstanceDetails($customId, $name)
     {
-        $params = self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
+        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-        return $this->http->get($this->getInstanceDetailsURL($customerId, $params));
+        return $this->http->get($this->getInstanceUrl($params));
     }
 
-    public function updateInstance($customerId, $workflowName, $mode)
+    public function updateInstance($customId, $workflowName, $mode)
     {
-        return $this->http->put($this->getInstanceDetailsURL($customerId), [
+        $params = self::CUSTOM_ID.'='.$customId;
+        return $this->http->put($this->getInstanceUrl($params), [
             self::NAME => $workflowName,
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::MODE => $mode,
@@ -89,14 +90,9 @@ class Api
         return getenv('ZENATON_API_URL') !== false ? getenv('ZENATON_API_URL') : self::ZENATON_API_URL;
     }
 
-    protected function getStartWorkflowURL()
+    public function getInstanceUrl($params = '')
     {
-        return $this->addIdentification($this->getApiUrl().'/instances');
-    }
-
-    protected function getInstanceDetailsURL($customerId, $params = '')
-    {
-        return $this->addIdentification($this->getApiUrl().'/instances/'.$customerId, $params);
+        return $this->addIdentification($this->getApiUrl(). '/instances', $params);
     }
 
     protected function getSendEventURL()
