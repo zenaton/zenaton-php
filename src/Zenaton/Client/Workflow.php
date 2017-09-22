@@ -101,7 +101,7 @@ class Workflow
     public function getProperties()
     {
         $res = $this->api->getInstanceDetails($this->id, $this->workflowName);
-        return $this->jsonizer->decode($res->properties);
+        return $this->jsonizer->decode($res->data->properties);
     }
 
     protected function newInstance($id, $workflowName)

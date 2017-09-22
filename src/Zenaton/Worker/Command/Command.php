@@ -22,10 +22,12 @@ class Command extends SymfonyCommand
     const ENV_HANDLE_ONLY = 'ZENATON_HANDLE_ONLY';
     const ENV_HANDLE_EXCEPT = 'ZENATON_HANDLE_EXCEPT';
     const ENV_CONCURRENT_MAX = 'ZENATON_CONCURRENT_MAX';
+    const ENV_API_URL = 'ZENATON_API_URL';
 
     const MS_APP_ID = 'app_id';
     const MS_API_TOKEN = 'api_token';
     const MS_APP_ENV = 'app_env';
+    const MS_API_URL = 'api_url';
     const PROGRAMMING_LANGUAGE = 'programming_language';
     const PHP = 'PHP';
 
