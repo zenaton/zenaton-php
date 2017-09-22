@@ -61,13 +61,11 @@ class Workflow
         }
 
         // start workflow
-        $res = $this->api->startWorkflow(
+        $this->api->startWorkflow(
             get_class($flow),
             $this->jsonizer->getEncodedPropertiesFromObject($flow),
             isset($customId) ? $customId : null
         );
-
-        return $this->newInstance($res->custom_id, get_class($flow));
     }
 
     public function setInstance($customId, $class)
@@ -103,7 +101,7 @@ class Workflow
     public function getProperties()
     {
         $res = $this->api->getInstanceDetails($this->id, $this->workflowName);
-        return $this->jsonizer->decode($res->properties);
+        return $this->jsonizer->decode($res->data->properties);
     }
 
     protected function newInstance($id, $workflowName)
