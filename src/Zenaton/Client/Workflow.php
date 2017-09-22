@@ -61,7 +61,7 @@ class Workflow
         }
 
         // start workflow
-        $this->api->startWorkflow(
+        return $this->api->startWorkflow(
             get_class($flow),
             $this->jsonizer->getEncodedPropertiesFromObject($flow),
             isset($customId) ? $customId : null
