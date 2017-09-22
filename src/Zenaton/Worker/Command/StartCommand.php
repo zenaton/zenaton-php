@@ -84,7 +84,7 @@ class StartCommand extends Command
             self::MS_APP_ID => getenv(self::ENV_APP_ID),
             self::MS_API_TOKEN => getenv(self::ENV_API_TOKEN),
             self::MS_APP_ENV => getenv(self::ENV_APP_ENV),
-            self::MS_API_URL => getenv(self::ENV_API_URL) || self::ZENATON_API_URL,
+            self::MS_API_URL => getenv(self::ENV_API_URL) ? : self::ZENATON_API_URL,
             self::MS_CONCURRENT_MAX => $this->getConcurrentMaxParameter(),
             self::MS_WORKFLOWS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, WorkflowInterface::class),
             self::MS_TASKS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, TaskInterface::class),
