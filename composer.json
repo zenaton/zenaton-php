@@ -1,5 +1,6 @@
 {
     "name": "zenaton/zenaton-php",
+    "description": "Zenaton PHP library",
     "autoload": {
         "psr-4" : {
             "Zenaton\\" : "src/Zenaton/"

@@ -2,46 +2,96 @@
 
 namespace Zenaton\Worker\Command;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-
-use Zenaton\Worker\Configuration;
+use Symfony\Component\Console\Input\InputOption;
 
 class StartCommand extends Command
 {
-    const AUTOLOAD = 'autoload';
-    const DOTENV = '.env';
+    const MS_WORKFLOWS_NAME_ONLY = 'workflows_name_only';
+    const MS_TASKS_NAME_ONLY = 'tasks_name_only';
+
+    const MS_WORKFLOWS_NAME_EXCEPT = 'workflows_name_except';
+    const MS_TASKS_NAME_EXCEPT = 'tasks_name_except';
+
+    const MS_CONCURRENT_MAX = 'concurrent_max';
+    const WORKER_SCRIPT = 'worker_script';
+    const AUTOLOAD_PATH = 'autoload_path';
+
     protected function configure()
     {
         $this
             ->setName('start')
-            ->addArgument(self::DOTENV, InputArgument::REQUIRED, 'The location of your .env file')
-            ->addArgument(self::AUTOLOAD, InputArgument::REQUIRED, 'The location of your autoload file')
-            ->setDescription('Start and set the Zenaton executable')
-            ->setHelp('This command allows you to start and set a Zenaton executable');
+            ->setDescription('Start Zenaton worker')
+            ->setHelp('Start Zenaton worker')
+            ->addOption(self::OPTION_LARAVEL, null, InputOption::VALUE_NONE, 'Use this option if using Laravel')
+            ->addOption(self::OPTION_DOTENV, null, InputOption::VALUE_REQUIRED, 'Define location of your .env file')
+            ->addOption(self::OPTION_AUTOLOAD, null, InputOption::VALUE_REQUIRED, 'Define location of your autoload file');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $autoload = $input->getArgument(self::AUTOLOAD);
-        $dotenv = $input->getArgument(self::DOTENV);
+        $envFile = null;
+        $bootFile = null;
 
-        if (! file_exists($dotenv)) {
-
-            return $output->writeln('Error! Unabled to find '.$dotenv.' file.'.PHP_EOL);
-
-
-        }
-        // just in case autoload file has been not entered correctly
-        if ( ! file_exists($autoload)) {
-
-            return $output->writeln('Error! Unabled to find '.$autoload.' file.'.PHP_EOL);
+        // default value for --laravel option
+        if ($input->getOption(self::OPTION_LARAVEL)) {
+            if ($this->checkLaravel($input, $output) === false) {
+                return;
+            }
+            list($envFile, $bootFile) = $this->getLaravelDefault();
         }
 
-        $feedback = (new Configuration($dotenv, $autoload))->startMicroserver();
+        // get and check --env option
+        $envFile = $this->getEnvOption($input, $output, $envFile);
+        if ($envFile === false) {
+            return;
+        }
 
-        return $output->writeln($feedback);
+        // get and check --autoload option
+        $bootFile = $this->getBootOption($input, $output, $bootFile);
+        if ($bootFile === false) {
+            return;
+        }
+
+        // load env file and check app_id, app_env and app_token parameters
+        $this->loadEnvFile($envFile);
+        if ($this->checkEnvAppParameters($output) === false) {
+            return;
+        }
+
+        // load boot file and check ZENATON_HANDLE_EXCEPT and ZENATON_HANDLE_ONLY parameters
+        $this->loadBootFile($bootFile);
+        if ($this->checkEnvHandleParameters($output) === false) {
+            return;
+        }
+
+        if ($this->checkConcurrentMaxParameter($output) === false) {
+            return;
+        }
+
+        // start worker
+        $feedback = $this->start($bootFile);
+
+        return $output->writeln('<info>'.$feedback.'</info>');
+    }
+
+    public function start($bootFile)
+    {
+        $body = [
+            self::MS_APP_ID => getenv(self::ENV_APP_ID),
+            self::MS_API_TOKEN => getenv(self::ENV_API_TOKEN),
+            self::MS_APP_ENV => getenv(self::ENV_APP_ENV),
+            self::MS_CONCURRENT_MAX => $this->getConcurrentMaxParameter(),
+            self::MS_WORKFLOWS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, WorkflowInterface::class),
+            self::MS_TASKS_NAME_ONLY => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_ONLY, TaskInterface::class),
+            self::MS_WORKFLOWS_NAME_EXCEPT => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_EXCEPT, WorkflowInterface::class),
+            self::MS_TASKS_NAME_EXCEPT => $this->getClassNamesByTypeFromEnv(self::ENV_HANDLE_EXCEPT, TaskInterface::class),
+            self::WORKER_SCRIPT => getcwd().'/vendor/zenaton/zenaton-php/scripts/slave.php',
+            self::AUTOLOAD_PATH => $bootFile,
+            self::PROGRAMMING_LANGUAGE => self::PHP,
+        ];
+
+        return $this->microserver->sendEnv($body);
     }
 }
