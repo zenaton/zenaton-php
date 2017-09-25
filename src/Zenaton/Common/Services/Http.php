@@ -19,15 +19,11 @@ class Http
 
         $response = Httpful::post($url)
             ->sendsJson()
-            ->body(json_encode($body))
+            ->body($body)
             ->expectsJson()
             ->send();
 
         $this->metrics->addNetworkDuration(microtime(true) - $start);
-
-        if ($response->body && isset($response->body->error)) {
-            throw new InternalZenatonException($response->body->error);
-        }
 
         return $response->body;
     }
@@ -42,10 +38,6 @@ class Http
 
         $this->metrics->addNetworkDuration(microtime(true) - $start);
 
-        if ($response->body && isset($response->body->error)) {
-            throw new InternalZenatonException($response->body->error);
-        }
-
         return $response->body;
     }
 
@@ -55,15 +47,11 @@ class Http
 
         $response = Httpful::put($url)
             ->sendsJson()
-            ->body(json_encode($body))
+            ->body($body)
             ->expectsJson()
             ->send();
 
         $this->metrics->addNetworkDuration(microtime(true) - $start);
-
-        if ($response->body && isset($response->body->error)) {
-            throw new InternalZenatonException($response->body->error);
-        }
 
         return $response->body;
     }
