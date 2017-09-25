@@ -76,15 +76,13 @@ class MicroServer
     public function sendEnv($body)
     {
         $url = $this->microServerUrl('/configuration');
-
-        return $this->http->post($url, $body)->msg;
+        return $this->http->post($url, $body);
     }
 
     public function stop($body)
     {
         $url = $this->microServerUrl('/stop');
-
-        return $this->http->post($url, $body)->msg;
+        return $this->http->post($url, $body);
     }
 
     public function getWorkflowToExecute()

@@ -44,7 +44,8 @@ class StopCommand extends Command
 
         $feedback = $this->stop();
 
-        return $output->writeln('<info>'.$feedback.'</info>');
+
+        return isset($feedback->error) ? $output->writeln('<error>'.$feedback->error.'</error>') :  $output->writeln('<info>'.$feedback->msg.'</info>');
     }
 
     public function stop()

@@ -3,8 +3,10 @@
 namespace Zenaton\Common\Services;
 
 use Httpful\Request as Httpful;
-use Zenaton\Common\Exceptions\InternalZenatonException;
 use Zenaton\Common\Services\Metrics;
+use Httpful\Exception\ConnectionErrorException;
+use stdClass;
+use Exception;
 
 class Http
 {
@@ -17,15 +19,25 @@ class Http
     {
         $start = microtime(true);
 
-        $response = Httpful::post($url)
-            ->sendsJson()
-            ->body($body)
-            ->expectsJson()
-            ->send();
+        try {
+            $response = Httpful::post($url)
+                ->sendsJson()
+                ->body($body)
+                ->expectsJson()
+                ->send();
+
+            return $response->body;
+
+        } catch (ConnectionErrorException $e) {
+
+            $response = new stdClass();
+            $response->error = "Connection Problem. Please Check that you've started a zenaton_worker or ensure that PORT 4001 is available.";
+
+            return $response;
+        }
 
         $this->metrics->addNetworkDuration(microtime(true) - $start);
 
-        return $response->body;
     }
 
     public function get($url)

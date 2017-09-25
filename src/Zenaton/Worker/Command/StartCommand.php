@@ -75,7 +75,7 @@ class StartCommand extends Command
         // start worker
         $feedback = $this->start($bootFile);
 
-        return $output->writeln('<info>'.$feedback.'</info>');
+        return isset($feedback->error) ? $output->writeln('<error>'.$feedback->error.'</error>') : $output->writeln('<info>'.$feedback->msg.'</info>');
     }
 
     public function start($bootFile)
