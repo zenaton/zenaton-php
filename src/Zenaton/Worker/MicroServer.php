@@ -14,6 +14,7 @@ class MicroServer
     use SingletonTrait;
 
     const MICROSERVER_URL = 'http://localhost:4001';
+    const ENV_WORKER_PORT = 'ZENATON_WORKER_PORT';
 
     protected $jsonizer;
     protected $flow;
@@ -225,6 +226,7 @@ class MicroServer
 
     protected function microServerUrl($ressource)
     {
-        return self::MICROSERVER_URL.$ressource;
+        $url = getenv(self::ENV_WORKER_PORT) ? 'http://localhost:'.getenv(self::ENV_WORKER_PORT) : self::MICROSERVER_URL;
+        return $url.$ressource;
     }
 }

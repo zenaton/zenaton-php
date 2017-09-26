@@ -10,6 +10,8 @@ use Exception;
 
 class Http
 {
+    const ENV_WORKER_PORT = 'ZENATON_WORKER_PORT';
+
     public function __construct()
     {
         $this->metrics = Metrics::getInstance();
@@ -31,7 +33,8 @@ class Http
         } catch (ConnectionErrorException $e) {
 
             $response = new stdClass();
-            $response->error = "Connection Problem. Please Check that you've started a zenaton_worker or ensure that PORT 4001 is available.";
+            $port = getenv(self::ENV_WORKER_PORT) ? : 4001;
+            $response->error = "Connection Problem. Please Check that you've started a zenaton_worker or ensure that PORT ".$port." is available.";
 
             return $response;
         }
