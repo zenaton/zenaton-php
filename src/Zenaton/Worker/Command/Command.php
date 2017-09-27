@@ -165,8 +165,8 @@ class Command extends SymfonyCommand
 
     protected function checkEnvHandleParameters($output)
     {
-        $max = getenv(self::ENV_HANDLE_ONLY);
-        if ($max !== false) {
+        $only = getenv(self::ENV_HANDLE_ONLY);
+        if ($only !== false) {
             if (!$this->checkClassTypeFromEnv($output, self::ENV_HANDLE_ONLY, [WorkflowInterface::class, TaskInterface::class])) {
                 return false;
             }
