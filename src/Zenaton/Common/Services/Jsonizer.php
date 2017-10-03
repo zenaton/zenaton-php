@@ -2,7 +2,6 @@
 
 namespace Zenaton\Common\Services;
 
-use Closure;
 use ReflectionClass;
 use SuperClosure\Serializer;
 use Zenaton\Common\Exceptions\InternalZenatonException;
@@ -11,13 +10,21 @@ class Jsonizer
 {
     const ID_PREFIX = "@zenaton#";
 
-    protected $serializer;
+    const KEY_OBJECT = 'o';
+    const KEY_OBJECT_NAME = 'n';
+    const KEY_OBJECT_PROPERTIES = 'p';
+    const KEY_ARRAY = 'a';
+    const KEY_CLOSURE = 'c';
+    const KEY_DATA = 'd';
+    const KEY_STORE = 's';
+
+    protected $closure;
     protected $encoded;
     protected $decoded;
 
     public function __construct()
     {
-        $this->serializer = new Serializer();
+        $this->closure = new Serializer();
     }
 
     public function getEncodedPropertiesFromObject($o)
@@ -25,7 +32,7 @@ class Jsonizer
         return $this->encode($this->getPropertiesFromObject($o));
     }
 
-    public function getObjectFromNameAndEncodedProperties($name, $encoded, $class = null)
+    public function getObjectFromNameAndEncodedProperties($name, $encodedProperties, $class = null)
     {
         $o = (new ReflectionClass($name))->newInstanceWithoutConstructor();
 
@@ -35,7 +42,7 @@ class Jsonizer
         }
 
         // decode properties
-        $properties = $this->decode($encoded);
+        $properties = $this->decode($encodedProperties);
 
         // fill empty object with properties
         return $this->setPropertiesToObject($o, $properties);
@@ -46,23 +53,23 @@ class Jsonizer
         $r = new ReflectionClass($o);
 
         // declared variables
-        $keys = [];
+        // $keys = [];
         foreach ($r->getProperties() as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
             if (! $property->isStatic()) {
                 $property->setAccessible(true);
                 $key = $property->getName();
                 $property->setValue($o, $properties[$key]);
-                $keys[] = $key;
+                // $keys[] = $key;
             }
         }
 
         // non-declared variables
-        foreach ($properties as $key => $value) {
-            if ( ! in_array($key, $keys)) {
-                $o->{$key} = $value;
-            }
-        }
+        // foreach ($properties as $key => $value) {
+        //     if ( ! in_array($key, $keys)) {
+        //         $o->{$key} = $value;
+        //     }
+        // }
 
         return $o;
     }
@@ -77,22 +84,18 @@ class Jsonizer
         $this->decoded = [];
 
         if (is_object($data)) {
-            // if ($data instanceof Closure) {
-                    // closure
-            //     $this->encoded['c'] = $this->serializer->serialize($data);
-            // } else {
-                // object
-                $value['o'] = $this->encodeObject($data);
-            // }
+            if ($data instanceof \Closure) {
+                $value[self::KEY_CLOSURE] = $this->encodeClosure($data);
+            } else {
+                $value[self::KEY_OBJECT] = $this->encodeObject($data);
+            }
         } elseif (is_array($data)) {
-            // array
-            $value['a'] = $this->encodeArray($data);
+            $value[self::KEY_ARRAY] = $this->encodeArray($data);
         } else {
-            // data
-            $value['d'] = $data;
+            $value[self::KEY_DATA] = $data;
         }
-        // store of objects
-        $value['s'] = $this->encoded;
+        // this has been updated by encodeClosure or encodeObject
+        $value[self::KEY_STORE] = $this->encoded;
 
         return json_encode($value);
     }
@@ -102,18 +105,21 @@ class Jsonizer
         $array = $this->jsonDecode($json);
 
         $this->decoded = [];
-        $this->encoded = $array['s'];
+        $this->encoded = $array[self::KEY_STORE];
 
-        if (isset($array['d'])) {
-            return $array['d'];
+        if (isset($array[self::KEY_CLOSURE])) {
+            $id = substr($array[self::KEY_CLOSURE], strlen(self::ID_PREFIX));
+            return $this->decodeClosure($id, $this->encoded[$id]);
         }
-        if (isset($array['o'])) {
-            $id = substr($array['o'], strlen(self::ID_PREFIX));
-            $encoded = $this->encoded[$id];
-            return $this->decodeObject($id, $encoded['n'], $encoded['p']);
+        if (isset($array[self::KEY_OBJECT])) {
+            $id = substr($array[self::KEY_OBJECT], strlen(self::ID_PREFIX));
+            return $this->decodeObject($id, $this->encoded[$id]);
         }
-        if (isset($array['a'])) {
-            return $this->decodeArray($array['a']);
+        if (isset($array[self::KEY_ARRAY])) {
+            return $this->decodeArray($array[self::KEY_ARRAY]);
+        }
+        if (isset($array[self::KEY_DATA])) {
+            return $array[self::KEY_DATA];
         }
     }
 
@@ -130,12 +136,28 @@ class Jsonizer
     {
         // get key of existing object
         $id = array_search($o, $this->decoded, true);
+
         // store object in encoded array if not yet present
         if ($id === false) {
             $id = count($this->decoded);
             $this->decoded[$id] = $o;
-            $this->encoded[$id]['n'] = get_class($o);
-            $this->encoded[$id]['p'] = $this->encodeArray($this->getPropertiesFromObject($o));
+            $this->encoded[$id][self::KEY_OBJECT_NAME] = get_class($o);
+            $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->getPropertiesFromObject($o));
+        }
+
+        return self::ID_PREFIX . $id;
+    }
+
+    protected function encodeClosure($c)
+    {
+        // get key of existing object
+        $id = array_search($c, $this->decoded, true);
+
+        // store object in encoded array if not yet present
+        if ($id === false) {
+            $id = count($this->decoded);
+            $this->decoded[$id] = $c;
+            $this->encoded[$id] = $this->closure->serialize($c);
         }
 
         return self::ID_PREFIX . $id;
@@ -146,7 +168,11 @@ class Jsonizer
         $array = [];
         foreach ($a as $key => $value) {
             if (is_object($value)) {
-                $array[$key] = $this->encodeObject($value);
+                if ($value instanceof \Closure) {
+                    $array[$key] =  $this->encodeClosure($value);
+                } else {
+                    $array[$key] =  $this->encodeObject($value);
+                }
             } else if (is_array($value)) {
                 $array[$key] = $this->encodeArray($value);
             } else {
@@ -157,27 +183,45 @@ class Jsonizer
         return $array;
     }
 
-    protected function decodeObject($id, $name, $properties) {
+    protected function decodeObject($id, $encoded) {
         // return object if already known (avoid recursion)
         if (in_array($id, array_keys($this->decoded))) {
             return $this->decoded[$id];
         }
 
         // build object
-        $object = (new ReflectionClass($name))->newInstanceWithoutConstructor();
+        $object = (new ReflectionClass($encoded[self::KEY_OBJECT_NAME]))->newInstanceWithoutConstructor();
         $this->decoded[$id] = $object;
 
         // transpile properties
-        $properties = $this->decodeArray($properties);
+        $properties = $this->decodeArray($encoded[self::KEY_OBJECT_PROPERTIES]);
 
         return $this->setPropertiesToObject($object, $properties);
+    }
+
+    protected function decodeClosure($id, $encodedClosure) {
+        // return object if already known (avoid recursion)
+        if (in_array($id, array_keys($this->decoded))) {
+            return $this->decoded[$id];
+        }
+
+        // build closure
+        $closure = $this->closure->unserialize($encodedClosure);
+        $this->decoded[$id] = $closure;
+
+        return $closure;
     }
 
     protected function decodeArray($array) {
         foreach ($array as $key => $value) {
             if ($this->isObjectId($value)) {
                 $id = substr($value, strlen(self::ID_PREFIX));
-                $array[$key] = $this->decodeObject($id, $this->encoded[$id]['n'], $this->encoded[$id]['p']);
+                $encoded = $this->encoded[$id];
+                if (is_array($encoded)) {
+                    $array[$key] = $this->decodeObject($id, $encoded);
+                } else {
+                    $array[$key] = $this->decodeClosure($id, $encoded);
+                }
             } elseif (is_array($value)) {
                 $array[$key] = $this->decodeArray($value);
             }
@@ -202,11 +246,11 @@ class Jsonizer
         }
 
         # non-declared public variables
-        foreach ($o as $key => $value) {
-            if ( ! isset($properties[$key])) {
-                $properties[$key] = $value;
-            }
-        }
+        // foreach ($o as $key => $value) {
+        //     if ( ! isset($properties[$key])) {
+        //         $properties[$key] = $value;
+        //     }
+        // }
 
         return $properties;
     }
