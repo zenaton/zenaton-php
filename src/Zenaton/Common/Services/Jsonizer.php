@@ -34,7 +34,7 @@ class Jsonizer
 
     public function getObjectFromNameAndEncodedProperties($name, $encodedProperties, $class = null)
     {
-        $o = (new ReflectionClass($name))->newInstanceWithoutConstructor();
+        $o = $this->getNewObject($name);
 
         // object must be of $class type
         if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
@@ -46,6 +46,25 @@ class Jsonizer
 
         // fill empty object with properties
         return $this->setPropertiesToObject($o, $properties);
+    }
+
+    protected function getNewObject($name)
+    {
+        // this is a crazy hack necessary to be able to decode Carbon\Carbon object
+        // Datetime has a date property created by its constructor
+        // but Carbon forbid to access it if not yet set
+        $params = (new ReflectionClass($name))->getConstructor()->getParameters();
+        $useConstructor = count($params)===0 || array_unique(array_map(function($p) { return $p->isOptional(); }, $params)) === [true];
+
+        if ($useConstructor) {
+            $o = new $name;
+            // this is necessary - I do not known why really
+            var_export($o, true);
+
+            return $o;
+        }
+
+        return (new ReflectionClass($name))->newInstanceWithoutConstructor();
     }
 
     public function setPropertiesToObject($o, $properties)
@@ -196,7 +215,8 @@ class Jsonizer
         }
 
         // build object
-        $object = (new ReflectionClass($encodedObject[self::KEY_OBJECT_NAME]))->newInstanceWithoutConstructor();
+        $object = $this->getNewObject($encodedObject[self::KEY_OBJECT_NAME]);
+
         $this->decoded[$id] = $object;
 
         // transpile properties
