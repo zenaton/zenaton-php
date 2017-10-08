@@ -53,23 +53,28 @@ class Jsonizer
         $r = new ReflectionClass($o);
 
         // declared variables
-        // $keys = [];
+        $keys = [];
         foreach ($r->getProperties() as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
             if (! $property->isStatic()) {
                 $property->setAccessible(true);
                 $key = $property->getName();
                 $property->setValue($o, $properties[$key]);
-                // $keys[] = $key;
+                $keys[] = $key;
             }
         }
 
         // non-declared variables
-        // foreach ($properties as $key => $value) {
-        //     if ( ! in_array($key, $keys)) {
-        //         $o->{$key} = $value;
-        //     }
-        // }
+        foreach ($properties as $key => $value) {
+            if ( ! in_array($key, $keys)) {
+                $o->{$key} = $value;
+            }
+        }
+
+        // we now have the complete object, time to wake up
+        if (method_exists($o, '__wakeup')) {
+            $o->__wakeup();
+        }
 
         return $o;
     }
@@ -78,8 +83,8 @@ class Jsonizer
     {
         // $encoded array stores serialized version of objects found in $data
         // $decoded array stores objects found in $data
-        // by having a unique reference of each object, we avoid infinite
-        // looping if $data includes some recursivity (eg. $a->child=$b; $b->parent=$a)
+        // by having a unique reference of each object, we avoid infinite recursion
+        // if $data includes some recursivity (eg. $a->child=$b; $b->parent=$a)
         $this->encoded = [];
         $this->decoded = [];
 
@@ -107,20 +112,21 @@ class Jsonizer
         $this->decoded = [];
         $this->encoded = $array[self::KEY_STORE];
 
-        if (isset($array[self::KEY_CLOSURE])) {
+        if (array_key_exists(self::KEY_CLOSURE, $array)) {
             $id = substr($array[self::KEY_CLOSURE], strlen(self::ID_PREFIX));
             return $this->decodeClosure($id, $this->encoded[$id]);
         }
-        if (isset($array[self::KEY_OBJECT])) {
+        if (array_key_exists(self::KEY_OBJECT, $array)) {
             $id = substr($array[self::KEY_OBJECT], strlen(self::ID_PREFIX));
             return $this->decodeObject($id, $this->encoded[$id]);
         }
-        if (isset($array[self::KEY_ARRAY])) {
+        if (array_key_exists(self::KEY_ARRAY, $array)) {
             return $this->decodeArray($array[self::KEY_ARRAY]);
         }
-        if (isset($array[self::KEY_DATA])) {
+        if (array_key_exists(self::KEY_DATA, $array)) {
             return $array[self::KEY_DATA];
         }
+        throw new InternalZenatonException('Unknown key in: '.$json);
     }
 
     protected function isObjectId($s)
@@ -183,18 +189,18 @@ class Jsonizer
         return $array;
     }
 
-    protected function decodeObject($id, $encoded) {
+    protected function decodeObject($id, $encodedObject) {
         // return object if already known (avoid recursion)
         if (in_array($id, array_keys($this->decoded))) {
             return $this->decoded[$id];
         }
 
         // build object
-        $object = (new ReflectionClass($encoded[self::KEY_OBJECT_NAME]))->newInstanceWithoutConstructor();
+        $object = (new ReflectionClass($encodedObject[self::KEY_OBJECT_NAME]))->newInstanceWithoutConstructor();
         $this->decoded[$id] = $object;
 
         // transpile properties
-        $properties = $this->decodeArray($encoded[self::KEY_OBJECT_PROPERTIES]);
+        $properties = $this->decodeArray($encodedObject[self::KEY_OBJECT_PROPERTIES]);
 
         return $this->setPropertiesToObject($object, $properties);
     }
@@ -231,26 +237,33 @@ class Jsonizer
 
     protected function getPropertiesFromObject($o)
     {
-        $r = new ReflectionClass($o);
+        // why cloning ? https://divinglaravel.com/queue-system/preparing-jobs-for-queue
+        $clone = clone $o;
+        // apply __sleep before serialization - should return an array of properties to be serialized
+        if (method_exists($clone, '__sleep')) {
+            $valid = $clone->__sleep() ? : [];
+        }
+
+        $r = new ReflectionClass($clone);
 
         $properties = [];
 
         // declared variables
         foreach ($r->getProperties() as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (! $property->isStatic()) {
+            if (! $property->isStatic() && (! isset($valid) || in_array($property->getName(), $valid))) {
                 $property->setAccessible(true);
-                $value = $property->getValue($o);
+                $value = $property->getValue($clone);
                 $properties[$property->getName()] = $value;
            }
         }
 
         # non-declared public variables
-        // foreach ($o as $key => $value) {
-        //     if ( ! isset($properties[$key])) {
-        //         $properties[$key] = $value;
-        //     }
-        // }
+        foreach ($clone as $key => $value) {
+            if (! isset($properties[$key]) && (! isset($valid) || in_array($key, $valid))) {
+                $properties[$key] = $value;
+            }
+        }
 
         return $properties;
     }

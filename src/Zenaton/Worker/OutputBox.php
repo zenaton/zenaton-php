@@ -49,7 +49,7 @@ class OutputBox
         // If the user set a timeout
         if (method_exists($box, 'getTimeout')) {
             // Convert in MiliSeconds
-            $this->timeout = ($box->getTimeout());
+            $this->timeout = $box->getTimeout();
         } else {
             // No task_timeout by default
             $this->timeout = PHP_INT_MAX;
@@ -91,7 +91,6 @@ class OutputBox
         } else {
             throw new InternalZenatonException('Unknown type');
         }
-
 
         return $data;
     }

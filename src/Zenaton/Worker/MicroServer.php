@@ -3,7 +3,6 @@
 namespace Zenaton\Worker;
 
 use Exception;
-use Zenaton\Worker\OutputBox;
 use Zenaton\Common\Services\Jsonizer;
 use Zenaton\Common\Services\Http;
 use Zenaton\Common\Traits\SingletonTrait;
@@ -108,20 +107,18 @@ class MicroServer
 
         $response = $this->sendDecision($body);
 
-        // decode properties
-        if (isset($response->properties)) {
+        if ($response->status === 'completed') {
+            // decode properties
             $response->properties = $this->jsonizer->decode($response->properties);
-        }
 
-        // decode outputs
-        if (isset($response->outputs)) {
+            // decode outputs ($output can be null, eg. wait task)
             $outputs = array_map(function ($output) {
                 if (!is_null($output)) {
                     return $this->jsonizer->decode($output);
                 }
             }, $response->outputs);
 
-            $response->outputs = $outputs;
+            $response->outputs = (count($outputs) > 1) ? $outputs : $outputs[0];
         }
 
         return $response;

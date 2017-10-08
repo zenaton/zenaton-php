@@ -40,7 +40,6 @@ class Http
         }
 
         $this->metrics->addNetworkDuration(microtime(true) - $start);
-
     }
 
     public function get($url)

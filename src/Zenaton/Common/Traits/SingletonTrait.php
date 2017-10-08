@@ -38,5 +38,7 @@ trait SingletonTrait
     public static function setInstance($o)
     {
         static::$instance = $o;
+
+        return $o;
     }
 }
