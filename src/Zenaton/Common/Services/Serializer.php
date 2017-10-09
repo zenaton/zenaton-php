@@ -67,13 +67,13 @@ class Serializer
         $this->decoded = [];
         $this->encoded = $array[self::KEY_STORE];
 
-        if (array_key_exists(self::KEY_CLOSURE, $array)) {
-            $id = substr($array[self::KEY_CLOSURE], strlen(self::ID_PREFIX));
-            return $this->decodeClosure($id, $this->encoded[$id]);
-        }
         if (array_key_exists(self::KEY_OBJECT, $array)) {
             $id = substr($array[self::KEY_OBJECT], strlen(self::ID_PREFIX));
             return $this->decodeObject($id, $this->encoded[$id]);
+        }
+        if (array_key_exists(self::KEY_CLOSURE, $array)) {
+            $id = substr($array[self::KEY_CLOSURE], strlen(self::ID_PREFIX));
+            return $this->decodeClosure($id, $this->encoded[$id]);
         }
         if (array_key_exists(self::KEY_ARRAY, $array)) {
             return $this->decodeArray($array[self::KEY_ARRAY]);
@@ -159,6 +159,24 @@ class Serializer
 
         // new empty instance
         $o = $this->properties->getNewInstanceWithoutProperties($encodedObject[self::KEY_OBJECT_NAME]);
+
+        // Special case of Carbon object
+        // Carbon's definition of __set method forbid direct set of 'date' parameter
+        // while DateTime is still able to set them despite not declaring them!
+        // it's a very special and messy case due to internal DateTime implementation
+        if ($o instanceof Carbon) {
+            $properties = $this->decodeArray($encodedObject[self::KEY_OBJECT_PROPERTIES]);
+            $o = $this->properties->getNewInstanceWithoutProperties('DateTime');
+            $dt = $this->properties->setToObject($o, $properties);
+            // other possible implementation
+            // $dt = 'O:8:"DateTime":3:{s:4:"date";s:' . strlen($properties['date']) . ':"' . $properties['date'] .
+            //     '";s:13:"timezone_type";i:' . $properties['timezone_type'] .
+            //     ';s:8:"timezone";s:'. strlen($properties['timezone']) . ':"' . $properties['timezone'] . '";}';
+            // $dt = unserialize($dt);
+            $o = Carbon::instance($dt);
+            $this->decoded[$id] = $o;
+            return $o;
+        }
 
         // make sure this is in decoded array, before decoding properties, to avoid potential recursion
         $this->decoded[$id] = $o;

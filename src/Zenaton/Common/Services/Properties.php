@@ -3,7 +3,7 @@
 namespace Zenaton\Common\Services;
 
 use ReflectionClass;
-use Carbon\Carbon;
+use UnexpectedValueException;
 
 class Properties
 {
@@ -18,7 +18,7 @@ class Properties
 
         // object must be of $class type
         if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
-            throw new InternalZenatonException('Error - '.$name.' should be an instance of '.$class);
+            throw new UnexpectedValueException('Error - '.$name.' should be an instance of '.$class);
         }
 
         // fill empty object with properties
@@ -59,16 +59,6 @@ class Properties
 
     public function setToObject($o, $properties)
     {
-        // Special case of Carbon object
-        // Carbon __set forbid direct set of 'date' parameter
-        // while DateTime is still able to set them despite not declaring them!
-        // it's a very special and messy case
-        if ($o instanceof Carbon) {
-            $o = $this->getNewInstanceWithoutProperties('DateTime');
-            $dt = $this->setToObject($o, $properties);
-            return Carbon::instance($dt);
-        }
-
         // declared variables
         $keys = [];
         foreach ((new ReflectionClass($o))->getProperties() as $property) {
