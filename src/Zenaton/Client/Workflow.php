@@ -7,13 +7,15 @@ use Zenaton\Client\Api;
 use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Common\Interfaces\EventInterface;
 use Zenaton\Common\Interfaces\WorkflowInterface;
-use Zenaton\Common\Services\Jsonizer;
+use Zenaton\Common\Services\Serializer;
+use Zenaton\Common\Services\Properties;
 
 class Workflow
 {
     private $id;
     private $api;
-    private $jsonizer;
+    private $serializer;
+    private $properties;
     private $workflowName;
 
     const SIZE_OF_VARCHAR = 191;
@@ -27,7 +29,8 @@ class Workflow
         $this->id = $id;
         $this->workflowName = $workflowName;
         $this->api = Api::getInstance();
-        $this->jsonizer = new Jsonizer();
+        $this->serializer = new Serializer();
+        $this->properties = new Properties();
     }
 
     public function getId()
@@ -63,7 +66,7 @@ class Workflow
         // start workflow
         return $this->api->startWorkflow(
             get_class($flow),
-            $this->jsonizer->getEncodedPropertiesFromObject($flow),
+            $this->serializer->encode($this->properties->getFromObject($flow)),
             isset($customId) ? $customId : null
         );
     }
@@ -79,7 +82,7 @@ class Workflow
             $this->id,
             $this->workflowName,
             get_class($event),
-            $this->jsonizer->encode($event)
+            $this->serializer->encode($event)
         );
     }
 
@@ -101,7 +104,7 @@ class Workflow
     public function getProperties()
     {
         $res = $this->api->getInstanceDetails($this->id, $this->workflowName);
-        return $this->jsonizer->decode($res->data->properties);
+        return $this->serializer->decode($res->data->properties);
     }
 
     protected function newInstance($id, $workflowName)

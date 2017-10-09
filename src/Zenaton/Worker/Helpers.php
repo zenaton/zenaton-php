@@ -12,7 +12,6 @@ use Zenaton\Common\Interfaces\BoxInterface;
 use Zenaton\Common\Interfaces\TaskInterface;
 use Zenaton\Common\Interfaces\WorkflowInterface;
 use Zenaton\Common\Traits\SingletonTrait;
-use Zenaton\Common\Services\Jsonizer;
 
 class Helpers
 {
@@ -25,7 +24,6 @@ class Helpers
     {
         $this->microserver = MicroServer::getInstance();
         $this->flow = Workflow::getInstance();
-        $this->jsonizer = new Jsonizer();
     }
 
     public function execute()

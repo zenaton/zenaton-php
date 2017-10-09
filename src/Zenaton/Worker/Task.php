@@ -3,25 +3,28 @@
 namespace Zenaton\Worker;
 
 use Zenaton\Common\Interfaces\TaskInterface;
-use Zenaton\Common\Services\Jsonizer;
+use Zenaton\Common\Services\Serializer;
+use Zenaton\Common\Services\Properties;
 use Zenaton\Common\Traits\SingletonTrait;
 
 class Task
 {
     use SingletonTrait;
 
-    protected $jsonizer;
+    protected $serializer;
+    protected $properties;
 
     public function construct()
     {
-        $this->jsonizer = new Jsonizer();
+        $this->serializer = new Serializer();
+        $this->properties = new Properties();
     }
 
     public function init($name, $input)
     {
-        $this->task = $this->jsonizer->getObjectFromNameAndEncodedProperties(
+        $this->task = $this->properties->getObjectFromNameAndProperties(
             $name,
-            $input,
+            $this->serializer->decode($input),
             TaskInterface::class
         );
 

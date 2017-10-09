@@ -8,7 +8,8 @@ use Zenaton\Common\Interfaces\TaskInterface;
 use Zenaton\Common\Interfaces\WaitInterface;
 use Zenaton\Common\Interfaces\WaitWhileInterface;
 use Zenaton\Common\Interfaces\WorkflowInterface;
-use Zenaton\Common\Services\Jsonizer;
+use Zenaton\Common\Services\Serializer;
+use Zenaton\Common\Services\Properties;
 use Zenaton\Common\Traits\IsImplementationOfTrait;
 
 class OutputBox
@@ -27,7 +28,8 @@ class OutputBox
     const TYPE_WAIT = 'wait';
     const TYPE_WHILE = 'while';
 
-    protected $jsonizer;
+    protected $serializer;
+    protected $properties;
     protected $name;
     protected $input;
     protected $position;
@@ -36,10 +38,11 @@ class OutputBox
 
     public function __construct(BoxInterface $box)
     {
-        $this->jsonizer = new Jsonizer();
+        $this->serializer = new Serializer();
+        $this->properties = new Properties();
 
         $this->name = get_class($box);
-        $this->input = $this->jsonizer->getEncodedPropertiesFromObject($box);
+        $this->input = $this->serializer->encode($this->properties->getFromObject($box));
 
         // if $box has an event
         if (method_exists($box, 'getEvent')) {

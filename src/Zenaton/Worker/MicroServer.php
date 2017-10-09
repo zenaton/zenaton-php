@@ -3,7 +3,7 @@
 namespace Zenaton\Worker;
 
 use Exception;
-use Zenaton\Common\Services\Jsonizer;
+use Zenaton\Common\Services\Serializer;
 use Zenaton\Common\Services\Http;
 use Zenaton\Common\Traits\SingletonTrait;
 use Zenaton\Common\Interfaces\WorkflowInterface;
@@ -15,7 +15,7 @@ class MicroServer
     const MICROSERVER_URL = 'http://localhost:4001';
     const ENV_WORKER_PORT = 'ZENATON_WORKER_PORT';
 
-    protected $jsonizer;
+    protected $serializer;
     protected $flow;
     protected $http;
 
@@ -24,7 +24,7 @@ class MicroServer
 
     public function construct()
     {
-        $this->jsonizer = new Jsonizer();
+        $this->serializer = new Serializer();
         $this->flow = Workflow::getInstance();
         $this->http = new Http();
     }
@@ -109,12 +109,12 @@ class MicroServer
 
         if ($response->status === 'completed') {
             // decode properties
-            $response->properties = $this->jsonizer->decode($response->properties);
+            $response->properties = $this->serializer->decode($response->properties);
 
             // decode outputs ($output can be null, eg. wait task)
             $outputs = array_map(function ($output) {
                 if (!is_null($output)) {
-                    return $this->jsonizer->decode($output);
+                    return $this->serializer->decode($output);
                 }
             }, $response->outputs);
 
@@ -129,7 +129,7 @@ class MicroServer
         $this->sendDecision([
             'action' => 'terminate',
             'status' => 'running',
-            'properties' => $this->flow->getEncodedProperties()
+            'properties' => $this->serializer->encode($this->flow->getProperties())
         ]);
     }
 
@@ -139,8 +139,8 @@ class MicroServer
         $this->sendDecision([
             'action' => 'terminate',
             'status' => 'completed',
-            'properties' => $this->flow->getEncodedProperties(),
-            'output' =>  $this->jsonizer->encode($output)
+            'properties' => $this->serializer->encode($this->flow->getProperties()),
+            'output' =>  $this->serializer->encode($output)
         ]);
     }
 
@@ -175,7 +175,7 @@ class MicroServer
         $this->sendWork([
             'action' => 'terminate',
             'status' => 'completed',
-            'output' => $this->jsonizer->encode($output),
+            'output' => $this->serializer->encode($output),
             'duration' => 0,
         ]);
     }

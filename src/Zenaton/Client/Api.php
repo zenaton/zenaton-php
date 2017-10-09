@@ -9,7 +9,6 @@ class Api
 {
     use SingletonTrait;
 
-
     const ZENATON_API_URL = 'https://zenaton.com/api';
 
     const APP_ENV = 'app_env';

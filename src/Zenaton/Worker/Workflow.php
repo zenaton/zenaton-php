@@ -6,14 +6,16 @@ use Exception;
 use Zenaton\Common\Interfaces\BoxInterface;
 use Zenaton\Common\Interfaces\EventInterface;
 use Zenaton\Common\Interfaces\WorkflowInterface;
-use Zenaton\Common\Services\Jsonizer;
+use Zenaton\Common\Services\Serializer;
+use Zenaton\Common\Services\Properties;
 use Zenaton\Common\Traits\SingletonTrait;
 
 class Workflow
 {
     use SingletonTrait;
 
-    protected $jsonizer;
+    protected $serializer;
+    protected $properties;
     protected $position;
     protected $counter;
 
@@ -22,24 +24,22 @@ class Workflow
 
     public function construct()
     {
-        $this->jsonizer = new Jsonizer();
+        $this->serializer = new Serializer();
+        $this->properties = new Properties();
         $this->position = new Position();
     }
 
     public function init($name, $input, $event)
     {
         // build workflow object
-        $this->flow = $this->jsonizer->getObjectFromNameAndEncodedProperties(
+        $this->flow = $this->properties->getObjectFromNameAndProperties(
             $name,
-            $input,
+            $this->serializer->decode($input),
             WorkflowInterface::class
         );
 
         // build event
-        $this->event = $event ? $this->jsonizer->decode(
-            $event,
-            EventInterface::class
-          ) : null;
+        $this->event = $event ? $this->serializer->decode($event) : null;
 
         // init position
         $this->position->init();
@@ -64,17 +64,17 @@ class Workflow
 
     public function boxCompleted(BoxInterface $box, $output)
     {
-        return $this->jsonizer->decode($output);
+        return $this->serializer->decode($output);
     }
 
-    public function getEncodedProperties()
+    public function getProperties()
     {
-        return $this->jsonizer->getEncodedPropertiesFromObject($this->flow);
+        return $this->properties->getFromObject($this->flow);
     }
 
     public function setProperties($properties)
     {
-        $this->jsonizer->setPropertiesToObject($this->flow, $properties);
+        $this->properties->setToObject($this->flow, $properties);
 
         return $this;
     }

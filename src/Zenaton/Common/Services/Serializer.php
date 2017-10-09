@@ -3,11 +3,15 @@
 namespace Zenaton\Common\Services;
 
 use ReflectionClass;
-use SuperClosure\Serializer;
-use Zenaton\Common\Exceptions\InternalZenatonException;
+use SuperClosure\Serializer as ClosureSerializer;
+use Carbon\Carbon;
+use UnexpectedValueException;
+use Closure;
 
-class Jsonizer
+class Serializer
 {
+    // this string prefixs ids that are used to identify objects and Closure
+    // it means that no
     const ID_PREFIX = "@zenaton#";
 
     const KEY_OBJECT = 'o';
@@ -24,78 +28,8 @@ class Jsonizer
 
     public function __construct()
     {
-        $this->closure = new Serializer();
-    }
-
-    public function getEncodedPropertiesFromObject($o)
-    {
-        return $this->encode($this->getPropertiesFromObject($o));
-    }
-
-    public function getObjectFromNameAndEncodedProperties($name, $encodedProperties, $class = null)
-    {
-        $o = $this->getNewObject($name);
-
-        // object must be of $class type
-        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
-            throw new InternalZenatonException('Error - '.$name.' should be an instance of '.$class);
-        }
-
-        // decode properties
-        $properties = $this->decode($encodedProperties);
-
-        // fill empty object with properties
-        return $this->setPropertiesToObject($o, $properties);
-    }
-
-    protected function getNewObject($name)
-    {
-        // this is a crazy hack necessary to be able to decode Carbon\Carbon object
-        // Datetime has a date property created by its constructor
-        // but Carbon forbid to access it if not yet set
-        // $params = (new ReflectionClass($name))->getConstructor()->getParameters();
-        // $useConstructor = count($params)===0 || array_unique(array_map(function($p) { return $p->isOptional(); }, $params)) === [true];
-        //
-        // if ($useConstructor) {
-        //     $o = new $name;
-        //     // this is necessary - I do not known why really
-        //     var_export($o, true);
-        //
-        //     return $o;
-        // }
-
-        return (new ReflectionClass($name))->newInstanceWithoutConstructor();
-    }
-
-    public function setPropertiesToObject($o, $properties)
-    {
-        $r = new ReflectionClass($o);
-
-        // declared variables
-        $keys = [];
-        foreach ($r->getProperties() as $property) {
-            // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (! $property->isStatic()) {
-                $property->setAccessible(true);
-                $key = $property->getName();
-                $property->setValue($o, $properties[$key]);
-                $keys[] = $key;
-            }
-        }
-
-        // non-declared variables
-        foreach ($properties as $key => $value) {
-            if ( ! in_array($key, $keys)) {
-                $o->{$key} = $value;
-            }
-        }
-
-        // we now have the complete object, time to wake up
-        if (method_exists($o, '__wakeup')) {
-            $o->__wakeup();
-        }
-
-        return $o;
+        $this->closure = new ClosureSerializer();
+        $this->properties = new Properties();
     }
 
     public function encode($data)
@@ -108,17 +42,19 @@ class Jsonizer
         $this->decoded = [];
 
         if (is_object($data)) {
-            if ($data instanceof \Closure) {
+            if ($data instanceof Closure) {
                 $value[self::KEY_CLOSURE] = $this->encodeClosure($data);
             } else {
                 $value[self::KEY_OBJECT] = $this->encodeObject($data);
             }
         } elseif (is_array($data)) {
             $value[self::KEY_ARRAY] = $this->encodeArray($data);
-        } else {
+        } elseif (is_resource($data)) {
+            $this->throwRessourceException();
+        } else{
             $value[self::KEY_DATA] = $data;
         }
-        // this has been updated by encodeClosure or encodeObject
+        //  $this->encoded may have been updated by encodeClosure or encodeObject
         $value[self::KEY_STORE] = $this->encoded;
 
         return json_encode($value);
@@ -145,7 +81,12 @@ class Jsonizer
         if (array_key_exists(self::KEY_DATA, $array)) {
             return $array[self::KEY_DATA];
         }
-        throw new InternalZenatonException('Unknown key in: '.$json);
+        throw new UnexpectedValueException('Unknown key in: '.$json);
+    }
+
+    protected function throwRessourceException()
+    {
+        throw new UnexpectedValueException('Ressources can not be serialized - use __sleep to clean and __wakeup to restore them');
     }
 
     protected function isObjectId($s)
@@ -167,7 +108,7 @@ class Jsonizer
             $id = count($this->decoded);
             $this->decoded[$id] = $o;
             $this->encoded[$id][self::KEY_OBJECT_NAME] = get_class($o);
-            $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->getPropertiesFromObject($o));
+            $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->properties->getFromObject($o));
         }
 
         return self::ID_PREFIX . $id;
@@ -198,8 +139,10 @@ class Jsonizer
                 } else {
                     $array[$key] =  $this->encodeObject($value);
                 }
-            } else if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $array[$key] = $this->encodeArray($value);
+            } elseif (is_resource($value)) {
+                $this->throwRessourceException();
             } else {
                 $array[$key] = $value;
             }
@@ -214,15 +157,17 @@ class Jsonizer
             return $this->decoded[$id];
         }
 
-        // build object
-        $object = $this->getNewObject($encodedObject[self::KEY_OBJECT_NAME]);
+        // new empty instance
+        $o = $this->properties->getNewInstanceWithoutProperties($encodedObject[self::KEY_OBJECT_NAME]);
 
-        $this->decoded[$id] = $object;
+        // make sure this is in decoded array, before decoding properties, to avoid potential recursion
+        $this->decoded[$id] = $o;
 
         // transpile properties
         $properties = $this->decodeArray($encodedObject[self::KEY_OBJECT_PROPERTIES]);
 
-        return $this->setPropertiesToObject($object, $properties);
+        // fill instance with properties
+        return $this->properties->setToObject($o, $properties);
     }
 
     protected function decodeClosure($id, $encodedClosure) {
@@ -244,8 +189,10 @@ class Jsonizer
                 $id = substr($value, strlen(self::ID_PREFIX));
                 $encoded = $this->encoded[$id];
                 if (is_array($encoded)) {
+                    // object is define by an array [n =>, p=>]
                     $array[$key] = $this->decodeObject($id, $encoded);
                 } else {
+                    // if it's not an object, then it's a closure
                     $array[$key] = $this->decodeClosure($id, $encoded);
                 }
             } elseif (is_array($value)) {
@@ -253,39 +200,6 @@ class Jsonizer
             }
         }
         return $array;
-    }
-
-    protected function getPropertiesFromObject($o)
-    {
-        // why cloning ? https://divinglaravel.com/queue-system/preparing-jobs-for-queue
-        $clone = clone $o;
-        // apply __sleep before serialization - should return an array of properties to be serialized
-        if (method_exists($clone, '__sleep')) {
-            $valid = $clone->__sleep() ? : [];
-        }
-
-        $r = new ReflectionClass($clone);
-
-        $properties = [];
-
-        // declared variables
-        foreach ($r->getProperties() as $property) {
-            // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (! $property->isStatic() && (! isset($valid) || in_array($property->getName(), $valid))) {
-                $property->setAccessible(true);
-                $value = $property->getValue($clone);
-                $properties[$property->getName()] = $value;
-           }
-        }
-
-        # non-declared public variables
-        foreach ($clone as $key => $value) {
-            if (! isset($properties[$key]) && (! isset($valid) || in_array($key, $valid))) {
-                $properties[$key] = $value;
-            }
-        }
-
-        return $properties;
     }
 
     protected function jsonDecode($json, $asArray = true)
@@ -296,17 +210,17 @@ class Jsonizer
             case JSON_ERROR_NONE:
                 break;
             case JSON_ERROR_DEPTH:
-                throw new InternalZenatonException('Maximum stack depth exceeded - ' . $json);
+                throw new UnexpectedValueException('Maximum stack depth exceeded - ' . $json);
             case JSON_ERROR_STATE_MISMATCH:
-                throw new InternalZenatonException('Underflow or the modes mismatch - ' . $json);
+                throw new UnexpectedValueException('Underflow or the modes mismatch - ' . $json);
             case JSON_ERROR_CTRL_CHAR:
-                throw new InternalZenatonException('Unexpected control character found - ' . $json);
+                throw new UnexpectedValueException('Unexpected control character found - ' . $json);
             case JSON_ERROR_SYNTAX:
-                throw new InternalZenatonException('Syntax error, malformed JSON - ' . $json);
+                throw new UnexpectedValueException('Syntax error, malformed JSON - ' . $json);
             case JSON_ERROR_UTF8:
-                throw new InternalZenatonException('Malformed UTF-8 characters, possibly incorrectly encoded - ' . $json);
+                throw new UnexpectedValueException('Malformed UTF-8 characters, possibly incorrectly encoded - ' . $json);
             default:
-                throw new InternalZenatonException('Unknown error - ' . $json);
+                throw new UnexpectedValueException('Unknown error - ' . $json);
         }
 
         return $result;
