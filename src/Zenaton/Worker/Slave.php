@@ -7,21 +7,19 @@ use Zenaton\Worker\Worker;
 
 class Slave
 {
-    protected $instanceId;
     protected $slaveId;
     protected $microserver;
 
-    public function __construct($instanceId, $slaveId)
+    public function __construct($slaveId)
     {
         $this->microserver = MicroServer::getInstance();
-        $this->instanceId = $instanceId;
         $this->slaveId = $slaveId;
     }
 
     public function process()
     {
 
-        $response = $this->microserver->askJob($this->instanceId, $this->slaveId);
+        $response = $this->microserver->askJob($this->slaveId);
         if (isset($response->action) && is_object($response)) {
             switch ($response->action) {
                 case 'DecisionScheduled':
