@@ -66,9 +66,9 @@ class MicroServer
         return $this;
     }
 
-    public function askJob($instanceId, $slaveId)
+    public function askJob($slaveId)
     {
-        $url = $this->microServerUrl('/jobs/'. $instanceId.'?slave_id='. $slaveId);
+        $url = $this->microServerUrl('/jobs?slave_id='. $slaveId);
 
         return $this->http->get($url);
     }

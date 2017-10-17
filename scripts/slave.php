@@ -4,14 +4,16 @@ use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Worker\MicroServer;
 use Zenaton\Worker\Slave;
 
+$autoload = $argv[1];
+
 // just in case autoload file has been moved
-if (!file_exists($argv[1])) {
+if (!file_exists($autoload)) {
     $e = new ExternalZenatonException('Can not launch new slave - autoload file '.$argv[1].' not found');
     throw $e;
 }
 
 // autoload
-require $argv[1];
+require $autoload;
 
 // define shutdown to catch non-thrown error
 function shutdown()
@@ -33,5 +35,5 @@ function shutdown()
 register_shutdown_function('shutdown');
 
 // launch script
-// arg 1 : autoload, arg2: instance_id, arg3: slave_id
-(new Slave($argv[2], $argv[3]))->process();
+$slaveId = $argv[2];
+(new Slave($slaveId))->process();
