@@ -16,20 +16,55 @@ class Http
         $this->metrics = Metrics::getInstance();
     }
 
+    public function get($url)
+    {
+        $f = function() use ($url) {
+            return Httpful::get($url)
+                ->expectsJson()
+                ->send();
+        };
+
+        return $this->request($f);
+    }
+    
     public function post($url, $body)
     {
-        $start = microtime(true);
-
-        try {
-            $response = Httpful::post($url)
+        $f = function() use ($url, $body) {
+            return Httpful::post($url)
                 ->sendsJson()
                 ->body($body)
                 ->expectsJson()
                 ->send();
+        };
+
+        return $this->request($f);
+    }
+
+    public function put($url, $body)
+    {
+        $f = function() use ($url, $body) {
+            return Httpful::put($url)
+                ->sendsJson()
+                ->body($body)
+                ->expectsJson()
+                ->send();
+        };
+
+        return $this->request($f);
+    }
+
+    protected function request($f)
+    {
+        $start = microtime(true);
+
+        try {
+            $response = $f();
 
             if ($response->hasErrors()) {
                 throw new InternalZenatonException('Zenaton worker: ' . $response->raw_body, $response->code);
             }
+
+            $this->metrics->addNetworkDuration(microtime(true) - $start);
 
             return $response->body;
 
@@ -38,35 +73,5 @@ class Http
             $error = "Zenaton worker: connection error. Please Check that you've started a zenaton worker on PORT ".$port;
             throw new InternalZenatonException($error, 0);
         }
-
-        $this->metrics->addNetworkDuration(microtime(true) - $start);
-    }
-
-    public function get($url)
-    {
-        $start = microtime(true);
-
-        $response = Httpful::get($url)
-            ->expectsJson()
-            ->send();
-
-        $this->metrics->addNetworkDuration(microtime(true) - $start);
-
-        return $response->body;
-    }
-
-    public function put($url, $body)
-    {
-        $start = microtime(true);
-
-        $response = Httpful::put($url)
-            ->sendsJson()
-            ->body($body)
-            ->expectsJson()
-            ->send();
-
-        $this->metrics->addNetworkDuration(microtime(true) - $start);
-
-        return $response->body;
     }
 }
