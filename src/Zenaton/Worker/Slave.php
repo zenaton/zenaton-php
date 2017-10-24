@@ -10,16 +10,16 @@ class Slave
     protected $slaveId;
     protected $microserver;
 
-    public function __construct($slaveId)
+    public function __construct($workerId)
     {
         $this->microserver = MicroServer::getInstance();
-        $this->slaveId = $slaveId;
+        $this->workerId = $workerId;
     }
 
     public function process()
     {
 
-        $response = $this->microserver->askJob($this->slaveId);
+        $response = $this->microserver->askJob($this->workerId);
         if (isset($response->action) && is_object($response)) {
             switch ($response->action) {
                 case 'DecisionScheduled':

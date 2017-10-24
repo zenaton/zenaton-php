@@ -35,5 +35,5 @@ function shutdown()
 register_shutdown_function('shutdown');
 
 // launch script
-$slaveId = $argv[2];
-(new Slave($slaveId))->process();
+$workerId = $argv[2];
+(new Slave($workerId))->process();
