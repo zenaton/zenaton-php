@@ -10,7 +10,8 @@ class Api
     use SingletonTrait;
 
     const ZENATON_API_URL = 'https://zenaton.com/api';
-
+    const ZENATON_WORKER_URL = 'https://localhost:';
+    const DEFAULT_WORKER_PORT = 4001;
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
@@ -87,7 +88,8 @@ class Api
 
     protected function getApiUrl()
     {
-        return getenv('ZENATON_API_URL') !== false ? getenv('ZENATON_API_URL') : self::ZENATON_API_URL;
+        const port = getenv('ZENATON_API_URL') ? : self::DEFAULT_WORKER_PORT;
+        return self::ZENATON_WORKER_URL . port;
     }
 
     public function getInstanceUrl($params = '')
