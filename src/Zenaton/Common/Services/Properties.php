@@ -17,9 +17,7 @@ class Properties
         $o = $this->getNewInstanceWithoutProperties($name);
 
         // object must be of $class type
-        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
-            throw new UnexpectedValueException('Error - '.$name.' should be an instance of '.$class);
-        }
+        $this->checkClass($o, $class);
 
         // fill empty object with properties
         return $this->setToObject($o, $properties);
@@ -55,6 +53,14 @@ class Properties
         }
 
         return $properties;
+    }
+
+    public function checkClass($o, $class)
+    {
+        // object must be of $class type
+        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
+            throw new UnexpectedValueException('Error - '. get_class($o) .' should be an instance of '.$class);
+        }
     }
 
     public function setToObject($o, $properties)

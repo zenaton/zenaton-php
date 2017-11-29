@@ -21,6 +21,7 @@ class Api
     const PHP = 'PHP';
     const NAME = 'name';
     const MODE = 'mode';
+    const CANONICAL = 'canonical_name';
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
@@ -43,13 +44,14 @@ class Api
         return $this;
     }
 
-    public function startWorkflow($name, $data, $customId)
+    public function startWorkflow($name, $data, $customId, $canonical)
     {
         return $this->http->post($this->getInstanceUrl(), [
             self::CUSTOM_ID => $customId,
             self::DATA => $data,
             self::NAME => $name,
             self::PROGRAMMING_LANGUAGE => self::PHP,
+            self::CANONICAL => $canonical
         ]);
     }
 

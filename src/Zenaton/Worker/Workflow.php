@@ -9,6 +9,7 @@ use Zenaton\Common\Interfaces\WorkflowInterface;
 use Zenaton\Common\Services\Serializer;
 use Zenaton\Common\Services\Properties;
 use Zenaton\Common\Traits\SingletonTrait;
+use Zenaton\Common\Exceptions\ExternalZenatonException;
 
 class Workflow
 {
@@ -31,6 +32,16 @@ class Workflow
 
     public function init($name, $input, $event)
     {
+        // if provided class is a Version, it means it has been replaced since launched
+        $version = $this->properties->getNewInstanceWithoutProperties($name);
+        if ($version instanceof Version) {
+            if (method_exists($version, 'initial')) {
+                $name = $version->initial();
+            } else {
+                throw new ExternalZenatonException("Unknown initial version of ". $name);
+            }
+        }
+
         // build workflow object
         $this->flow = $this->properties->getObjectFromNameAndProperties(
             $name,
