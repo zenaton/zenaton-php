@@ -66,8 +66,8 @@ class Workflow
         if (method_exists($flow, 'getId')) {
             $customId = $flow->getId();
 
-            if (empty($customId)) {
-                throw new ExternalZenatonException('The key ID cannot be empty or NULL');
+            if (! is_string($customId) && ! is_int($customId)) {
+                throw new ExternalZenatonException('The ID provided must be a string or an integer');
             }
 
             if (strlen($customId) >= self::SIZE_OF_VARCHAR ) {
