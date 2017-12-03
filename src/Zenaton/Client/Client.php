@@ -24,6 +24,7 @@ class Client
     public function find($class)
     {
         $this->class = $class;
+        
         return $this;
     }
 

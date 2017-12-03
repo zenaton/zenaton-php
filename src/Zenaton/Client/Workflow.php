@@ -3,6 +3,7 @@
 namespace Zenaton\Client;
 
 use Zenaton\Client\Api;
+use Zenaton\Worker\Version;
 
 use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Common\Interfaces\EventInterface;
@@ -41,11 +42,22 @@ class Workflow
     public function setClass($class)
     {
         $this->class = $class;
+
         return $this;
     }
 
     public function start($flow)
     {
+        $canonical = null;
+
+        // in case $flow is a Version
+        if (is_object($flow) && $flow instanceof Version) {
+            // get flow canonical name
+            $canonical = get_class($flow);
+            // get flow real instance
+            $flow = $flow->getCurrentInstance();
+        }
+
         // check this is actually a workflow
         if ( ! is_object($flow) || ! $flow instanceof WorkflowInterface) {
             throw new ExternalZenatonException('First argument must an object implementing '.WorkflowInterface::class);
@@ -67,7 +79,8 @@ class Workflow
         return $this->api->startWorkflow(
             get_class($flow),
             $this->serializer->encode($this->properties->getFromObject($flow)),
-            isset($customId) ? $customId : null
+            isset($customId) ? $customId : null,
+            $canonical
         );
     }
 
