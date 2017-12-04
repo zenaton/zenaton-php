@@ -95,7 +95,7 @@ class Workflow
             $this->id,
             $this->workflowName,
             get_class($event),
-            $this->serializer->encode($event)
+            $this->serializer->encode($this->properties->getFromObject($event))
         );
     }
 
