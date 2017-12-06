@@ -2,11 +2,11 @@
 
 namespace Zenaton\Tasks;
 
-use Zenaton\Common\Exceptions\ExternalZenatonException;
-use Zenaton\Common\Interfaces\EventInterface;
-use Zenaton\Common\Interfaces\WaitWhileInterface;
-use Zenaton\Common\Traits\IsImplementationOfTrait;
-use Zenaton\Common\Traits\WithDuration;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Interfaces\EventInterface;
+use Zenaton\Interfaces\WaitWhileInterface;
+use Zenaton\Traits\IsImplementationOfTrait;
+use Zenaton\Traits\WithDuration;
 
 class WaitWhile implements WaitWhileInterface
 {

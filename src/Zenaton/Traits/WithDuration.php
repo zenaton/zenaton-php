@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Common\Traits;
+namespace Zenaton\Traits;
 
 use Carbon\Carbon;
 
@@ -18,7 +18,7 @@ trait WithDuration
         // apply methods in buffer (timezone first)
         $this->_applyBuffer();
 
-        return $this->_carbonNow ? $this->_carbonNow->diffInSeconds($this->_carbonThen->timestamp) : PHP_INT_MAX;
+        return $this->_carbonNow ? $this->_carbonNow->diffInSeconds($this->_carbonThen) : PHP_INT_MAX;
     }
 
     /*
@@ -29,7 +29,7 @@ trait WithDuration
     {
         $method = '_'.$name;
         if (method_exists($this, $method)) {
-            // then use it
+            // if exists use it
             $this->_carbonBuffer[] = [$method, $arguments];
         } else {
             // else thrown expected error

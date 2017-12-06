@@ -11,7 +11,6 @@ use Closure;
 class Serializer
 {
     // this string prefixs ids that are used to identify objects and Closure
-    // it means that no
     const ID_PREFIX = "@zenaton#";
 
     const KEY_OBJECT = 'o';

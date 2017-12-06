@@ -1,20 +1,15 @@
 <?php
 
-namespace Zenaton\Common\Services;
+namespace Zenaton\Services;
 
 use Httpful\Request as Httpful;
-use Zenaton\Common\Services\Metrics;
 use Httpful\Exception\ConnectionErrorException;
 use Zenaton\Exceptions\InternalZenatonException;
 
 class Http
 {
     const ENV_WORKER_PORT = 'ZENATON_WORKER_PORT';
-
-    public function __construct()
-    {
-        $this->metrics = Metrics::getInstance();
-    }
+    const WORKER_PORT = 4001;
 
     public function get($url)
     {
@@ -26,7 +21,7 @@ class Http
 
         return $this->request($f);
     }
-    
+
     public function post($url, $body)
     {
         $f = function() use ($url, $body) {
@@ -55,8 +50,6 @@ class Http
 
     protected function request($f)
     {
-        $start = microtime(true);
-
         try {
             $response = $f();
 
@@ -64,14 +57,12 @@ class Http
                 throw new InternalZenatonException('Zenaton worker: ' . $response->raw_body, $response->code);
             }
 
-            $this->metrics->addNetworkDuration(microtime(true) - $start);
-
             return $response->body;
 
         } catch (ConnectionErrorException $e) {
-            $port = getenv(self::ENV_WORKER_PORT) ? : 4001;
+            $port = getenv(self::ENV_WORKER_PORT) ? : self::WORKER_PORT;
             $error = "Zenaton worker: connection error. Please Check that you've started a zenaton worker on PORT ".$port;
-            throw new InternalZenatonException($error, 0);
+            throw new InternalZenatonException($error);
         }
     }
 }

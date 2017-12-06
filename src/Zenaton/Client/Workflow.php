@@ -3,7 +3,7 @@
 namespace Zenaton\Client;
 
 use Zenaton\Client\Api;
-use Zenaton\Worker\Version;
+use Zenaton\Workflows\Version;
 
 use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Interfaces\EventInterface;

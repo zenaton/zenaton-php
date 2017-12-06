@@ -2,15 +2,25 @@
 
 namespace Zenaton;
 
-use Zenaton\Common\Exceptions\ExternalZenatonException;
-use Zenaton\Common\Interfaces\BoxInterface;
-use Zenaton\Common\Interfaces\TaskInterface;
-use Zenaton\Common\Interfaces\WorkflowInterface;
-use Zenaton\Common\Traits\SingletonTrait;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Interfaces\BoxInterface;
+use Zenaton\Interfaces\TaskInterface;
+use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Traits\SingletonTrait;
 
 class Helpers
 {
     use SingletonTrait;
+
+    protected $worker;
+
+    public function construct()
+    {
+        // zenaton execution
+        if (class_exists('Zenaton\Worker\Helpers')) {
+            $this->worker = \Zenaton\Worker\Helpers::getInstance();
+        }
+    }
 
     public function execute()
     {
@@ -28,20 +38,26 @@ class Helpers
 
     protected function doExecute($boxes, $isSync)
     {
-        $outputs = [];
-
         // check arguments'type
         $this->checkArgumentsType($boxes);
 
-        // execution without zenaton
-        foreach ($boxes as $box) {
-            $outputs[] = $box->handle();
-        }
-        if ($isSync) {
-            return (count($boxes) > 1) ? $outputs : $outputs[0];
+        // local execution
+        if (is_null($this->worker)) {
+            $outputs = [];
+            foreach ($boxes as $box) {
+                $outputs[] = $box->handle();
+            }
+            if ($isSync) {
+                // sync executions return results
+                return (count($boxes) > 1) ? $outputs : $outputs[0];
+            } else {
+                // async executions return no results
+                return;
+            }
         }
 
-        return;
+        // zenaton execution
+        return $this->worker->doExecute($boxes, $isSync);
     }
 
     protected function checkArgumentsType($boxes)
