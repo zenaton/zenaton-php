@@ -60,8 +60,6 @@ class Api
     {
         $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-
-
         return $this->http->get($this->getPropertiesUrl($params));
     }
 
