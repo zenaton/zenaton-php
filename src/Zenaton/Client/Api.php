@@ -2,8 +2,8 @@
 
 namespace Zenaton\Client;
 
-use Zenaton\Common\Services\Http;
-use Zenaton\Common\Traits\SingletonTrait;
+use Zenaton\Services\Http;
+use Zenaton\Traits\SingletonTrait;
 
 class Api
 {

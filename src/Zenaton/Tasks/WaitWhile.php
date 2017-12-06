@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Worker\Tasks;
+namespace Zenaton\Tasks;
 
 use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Common\Interfaces\EventInterface;
@@ -26,7 +26,7 @@ class WaitWhile implements WaitWhileInterface
 
     public function handle()
     {
-        // time_sleep_until($this->getTimeoutTimestamp());
+        // time_sleep_until($this->getTimestamp());
     }
 
     public function getEvent()

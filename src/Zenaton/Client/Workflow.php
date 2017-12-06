@@ -5,11 +5,11 @@ namespace Zenaton\Client;
 use Zenaton\Client\Api;
 use Zenaton\Worker\Version;
 
-use Zenaton\Common\Exceptions\ExternalZenatonException;
-use Zenaton\Common\Interfaces\EventInterface;
-use Zenaton\Common\Interfaces\WorkflowInterface;
-use Zenaton\Common\Services\Serializer;
-use Zenaton\Common\Services\Properties;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Interfaces\EventInterface;
+use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Services\Serializer;
+use Zenaton\Services\Properties;
 
 class Workflow
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Common\Traits;
+namespace Zenaton\Traits;
 
 trait SingletonTrait
 {

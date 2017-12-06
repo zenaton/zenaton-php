@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Common\Exceptions;
+namespace Zenaton\Exceptions;
 
 class ModifiedDeciderException extends ExternalZenatonException
 {

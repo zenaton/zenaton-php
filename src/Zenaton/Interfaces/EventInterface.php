@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Common\Interfaces;
+namespace Zenaton\Interfaces;
 
 interface EventInterface
 {

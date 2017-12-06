@@ -5,7 +5,7 @@ namespace Zenaton\Common\Services;
 use Httpful\Request as Httpful;
 use Zenaton\Common\Services\Metrics;
 use Httpful\Exception\ConnectionErrorException;
-use Zenaton\Common\Exceptions\InternalZenatonException;
+use Zenaton\Exceptions\InternalZenatonException;
 
 class Http
 {

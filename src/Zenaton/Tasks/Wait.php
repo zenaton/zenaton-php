@@ -1,17 +1,17 @@
 <?php
 
-namespace Zenaton\Worker\Tasks;
+namespace Zenaton\Tasks;
 
 use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Common\Interfaces\EventInterface;
 use Zenaton\Common\Interfaces\WaitInterface;
 use Zenaton\Common\Traits\IsImplementationOfTrait;
-use Zenaton\Common\Traits\WithTimeout;
+use Zenaton\Common\Traits\WithTimestamp;
 
 class Wait implements WaitInterface
 {
     use IsImplementationOfTrait;
-    use WithTimeout;
+    use WithTimestamp;
 
     protected $event;
 
@@ -26,7 +26,7 @@ class Wait implements WaitInterface
 
     public function handle()
     {
-        // time_sleep_until($this->getTimeoutTimestamp());
+        // time_sleep_until($this->getTimestamp());
     }
 
     public function getEvent()

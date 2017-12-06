@@ -1,8 +1,8 @@
 <?php
 
-namespace Zenaton\Common\Traits;
+namespace Zenaton\Traits;
 
-use Zenaton\Common\Exceptions\ZenatonException;
+use Zenaton\Exceptions\ZenatonException;
 
 trait GetAttributeTrait
 {

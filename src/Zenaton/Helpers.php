@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Worker;
+namespace Zenaton;
 
 use Zenaton\Common\Exceptions\ExternalZenatonException;
 use Zenaton\Common\Interfaces\BoxInterface;
@@ -46,8 +46,10 @@ class Helpers
 
     protected function checkArgumentsType($boxes)
     {
-        $error = new ExternalZenatonException('arguments MUST be one or many objects implementing '.TaskInterface::class.
-            ' or '.WorkflowInterface::class);
+        $error = new ExternalZenatonException(
+            'arguments MUST be one or many objects implementing '.TaskInterface::class.
+            ' or '.WorkflowInterface::class
+        );
 
         // check there is at least one argument
         if (count($boxes) == 0) {

@@ -1,6 +1,6 @@
 <?php
 
-use Zenaton\Worker\Helpers;
+use Zenaton\Helpers;
 
 if ( ! function_exists('execute')) {
     function execute()

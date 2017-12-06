@@ -1,8 +1,8 @@
 <?php
 
-namespace Zenaton\Common\Services;
+namespace Zenaton\Services;
 
-use Zenaton\Common\Traits\SingletonTrait;
+use Zenaton\Traits\SingletonTrait;
 
 class Metrics
 {

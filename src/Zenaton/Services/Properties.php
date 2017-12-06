@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Common\Services;
+namespace Zenaton\Services;
 
 use ReflectionClass;
 use UnexpectedValueException;
