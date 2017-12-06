@@ -60,7 +60,9 @@ class Api
     {
         $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-        return $this->http->get($this->getInstanceUrl($params));
+
+
+        return $this->http->get($this->getPropertiesUrl($params));
     }
 
     public function updateInstance($customId, $workflowName, $mode)
@@ -97,6 +99,12 @@ class Api
     public function getInstanceUrl($params = '')
     {
         return $this->addIdentification($this->getApiUrl(). '/instances', $params);
+    }
+
+    public function getPropertiesUrl($params)
+    {
+        $url =  getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL;
+        return $this->addIdentification($url.'/instances', $params);
     }
 
     protected function getSendEventURL()
