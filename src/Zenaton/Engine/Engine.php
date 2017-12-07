@@ -1,65 +1,72 @@
 <?php
 
-namespace Zenaton;
+namespace Zenaton\Engine;
 
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\BoxInterface;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
-use Zenaton\Parallel\Collection;
+use Zenaton\Client;
 
-class Helpers
+class Engine
 {
     use SingletonTrait;
 
     protected $worker;
+    protected $client;
 
     public function construct()
     {
+        $this->client = Client::getInstance();
+
         // zenaton execution
         if (class_exists('Zenaton\Worker\Helpers')) {
             $this->worker = \Zenaton\Worker\Helpers::getInstance();
         }
     }
 
-    public function parallel()
-    {
-        return new Collection(func_get_args());
-    }
-
     public function execute($boxes)
-    {
-        return $this->doExecute($boxes, true);
-    }
-
-    public function dispatch($boxes)
-    {
-        $this->doExecute($boxes, false);
-    }
-
-    protected function doExecute($boxes, $isSync)
     {
         // check arguments'type
         $this->checkArgumentsType($boxes);
 
         // local execution
         if (is_null($this->worker)) {
-            $outputs = [];
-            foreach ($boxes as $box) {
-                $outputs[] = $box->handle();
-            }
-            if ($isSync) {
-                // sync executions return results
-                return (count($boxes) > 1) ? $outputs : $outputs[0];
-            } else {
-                // async executions return no results
-                return;
-            }
+            return $this->doExecute($boxes);
         }
 
         // zenaton execution
-        return $this->worker->doExecute($boxes, $isSync);
+        return $this->worker->doExecute($boxes, true);
+    }
+
+    public function dispatch($boxes)
+    {
+        // check arguments'type
+        $this->checkArgumentsType($boxes);
+
+        // local execution
+        if (is_null($this->worker)) {
+            // dispatch works to Zenaton (only workflows by now)
+            foreach ($boxes as $box) {
+                $this->client->startWorkflow($box);
+            }
+
+            return;
+        }
+
+        // zenaton execution
+        return $this->worker->doExecute($boxes, false);
+    }
+
+    protected function doExecute($boxes)
+    {
+        $outputs = [];
+        foreach ($boxes as $box) {
+            $outputs[] = $box->handle();
+        }
+        // sync executions return results
+        return (count($boxes) > 1) ? $outputs : $outputs[0];
     }
 
     protected function checkArgumentsType($boxes)

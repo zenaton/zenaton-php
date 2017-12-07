@@ -10,7 +10,7 @@ trait SingletonTrait
     private function __construct()
     {
         if (method_exists($this, 'construct')) {
-            return $this->construct();
+            return $this->construct(func_get_args());
         }
     }
 

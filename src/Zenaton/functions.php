@@ -1,17 +1,10 @@
 <?php
 
-use Zenaton\Helpers;
+use Zenaton\Parallel\Collection;
 
-if ( ! function_exists('execute')) {
-    function execute()
+if ( ! function_exists('parallel')) {
+    function parallel()
     {
-        return call_user_func_array([Helpers::getInstance(), 'execute'], func_get_args());
-    }
-}
-
-if ( ! function_exists('executeAsync')) {
-    function executeAsync()
-    {
-        return call_user_func_array([Helpers::getInstance(), 'executeAsync'], func_get_args());
+        return new Collection(func_get_args());
     }
 }

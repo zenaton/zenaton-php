@@ -11,7 +11,7 @@ use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Serializer;
 use Zenaton\Services\Properties;
 
-class Workflow
+class WorkflowManager
 {
     private $id;
     private $api;
@@ -55,7 +55,7 @@ class Workflow
             // get flow canonical name
             $canonical = get_class($flow);
             // get flow real instance
-            $flow = $flow->getCurrentInstance();
+            $flow = $flow->getCurrentImplementation();
         }
 
         // check this is actually a workflow
@@ -89,36 +89,36 @@ class Workflow
         return $this->newInstance($customId, $class);
     }
 
-    public function sendEvent(EventInterface $event, $options = [])
-    {
-        return $this->api->sendEvent(
-            $this->id,
-            $this->workflowName,
-            get_class($event),
-            $this->serializer->encode($this->properties->getFromObject($event))
-        );
-    }
+    // public function sendEvent(EventInterface $event, $options = [])
+    // {
+    //     return $this->api->sendEvent(
+    //         $this->id,
+    //         $this->workflowName,
+    //         get_class($event),
+    //         $this->serializer->encode($this->properties->getFromObject($event))
+    //     );
+    // }
 
-    public function kill()
-    {
-        return $this->api->updateInstance($this->id, $this->workflowName, self::KILL);
-    }
-
-    public function pause()
-    {
-        return $this->api->updateInstance($this->id, $this->workflowName, self::PAUSE);
-    }
-
-    public function resume()
-    {
-        return $this->api->updateInstance($this->id, $this->workflowName, self::RUN);
-    }
-
-    public function getProperties()
-    {
-        $res = $this->api->getInstanceDetails($this->id, $this->workflowName);
-        return $this->serializer->decode($res->data->properties);
-    }
+    // public function kill()
+    // {
+    //     return $this->api->updateInstance($this->id, $this->workflowName, self::KILL);
+    // }
+    //
+    // public function pause()
+    // {
+    //     return $this->api->updateInstance($this->id, $this->workflowName, self::PAUSE);
+    // }
+    //
+    // public function resume()
+    // {
+    //     return $this->api->updateInstance($this->id, $this->workflowName, self::RUN);
+    // }
+    //
+    // public function getProperties()
+    // {
+    //     $res = $this->api->getInstanceDetails($this->id, $this->workflowName);
+    //     return $this->serializer->decode($res->data->properties);
+    // }
 
     protected function newInstance($id, $workflowName)
     {
