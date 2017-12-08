@@ -3,7 +3,7 @@
 namespace Zenaton;
 
 use Zenaton\Traits\SingletonTrait;
-use Zenaton\Worker\Version;
+use Zenaton\Workflows\Version;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Exceptions\InvalidArgumentException;
