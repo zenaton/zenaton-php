@@ -206,9 +206,9 @@ class Client
     {
         $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$workflowName.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-        return $this->serializer->decode(
-            $this->http->get($this->getPropertiesUrl($params))->data->properties
-        );
+        $encoded = $this->http->get($this->getInstanceZenatonUrl($params));
+
+        return $this->serializer->decode($encoded->data->properties);
     }
 
     protected function getWorkerUrl()

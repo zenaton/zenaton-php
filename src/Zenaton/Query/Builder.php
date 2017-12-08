@@ -41,7 +41,7 @@ class Builder
      * Create a new query builder.
      *
      * @param  String  $class
-     * @return void
+     * @return self
      */
     public function __construct($class)
     {
@@ -54,7 +54,7 @@ class Builder
     /**
      * Create a new pending job dispatch.
      *
-     * @return void
+     * @return self
      */
     public function whereId($id)
     {
@@ -70,7 +70,7 @@ class Builder
      */
     public function find()
     {
-        return $this->client->findInstance($this->class, $this->id);
+        return $this->client->findWorkflow($this->class, $this->id);
     }
 
     /**

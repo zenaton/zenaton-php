@@ -33,7 +33,11 @@ class Engine
 
         // local execution
         if (is_null($this->worker)) {
-            return $this->doExecute($jobs);
+            foreach ($jobs as $job) {
+                $outputs[] = $job->handle();
+            }
+            // return results
+            return (count($jobs) > 1) ? $outputs : $outputs[0];
         }
 
         // executed by Zenaton worker
@@ -51,22 +55,12 @@ class Engine
             foreach ($jobs as $job) {
                 $this->client->startWorkflow($job);
             }
-
+            // return nothing
             return;
         }
 
         // executed by Zenaton worker
         return $this->worker->doExecute($jobs, false);
-    }
-
-    protected function doExecute($jobs)
-    {
-        $outputs = [];
-        foreach ($jobs as $job) {
-            $outputs[] = $job->handle();
-        }
-        // sync executions return results
-        return (count($jobs) > 1) ? $outputs : $outputs[0];
     }
 
     protected function checkArgumentsType($jobs)
