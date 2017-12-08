@@ -5,7 +5,7 @@ namespace Zenaton\Parallel;
 use Zenaton\Traits\Zenatonable;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Helpers;
+use Zenaton\Engine\Engine;
 
 class Collection
 {
@@ -35,11 +35,11 @@ class Collection
 
     public function dispatch()
     {
-        return Helpers::getInstance()->dispatch($this->items);
+        return Engine::getInstance()->dispatch($this->items);
     }
 
     public function execute()
     {
-        return Helpers::getInstance()->execute($this->items);
+        return Engine::getInstance()->execute($this->items);
     }
 }

@@ -5,6 +5,7 @@ namespace Zenaton\Query;
 use Zenaton\Client;
 use Zenaton\Workflows\Version;
 use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Exceptions\UnknownWorkflowException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Serializer;
@@ -15,13 +16,12 @@ class Builder
 {
     use IsImplementationOfTrait;
 
-    const WORKFLOW_KILL = 'kill';
-    const WORKFLOW_PAUSE = 'pause';
-    const WORKFLOW_RUN = 'run';
-
-    private $api;
-    private $serializer;
-    private $properties;
+    /**
+     * The Zenaton client
+     *
+     * @var \Zenaton\Client
+     */
+    protected $client;
 
     /**
      * The queried class
@@ -49,8 +49,6 @@ class Builder
 
         $this->class = $class;
         $this->client = Client::getInstance();
-        $this->serializer = new Serializer();
-        $this->properties = new Properties();
     }
 
     /**
@@ -68,66 +66,57 @@ class Builder
     /**
      * Retrieve an instance
      *
-     * @return mixed
+     * @return Zenaton\Interfaces\WorkflowInterface
      */
     public function find()
     {
-        $properties = $this->serializer->decode(
-            $this->client->getInstanceDetails($this->id, $this->class)->data->properties
-        );
-
-        return $this->properties->getObjectFromNameAndProperties($this->class, $properties);
+        return $this->client->findInstance($this->class, $this->id);
     }
 
     /**
-     * Send an event to an instance
+     * Send an event to a workflow instance
      *
-     * @return void
+     * @return self
      */
     public function send(EventInterface $event)
     {
-        $this->client->sendEvent(
-            $this->id,
-            $this->class,
-            get_class($event),
-            $this->serializer->encode($this->properties->getFromObject($event))
-        );
+        $this->client->sendEvent($this->class, $this->id, $event);
 
         return $this;
     }
 
     /**
-     * Kill an instance
+     * Kill a workflow instance
      *
      * @return void
      */
     public function kill()
     {
-        $this->client->updateInstance($this->id, $this->class, self::WORKFLOW_KILL);
+        $this->client->killWorkflow($this->class, $this->id);
 
         return $this;
     }
 
     /**
-     * Pause an instance
+     * Pause a workflow instance
      *
      * @return void
      */
     public function pause()
     {
-        $this->client->updateInstance($this->id, $this->class, self::WORKFLOW_PAUSE);
+        $this->client->pauseWorkflow($this->class, $this->id);
 
         return $this;
     }
 
     /**
-     * Resume an instance
+     * Resume a workflow instance
      *
      * @return void
      */
     public function resume()
     {
-        $this->client->updateInstance($this->id, $this->class, self::WORKFLOW_RUN);
+        $this->client->resumeWorkflow($this->class, $this->id);
 
         return $this;
     }

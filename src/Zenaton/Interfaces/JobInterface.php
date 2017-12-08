@@ -2,7 +2,7 @@
 
 namespace Zenaton\Interfaces;
 
-interface BoxInterface
+interface JobInterface
 {
     public function handle();
 }

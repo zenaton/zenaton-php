@@ -2,7 +2,6 @@
 
 namespace Zenaton\Traits;
 
-use Zenaton\Helpers;
 use Zenaton\Engine\Engine;
 use Zenaton\Query\Builder as QueryBuilder;
 

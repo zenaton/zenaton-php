@@ -2,6 +2,6 @@
 
 namespace Zenaton\Interfaces;
 
-interface TaskInterface extends BoxInterface
+interface TaskInterface extends JobInterface
 {
 }

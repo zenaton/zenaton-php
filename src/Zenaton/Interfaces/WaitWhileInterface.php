@@ -2,6 +2,6 @@
 
 namespace Zenaton\Interfaces;
 
-interface WaitWhileInterface extends BoxInterface
+interface WaitWhileInterface extends JobInterface
 {
 }

@@ -7,9 +7,11 @@ use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\WaitInterface;
 use Zenaton\Traits\IsImplementationOfTrait;
 use Zenaton\Traits\WithTimestamp;
+use Zenaton\Traits\Zenatonable;
 
 class Wait implements WaitInterface
 {
+    use Zenatonable;
     use IsImplementationOfTrait;
     use WithTimestamp;
 

@@ -4,9 +4,12 @@ namespace Zenaton\Workflows;
 
 use ReflectionClass;
 use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Traits\Zenatonable;
 
 abstract class Version implements WorkflowInterface
 {
+    use Zenatonable;
+
     protected $args;
 
     public function __construct()

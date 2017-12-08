@@ -7,9 +7,11 @@ use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\WaitWhileInterface;
 use Zenaton\Traits\IsImplementationOfTrait;
 use Zenaton\Traits\WithDuration;
+use Zenaton\Traits\Zenatonable;
 
 class WaitWhile implements WaitWhileInterface
 {
+    use Zenatonable;
     use IsImplementationOfTrait;
     use WithDuration;
 

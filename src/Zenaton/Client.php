@@ -17,6 +17,7 @@ class Client
     const ZENATON_API_URL = 'https://zenaton.com/api';
     const ZENATON_WORKER_URL = 'http://localhost:';
     const DEFAULT_WORKER_PORT = 4001;
+
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
@@ -28,18 +29,22 @@ class Client
     const NAME = 'name';
     const MODE = 'mode';
     const CANONICAL = 'canonical_name';
+    const VARCHAR_MAX_SIZE = 191;
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
+
+    const WORKFLOW_KILL = 'kill';
+    const WORKFLOW_PAUSE = 'pause';
+    const WORKFLOW_RUN = 'run';
 
     protected $appId;
     protected $apiToken;
     protected $appEnv;
     protected $http;
-    protected $worker;
     protected $serializer;
     protected $properties;
-    
+
     public static function init($appId, $apiToken, $appEnv)
     {
         Client::getInstance()
@@ -53,11 +58,6 @@ class Client
         $this->http = new Http();
         $this->serializer = new Serializer();
         $this->properties = new Properties();
-
-        // zenaton execution
-        if (class_exists('Zenaton\Worker\Helpers')) {
-            $this->worker = \Zenaton\Worker\Helpers::getInstance();
-        }
     }
 
     public function setAppId($appId)
@@ -81,30 +81,36 @@ class Client
         return $this;
     }
 
+    /**
+     * Start a workflow instance
+     *
+     * @param  Zenaton\Interfaces\WorkflowInterface  $flow Workflow to start
+     * @return void
+     */
     public function startWorkflow(WorkflowInterface $flow)
     {
         $canonical = null;
-        // in case $flow is a Version
+        // if $flow is a versionned workflow
         if ($flow instanceof Version) {
-            // get flow canonical name
+            // store canonical name
             $canonical = get_class($flow);
-            // get flow real instance
+            // replace by true current implementation
             $flow = $flow->getCurrentImplementation();
         }
 
-        // custom id
+        // custom id management
         if (method_exists($flow, 'getId')) {
             $customId = $flow->getId();
             if (! is_string($customId) && ! is_int($customId)) {
-                throw new InvalidArgumentException('The ID provided must be a string or an integer');
+                throw new InvalidArgumentException('Provided Id must be a string or an integer');
             }
-            if (strlen($customId) >= self::SIZE_OF_VARCHAR ) {
-                throw new InvalidArgumentException('The ID provided must not exceed 191 characters');
+            if (strlen($customId) > self::VARCHAR_MAX_SIZE ) {
+                throw new InvalidArgumentException('Provided Id must not exceed 191 characters');
             }
         }
 
         // start workflow
-        return $this->http->post($this->getInstanceUrl(), [
+        $this->http->post($this->getInstanceWorkerUrl(), [
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::CANONICAL => $canonical,
             self::NAME => get_class($flow),
@@ -113,62 +119,129 @@ class Client
         ]);
     }
 
-    public function getInstanceDetails($customId, $name)
+    /**
+     * Kill a workflow instance
+     *
+     * @param  String  $workflowName Workflow class name
+     * @param  String  $customId     Provided custom id
+     * @return void
+     */
+    public function killWorkflow($workflowName, $customId)
     {
-        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$name.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
-
-        return $this->http->get($this->getPropertiesUrl($params));
+        $this->updateInstance($workflowName, $customId, self::WORKFLOW_KILL);
     }
 
-    public function updateInstance($customId, $workflowName, $mode)
+    /**
+     * Pause a workflow instance
+     *
+     * @param  String  $workflowName Workflow class name
+     * @param  String  $customId     Provided custom id
+     * @return void
+     */
+    public function pauseWorkflow($workflowName, $customId)
+    {
+        $this->updateInstance($workflowName, $customId, self::WORKFLOW_PAUSE);
+    }
+
+    /**
+     * Resume a workflow instance
+     *
+     * @param  String  $workflowName Workflow class name
+     * @param  String  $customId     Provided custom id
+     * @return void
+     */
+    public function resumeWorkflow($workflowName, $customId)
+    {
+        $this->updateInstance($workflowName, $customId, self::WORKFLOW_RUN);
+    }
+
+    /**
+     * Find a workflow instance
+     *
+     * @param  String  $workflowName Workflow class name
+     * @param  String  $customId     Provided custom id
+     * @return Zenaton\Interfaces\WorkflowInterface
+     */
+    public function findWorkflow($workflowName, $customId)
+    {
+        $properties = $this->getWorkflowProperties($workflowName, $customId);
+
+        return $this->properties->getObjectFromNameAndProperties($workflowName, $properties);
+    }
+
+    /**
+     * Send an event to a workflow instance
+     *
+     * @param  String  $workflowName Workflow class name
+     * @param  String  $customId     Provided custom id
+     * @param  Zenaton\Interfaces\EventInterface $event Event to send
+     * @return void
+     */
+    public function sendEvent($workflowName, $customId, EventInterface $event)
+    {
+        $url = $this->getSendEventURL();
+
+        $body = [
+            self::NAME => $workflowName,
+            self::CUSTOM_ID => $customId,
+            self::EVENT_NAME => get_class($event),
+            self::EVENT_INPUT => $this->serializer->encode($this->properties->getFromObject($event)),
+            self::PROGRAMMING_LANGUAGE => self::PHP,
+        ];
+
+        $this->http->post($url, $body);
+    }
+
+    protected function updateInstance($workflowName, $customId, $mode)
     {
         $params = self::CUSTOM_ID.'='.$customId;
-        return $this->http->put($this->getInstanceUrl($params), [
+        return $this->http->put($this->getInstanceWorkerUrl($params), [
             self::NAME => $workflowName,
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::MODE => $mode,
         ]);
     }
 
-    public function sendEvent($customerId, $workflowName, $name, $input)
+    protected function getWorkflowProperties($workflowName, $customId)
     {
-        $url = $this->getSendEventURL();
+        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$workflowName.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-        $body = [
-            self::CUSTOM_ID => $customerId,
-            self::EVENT_INPUT => $input,
-            self::EVENT_NAME => $name,
-            self::NAME => $workflowName,
-            self::PROGRAMMING_LANGUAGE => self::PHP,
-        ];
-
-        return $this->http->post($url, $body);
+        return $this->serializer->decode(
+            $this->http->get($this->getPropertiesUrl($params))->data->properties
+        );
     }
 
-    protected function getApiUrl()
+    protected function getWorkerUrl()
     {
-        $port = getenv('ZENATON_WORKER_PORT') ?: self::DEFAULT_WORKER_PORT;
-        return self::ZENATON_WORKER_URL . $port;
+        return self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
     }
 
-    public function getInstanceUrl($params = '')
+    protected function getZenatonUrl()
     {
-        return $this->addIdentification($this->getApiUrl(). '/instances', $params);
+        return getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL;
     }
 
-    public function getPropertiesUrl($params)
+    protected function getInstanceZenatonUrl($params)
     {
-        $url =  getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL;
-        return $this->addIdentification($url.'/instances', $params);
+        return $this->addIdentification($this->getZenatonUrl().'/instances', $params);
+    }
+
+    protected function getInstanceWorkerUrl($params = '')
+    {
+        return $this->addIdentification($this->getWorkerUrl(). '/instances', $params);
     }
 
     protected function getSendEventURL()
     {
-        return $this->addIdentification($this->getApiUrl().'/events');
+        return $this->addIdentification($this->getWorkerUrl().'/events');
     }
 
     protected function addIdentification($url, $params = '')
     {
-        return $url.'?'.self::APP_ENV.'='.$this->appEnv.'&'.self::APP_ID.'='.$this->appId.'&'.self::API_TOKEN.'='.$this->apiToken.'&'.$params;
+        return $url
+            .'?'.self::APP_ENV.'='.$this->appEnv
+            .'&'.self::APP_ID.'='.$this->appId
+            .'&'.self::API_TOKEN.'='.$this->apiToken
+            .'&'.$params;
     }
 }

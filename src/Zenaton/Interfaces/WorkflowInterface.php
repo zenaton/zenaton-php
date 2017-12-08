@@ -2,6 +2,6 @@
 
 namespace Zenaton\Interfaces;
 
-interface WorkflowInterface extends BoxInterface
+interface WorkflowInterface extends JobInterface
 {
 }
