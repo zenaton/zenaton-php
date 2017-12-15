@@ -2,6 +2,6 @@
 
 namespace Zenaton\Interfaces;
 
-interface WaitInterface extends JobInterface
+interface WaitInterface extends TaskInterface
 {
 }
