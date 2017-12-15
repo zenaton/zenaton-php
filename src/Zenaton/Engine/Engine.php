@@ -30,7 +30,7 @@ class Engine
     public function execute($jobs)
     {
         // check arguments'type
-        $this->checkExecuteArguments($jobs);
+        $this->checkArguments($jobs);
 
         // local execution
         if (is_null($this->worker) || (count($jobs) == 0)) {
@@ -50,7 +50,7 @@ class Engine
     public function dispatch($jobs)
     {
         // check arguments'type
-        $this->checkDispatchArguments($jobs);
+        $this->checkArguments($jobs);
 
         // local execution
         if (is_null($this->worker) || (count($jobs) == 0)) {
@@ -67,26 +67,13 @@ class Engine
         return $this->worker->process($jobs, false);
     }
 
-    protected function checkExecuteArguments($jobs)
+    protected function checkArguments($jobs)
     {
         $check = function ($arg) {
             if ( ! is_object($arg) || (! $arg instanceof TaskInterface && ! $arg instanceof WorkflowInterface)) {
                 throw new InvalidArgumentException(
-                    'You can execute only objects implementing '.TaskInterface::class.
+                    'You can execute or dispatch only objects implementing '.TaskInterface::class.
                     ' or '.WorkflowInterface::class
-                );
-            }
-        };
-
-        array_map($check, $jobs);
-    }
-
-    protected function checkDispatchArguments($jobs)
-    {
-        $check = function ($arg) {
-            if ( ! is_object($arg) || (! $arg instanceof WorkflowInterface)) {
-                throw new InvalidArgumentException(
-                    'You can dispatch only objects implementing '.WorkflowInterface::class
                 );
             }
         };
