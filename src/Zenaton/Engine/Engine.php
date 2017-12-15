@@ -30,15 +30,17 @@ class Engine
     public function execute($jobs)
     {
         // check arguments'type
-        $this->checkArgumentsType($jobs);
+        $this->checkExecuteArguments($jobs);
 
         // local execution
-        if (is_null($this->worker)) {
+        if (is_null($this->worker) || (count($jobs) == 0)) {
+            $outputs = [];
+            // simply apply handle method
             foreach ($jobs as $job) {
                 $outputs[] = $job->handle();
             }
             // return results
-            return (count($jobs) > 1) ? $outputs : $outputs[0];
+            return $outputs;
         }
 
         // executed by Zenaton worker
@@ -48,38 +50,44 @@ class Engine
     public function dispatch($jobs)
     {
         // check arguments'type
-        $this->checkArgumentsType($jobs);
+        $this->checkDispatchArguments($jobs);
 
         // local execution
-        if (is_null($this->worker)) {
+        if (is_null($this->worker) || (count($jobs) == 0)) {
+            $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
-                $this->client->startWorkflow($job);
+                $outputs[] = $this->client->startWorkflow($job);
             }
-            // return nothing
-            return;
+            // return results
+            return $outputs;
         }
 
         // executed by Zenaton worker
         return $this->worker->process($jobs, false);
     }
 
-    protected function checkArgumentsType($jobs)
+    protected function checkExecuteArguments($jobs)
     {
-        $error = new InvalidArgumentException(
-            'You can dispatch or execute only objects implementing '.TaskInterface::class.
-            ' or '.WorkflowInterface::class
-        );
+        $check = function ($arg) {
+            if ( ! is_object($arg) || (! $arg instanceof TaskInterface && ! $arg instanceof WorkflowInterface)) {
+                throw new InvalidArgumentException(
+                    'You can execute only objects implementing '.TaskInterface::class.
+                    ' or '.WorkflowInterface::class
+                );
+            }
+        };
 
-        // check there is at least one argument
-        if (count($jobs) == 0) {
-            throw $error;
-        }
+        array_map($check, $jobs);
+    }
 
-        // check each arguments'type
-        $check = function ($arg) use ($error) {
-            if ( ! is_object($arg) || ! $arg instanceof JobInterface) {
-                throw $error;
+    protected function checkDispatchArguments($jobs)
+    {
+        $check = function ($arg) {
+            if ( ! is_object($arg) || (! $arg instanceof WorkflowInterface)) {
+                throw new InvalidArgumentException(
+                    'You can dispatch only objects implementing '.WorkflowInterface::class
+                );
             }
         };
 
