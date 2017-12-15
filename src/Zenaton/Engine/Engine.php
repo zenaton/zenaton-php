@@ -8,6 +8,7 @@ use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
 use Zenaton\Client;
+use Zenaton\Worker;
 
 class Engine
 {
@@ -21,64 +22,59 @@ class Engine
         $this->client = Client::getInstance();
 
         // executed by Zenaton worker
-        if (class_exists('Zenaton\Worker\Helpers')) {
-            $this->worker = \Zenaton\Worker\Helpers::getInstance();
+        if (class_exists(Worker::class)) {
+            $this->worker = Worker::getInstance();
         }
     }
 
     public function execute($jobs)
     {
         // check arguments'type
-        $this->checkArgumentsType($jobs);
+        $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker)) {
+        if (is_null($this->worker) || (count($jobs) == 0)) {
+            $outputs = [];
+            // simply apply handle method
             foreach ($jobs as $job) {
                 $outputs[] = $job->handle();
             }
             // return results
-            return (count($jobs) > 1) ? $outputs : $outputs[0];
+            return $outputs;
         }
 
         // executed by Zenaton worker
-        return $this->worker->doExecute($jobs, true);
+        return $this->worker->process($jobs, true);
     }
 
     public function dispatch($jobs)
     {
         // check arguments'type
-        $this->checkArgumentsType($jobs);
+        $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker)) {
+        if (is_null($this->worker) || (count($jobs) == 0)) {
+            $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
-                $this->client->startWorkflow($job);
+                $outputs[] = $this->client->startWorkflow($job);
             }
-            // return nothing
-            return;
+            // return results
+            return $outputs;
         }
 
         // executed by Zenaton worker
-        return $this->worker->doExecute($jobs, false);
+        return $this->worker->process($jobs, false);
     }
 
-    protected function checkArgumentsType($jobs)
+    protected function checkArguments($jobs)
     {
-        $error = new InvalidArgumentException(
-            'arguments MUST be one or many objects implementing '.TaskInterface::class.
-            ' or '.WorkflowInterface::class
-        );
-
-        // check there is at least one argument
-        if (count($jobs) == 0) {
-            throw $error;
-        }
-
-        // check each arguments'type
-        $check = function ($arg) use ($error) {
-            if ( ! is_object($arg) || ! $arg instanceof JobInterface) {
-                throw $error;
+        $check = function ($arg) {
+            if ( ! is_object($arg) || (! $arg instanceof TaskInterface && ! $arg instanceof WorkflowInterface)) {
+                throw new InvalidArgumentException(
+                    'You can execute or dispatch only objects implementing '.TaskInterface::class.
+                    ' or '.WorkflowInterface::class
+                );
             }
         };
 

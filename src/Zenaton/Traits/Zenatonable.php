@@ -9,12 +9,12 @@ trait Zenatonable
 {
     public function dispatch()
     {
-        return Engine::getInstance()->dispatch([$this]);
+        Engine::getInstance()->dispatch([$this]);
     }
 
     public function execute()
     {
-        return Engine::getInstance()->execute([$this]);
+        return Engine::getInstance()->execute([$this])[0];
     }
 
     public static function whereId($id)
