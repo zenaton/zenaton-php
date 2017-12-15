@@ -8,6 +8,7 @@ use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
 use Zenaton\Client;
+use Zenaton\Worker;
 
 class Engine
 {
@@ -21,8 +22,8 @@ class Engine
         $this->client = Client::getInstance();
 
         // executed by Zenaton worker
-        if (class_exists('Zenaton\Worker\Helpers')) {
-            $this->worker = \Zenaton\Worker\Helpers::getInstance();
+        if (class_exists(Worker::class)) {
+            $this->worker = Worker::getInstance();
         }
     }
 
@@ -41,7 +42,7 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->worker->doExecute($jobs, true);
+        return $this->worker->process($jobs, true);
     }
 
     public function dispatch($jobs)
@@ -60,13 +61,13 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->worker->doExecute($jobs, false);
+        return $this->worker->process($jobs, false);
     }
 
     protected function checkArgumentsType($jobs)
     {
         $error = new InvalidArgumentException(
-            'arguments MUST be one or many objects implementing '.TaskInterface::class.
+            'You can dispatch or execute only objects implementing '.TaskInterface::class.
             ' or '.WorkflowInterface::class
         );
 
