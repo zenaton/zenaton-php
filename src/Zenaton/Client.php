@@ -19,18 +19,19 @@ class Client
     const ZENATON_WORKER_URL = 'http://localhost:';
     const DEFAULT_WORKER_PORT = 4001;
 
+    const MAX_ID_SIZE = 191;
+
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
 
     const CUSTOM_ID = 'custom_id';
+    const NAME = 'name';
+    const CANONICAL = 'canonical_name';
     const DATA = 'data';
     const PROGRAMMING_LANGUAGE = 'programming_language';
     const PHP = 'PHP';
-    const NAME = 'name';
     const MODE = 'mode';
-    const CANONICAL = 'canonical_name';
-    const VARCHAR_MAX_SIZE = 191;
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
@@ -105,8 +106,8 @@ class Client
             if (! is_string($customId) && ! is_int($customId)) {
                 throw new InvalidArgumentException('Provided Id must be a string or an integer');
             }
-            if (strlen($customId) > self::VARCHAR_MAX_SIZE ) {
-                throw new InvalidArgumentException('Provided Id must not exceed 191 characters');
+            if (strlen($customId) > self::MAX_ID_SIZE ) {
+                throw new InvalidArgumentException('Provided Id must not exceed '. self::MAX_ID_SIZE . ' characters');
             }
         }
 
