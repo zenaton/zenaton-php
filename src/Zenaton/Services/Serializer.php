@@ -107,7 +107,7 @@ class Serializer
             $id = count($this->decoded);
             $this->decoded[$id] = $o;
             $this->encoded[$id][self::KEY_OBJECT_NAME] = get_class($o);
-            $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->properties->getFromObject($o));
+            $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->properties->getPropertiesFromObject($o));
         }
 
         return self::ID_PREFIX . $id;
@@ -166,7 +166,7 @@ class Serializer
         if ($o instanceof Carbon) {
             $properties = $this->decodeArray($encodedObject[self::KEY_OBJECT_PROPERTIES]);
             $o = $this->properties->getNewInstanceWithoutProperties('DateTime');
-            $dt = $this->properties->setToObject($o, $properties);
+            $dt = $this->properties->setPropertiesToObject($o, $properties);
             // other possible implementation
             // $dt = 'O:8:"DateTime":3:{s:4:"date";s:' . strlen($properties['date']) . ':"' . $properties['date'] .
             //     '";s:13:"timezone_type";i:' . $properties['timezone_type'] .
@@ -184,7 +184,7 @@ class Serializer
         $properties = $this->decodeArray($encodedObject[self::KEY_OBJECT_PROPERTIES]);
 
         // fill instance with properties
-        return $this->properties->setToObject($o, $properties);
+        return $this->properties->setPropertiesToObject($o, $properties);
     }
 
     protected function decodeClosure($id, $encodedClosure) {

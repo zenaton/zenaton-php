@@ -115,7 +115,7 @@ class Client
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::CANONICAL => $canonical,
             self::NAME => get_class($flow),
-            self::DATA => $this->serializer->encode($this->properties->getFromObject($flow)),
+            self::DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
             self::CUSTOM_ID => isset($customId) ? $customId : null
         ]);
     }
@@ -186,7 +186,7 @@ class Client
             self::NAME => $workflowName,
             self::CUSTOM_ID => $customId,
             self::EVENT_NAME => get_class($event),
-            self::EVENT_INPUT => $this->serializer->encode($this->properties->getFromObject($event)),
+            self::EVENT_INPUT => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
             self::PROGRAMMING_LANGUAGE => self::PHP,
         ];
 
