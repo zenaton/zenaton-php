@@ -20,10 +20,10 @@ class Properties
         $this->checkClass($o, $class);
 
         // fill empty object with properties
-        return $this->setToObject($o, $properties);
+        return $this->setPropertiesToObject($o, $properties);
     }
 
-    public function getFromObject($o)
+    public function getPropertiesFromObject($o)
     {
         // why cloning ? https://divinglaravel.com/queue-system/preparing-jobs-for-queue
         $clone = $o instanceof \Exception ? $o : clone $o;
@@ -55,15 +55,7 @@ class Properties
         return $properties;
     }
 
-    public function checkClass($o, $class)
-    {
-        // object must be of $class type
-        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
-            throw new UnexpectedValueException('Error - '. get_class($o) .' should be an instance of '.$class);
-        }
-    }
-
-    public function setToObject($o, $properties)
+    public function setPropertiesToObject($o, $properties)
     {
         // declared variables
         $keys = [];
@@ -90,5 +82,13 @@ class Properties
         }
 
         return $o;
+    }
+
+    protected function checkClass($o, $class)
+    {
+        // object must be of $class type
+        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
+            throw new UnexpectedValueException('Error - '. get_class($o) .' should be an instance of '.$class);
+        }
     }
 }
