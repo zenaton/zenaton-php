@@ -7,6 +7,7 @@ use Zenaton\Workflows\Version;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Exceptions\InvalidArgumentException;
+use Zenaton\Exception\ConnectionErrorException;
 use Zenaton\Services\Http;
 use Zenaton\Services\Serializer;
 use Zenaton\Services\Properties;
@@ -167,9 +168,11 @@ class Client
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $properties = $this->getWorkflowProperties($workflowName, $customId);
+        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$workflowName.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
 
-        return $this->properties->getObjectFromNameAndProperties($workflowName, $properties);
+        $data = $this->http->get($this->getInstanceZenatonUrl($params))->data;
+
+        return $this->properties->getObjectFromNameAndProperties($data->name, $this->serializer->decode($data->properties));
     }
 
     /**
@@ -203,15 +206,6 @@ class Client
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::MODE => $mode,
         ]);
-    }
-
-    protected function getWorkflowProperties($workflowName, $customId)
-    {
-        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$workflowName.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
-
-        $encoded = $this->http->get($this->getInstanceZenatonUrl($params));
-
-        return $this->serializer->decode($encoded->data->properties);
     }
 
     protected function getWorkerUrl()
