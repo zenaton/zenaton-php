@@ -19,7 +19,7 @@ class Client
     const ZENATON_WORKER_URL = 'http://localhost:';
     const DEFAULT_WORKER_PORT = 4001;
 
-    const MAX_ID_SIZE = 191;
+    const MAX_ID_SIZE = 256;
 
     const APP_ENV = 'app_env';
     const APP_ID = 'app_id';
