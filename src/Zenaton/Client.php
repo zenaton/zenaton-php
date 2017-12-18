@@ -18,6 +18,7 @@ class Client
     const ZENATON_API_URL = 'https://zenaton.com/api/v1';
     const ZENATON_WORKER_URL = 'http://localhost:';
     const DEFAULT_WORKER_PORT = 4001;
+    const WORKER_API_VERSION = 'v_newton';
 
     const MAX_ID_SIZE = 191;
 
@@ -215,7 +216,8 @@ class Client
 
     protected function getWorkerUrl()
     {
-        return self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
+        $url =  self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
+        return $url.'/'.self::WORKER_API_VERSION;
     }
 
     protected function getZenatonUrl()
