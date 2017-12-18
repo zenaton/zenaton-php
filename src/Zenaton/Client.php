@@ -85,6 +85,12 @@ class Client
         return $this;
     }
 
+    public function getWorkerUrl()
+    {
+        $url =  self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
+        return $url.'/'.self::WORKER_API_VERSION;
+    }
+    
     /**
      * Start a workflow instance
      *
@@ -206,12 +212,6 @@ class Client
             self::PROGRAMMING_LANGUAGE => self::PHP,
             self::MODE => $mode,
         ]);
-    }
-
-    protected function getWorkerUrl()
-    {
-        $url =  self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
-        return $url.'/'.self::WORKER_API_VERSION;
     }
 
     protected function getZenatonUrl()
