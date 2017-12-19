@@ -101,7 +101,7 @@ class Client
         $url = (getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL)
             . '/' . $ressources . '?'
             . self::API_TOKEN.'='.$this->apiToken . '&';
-            
+
         return $this->addAppEnv($url, $params);
     }
 
@@ -252,9 +252,10 @@ class Client
 
     protected function addAppEnv($url, $params = '')
     {
+        // when called from worker, APP_ENV and APP_ID is not defined
         return $url
-            . self::APP_ENV . '=' . $this->appEnv
-            . '&' . self::APP_ID . '=' . $this->appId
-            . '&' . $params;
+            . ($this->appEnv ? self::APP_ENV . '=' . $this->appEnv . '&' : '')
+            . ($this->appId ? self::APP_ID . '=' . $this->appId . '&' : '')
+            . ($params ? $params . '&' : '');
     }
 }
