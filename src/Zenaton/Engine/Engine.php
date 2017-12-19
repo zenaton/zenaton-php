@@ -33,7 +33,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker) || (count($jobs) == 0)) {
+        if (is_null($this->worker) || count($jobs) == 0) {
             $outputs = [];
             // simply apply handle method
             foreach ($jobs as $job) {
@@ -53,7 +53,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker) || (count($jobs) == 0)) {
+        if (is_null($this->worker) || count($jobs) == 0) {
             $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
@@ -72,12 +72,11 @@ class Engine
         $check = function ($arg) {
             if ( ! is_object($arg) || (! $arg instanceof TaskInterface && ! $arg instanceof WorkflowInterface)) {
                 throw new InvalidArgumentException(
-                    'You can execute or dispatch only objects implementing '.TaskInterface::class.
+                    'You can only execute or dispatch only object implementing '.TaskInterface::class.
                     ' or '.WorkflowInterface::class
                 );
             }
         };
-
         array_map($check, $jobs);
     }
 }

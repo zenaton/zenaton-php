@@ -4,7 +4,7 @@ namespace Zenaton\Traits;
 
 trait SingletonTrait
 {
-    private static $instance = null;
+    protected static $instance = null;
 
     // __construct() is declared as protected to prevent creating a new instance outside of the class via the new operator.
     private function __construct()

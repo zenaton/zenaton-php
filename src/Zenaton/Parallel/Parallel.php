@@ -7,7 +7,7 @@ use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Engine\Engine;
 
-class Collection
+class Parallel
 {
     /**
      * The items contained in the collection.

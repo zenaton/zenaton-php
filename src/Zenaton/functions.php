@@ -1,10 +1,10 @@
 <?php
 
-use Zenaton\Parallel\Collection;
+use Zenaton\Parallel\Parallel;
 
 if ( ! function_exists('parallel')) {
     function parallel()
     {
-        return new Collection(func_get_args());
+        return new Parallel(func_get_args());
     }
 }
