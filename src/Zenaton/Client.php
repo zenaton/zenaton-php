@@ -17,7 +17,7 @@ class Client
     use SingletonTrait;
 
     const ZENATON_API_URL = 'https://zenaton.com/api/v1';
-    const ZENATON_WORKER_URL = 'http://localhost:';
+    const ZENATON_WORKER_URL = 'http://localhost';
     const DEFAULT_WORKER_PORT = 4001;
     const WORKER_API_VERSION = 'v_newton';
 
@@ -27,13 +27,14 @@ class Client
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
 
-    const CUSTOM_ID = 'custom_id';
-    const NAME = 'name';
-    const CANONICAL = 'canonical_name';
-    const DATA = 'data';
-    const PROGRAMMING_LANGUAGE = 'programming_language';
-    const PHP = 'PHP';
-    const MODE = 'mode';
+    const ATTR_ID = 'custom_id';
+    const ATTR_NAME = 'name';
+    const ATTR_CANONICAL = 'canonical_name';
+    const ATTR_DATA = 'data';
+    const ATTR_PROG = 'programming_language';
+    const ATTR_MODE = 'mode';
+
+    const PROG = 'PHP';
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
@@ -85,10 +86,23 @@ class Client
         return $this;
     }
 
-    public function getWorkerUrl()
+    public function getWorkerUrl($ressources = '', $params = '')
     {
-        $url =  self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
-        return $url.'/api/'.self::WORKER_API_VERSION;
+        $url = (getenv('ZENATON_WORKER_URL') ? : self::ZENATON_WORKER_URL)
+            . ':' . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT)
+            . '/api/' . self::WORKER_API_VERSION
+            . '/' . $ressources . '?';
+
+        return $this->addAppEnv($url, $params);
+    }
+
+    public function getWebsiteUrl($ressources = '' , $params = '')
+    {
+        $url = (getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL)
+            . '/' . $ressources . '?'
+            . self::API_TOKEN.'='.$this->apiToken . '&';
+            
+        return $this->addAppEnv($url, $params);
     }
 
     /**
@@ -109,23 +123,27 @@ class Client
         }
 
         // custom id management
+        $customId = null;
         if (method_exists($flow, 'getId')) {
             $customId = $flow->getId();
             if (! is_string($customId) && ! is_int($customId)) {
                 throw new InvalidArgumentException('Provided Id must be a string or an integer');
             }
+            // at the end, it's a string
+            $customId = (string) $customId;
+            // should be not more than 256 bytes;
             if (strlen($customId) > self::MAX_ID_SIZE ) {
-                throw new InvalidArgumentException('Provided Id must not exceed '. self::MAX_ID_SIZE . ' characters');
+                throw new InvalidArgumentException('Provided Id must not exceed '. self::MAX_ID_SIZE . ' bytes');
             }
         }
 
         // start workflow
         $this->http->post($this->getInstanceWorkerUrl(), [
-            self::PROGRAMMING_LANGUAGE => self::PHP,
-            self::CANONICAL => $canonical,
-            self::NAME => get_class($flow),
-            self::DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
-            self::CUSTOM_ID => isset($customId) ? $customId : null
+            self::ATTR_PROG => self::PROG,
+            self::ATTR_CANONICAL => $canonical,
+            self::ATTR_NAME => get_class($flow),
+            self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
+            self::ATTR_ID => $customId
         ]);
     }
 
@@ -174,9 +192,12 @@ class Client
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $params = self::CUSTOM_ID.'='.$customId.'&'.self::NAME.'='.$workflowName.'&'.self::PROGRAMMING_LANGUAGE.'='.self::PHP;
+        $params =
+            self::ATTR_ID.'='.$customId.'&'.
+            self::ATTR_NAME.'='.$workflowName.'&'.
+            self::ATTR_PROG.'='.self::PROG;
 
-        $data = $this->http->get($this->getInstanceZenatonUrl($params))->data;
+        $data = $this->http->get($this->getInstanceWebsiteUrl($params))->data;
 
         return $this->properties->getObjectFromNameAndProperties($data->name, $this->serializer->decode($data->properties));
     }
@@ -194,11 +215,11 @@ class Client
         $url = $this->getSendEventURL();
 
         $body = [
-            self::NAME => $workflowName,
-            self::CUSTOM_ID => $customId,
+            self::ATTR_PROG => self::PROG,
+            self::ATTR_NAME => $workflowName,
+            self::ATTR_ID => $customId,
             self::EVENT_NAME => get_class($event),
             self::EVENT_INPUT => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
-            self::PROGRAMMING_LANGUAGE => self::PHP,
         ];
 
         $this->http->post($url, $body);
@@ -206,40 +227,34 @@ class Client
 
     protected function updateInstance($workflowName, $customId, $mode)
     {
-        $params = self::CUSTOM_ID.'='.$customId;
+        $params = self::ATTR_ID.'='.$customId;
         return $this->http->put($this->getInstanceWorkerUrl($params), [
-            self::NAME => $workflowName,
-            self::PROGRAMMING_LANGUAGE => self::PHP,
-            self::MODE => $mode,
+            self::ATTR_PROG => self::PROG,
+            self::ATTR_NAME => $workflowName,
+            self::ATTR_MODE => $mode,
         ]);
     }
 
-    protected function getZenatonUrl()
+    protected function getInstanceWebsiteUrl($params)
     {
-        return getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL;
-    }
-
-    protected function getInstanceZenatonUrl($params)
-    {
-        return $this->addIdentification($this->getZenatonUrl().'/instances', $params);
+        return $this->getWebsiteUrl('instances', $params);
     }
 
     protected function getInstanceWorkerUrl($params = '')
     {
-        return $this->addIdentification($this->getWorkerUrl(). '/instances', $params);
+        return $this->getWorkerUrl('instances', $params);
     }
 
     protected function getSendEventURL()
     {
-        return $this->addIdentification($this->getWorkerUrl().'/events');
+        return $this->getWorkerUrl('events');
     }
 
-    protected function addIdentification($url, $params = '')
+    protected function addAppEnv($url, $params = '')
     {
         return $url
-            .'?'.self::APP_ENV.'='.$this->appEnv
-            .'&'.self::APP_ID.'='.$this->appId
-            .'&'.self::API_TOKEN.'='.$this->apiToken
-            .'&'.$params;
+            . self::APP_ENV . '=' . $this->appEnv
+            . '&' . self::APP_ID . '=' . $this->appId
+            . '&' . $params;
     }
 }
