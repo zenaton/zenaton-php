@@ -88,9 +88,9 @@ class Client
     public function getWorkerUrl()
     {
         $url =  self::ZENATON_WORKER_URL . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT);
-        return $url.'/'.self::WORKER_API_VERSION;
+        return $url.'/api/'.self::WORKER_API_VERSION;
     }
-    
+
     /**
      * Start a workflow instance
      *
