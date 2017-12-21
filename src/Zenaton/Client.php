@@ -50,16 +50,16 @@ class Client
     protected $serializer;
     protected $properties;
 
-    public static function getInstance($worker = false)
-    {
-        if (! is_null(static::$instance)) {
-            if (! $worker && (! this.appId || ! this.apiToken || ! this.appEnv)) {
-				throw new ExternalZenatonException('Please initialize your Zenaton client with your credentials');
-			}
-        }
-
-        return parent::getInstance();
-    }
+    // public static function getInstance($worker = false)
+    // {
+    //     if (! is_null(static::$instance)) {
+    //         if (! $worker && (! this.appId || ! this.apiToken || ! this.appEnv)) {
+	// 			throw new ExternalZenatonException('Please initialize your Zenaton client with your credentials');
+	// 		}
+    //     }
+    //
+    //     return parent::getInstance();
+    // }
 
     public static function init($appId, $apiToken, $appEnv)
     {
