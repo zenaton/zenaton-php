@@ -28,11 +28,19 @@ class Wait implements WaitInterface
 
     public function handle()
     {
-        // time_sleep_until($this->getTimestamp());
+        // No waiting when executed locally
     }
 
     public function getEvent()
     {
         return $this->event;
+    }
+
+    /**
+     * Be a bit less fragile by linearizing only useful data
+     */
+    public function __sleep()
+    {
+        return ['event', '_buffer'];
     }
 }

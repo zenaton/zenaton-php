@@ -2,154 +2,236 @@
 
 namespace Zenaton\Traits;
 
-use Carbon\Carbon;
+use Zenaton\Exceptions\InternalZenatonException;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Cake\Chronos\Chronos;
+use Cake\Chronos\ChronosInterface;
+use DateTimeZone;
 
 trait WithTimestamp
 {
     use WithDuration;
 
-    protected $_isTimestamp = false;
+    static $_MODE_AT = 'AT';
+    static $_MODE_WEEK_DAY = 'WEEK_DAY';
+    static $_MODE_MONTH_DAY = 'MONTH_DAY';
+    static $_MODE_TIMESTAMP = 'TIMESTAMP';
 
-    /*
-     *  Is the target a timestamp?
+    protected $_mode;
+    static protected $_timezone;
+
+    /**
+     * Define timezone used when setting date / time
+     * @var String $timezone
      */
-    public function isTimestamp()
+    static public function timezone($timezone)
     {
-        return $this->_isTimestamp;
+        if (! in_array($timezone, DateTimeZone::listIdentifiers())) {
+            throw new ExternalZenatonException("Unknown timezone");
+        }
+
+        self::$_timezone = $timezone;
     }
 
-    /*
-     *  Return timestamp
+    /**
+     * Return Wait timestamp or duration depending on methods used
+     * @return Array [null, duration] or [timestamp, null]
      */
-    public function getTimestamp()
+    public function _getTimestampOrDuration()
     {
-        // apply methods in buffer (timezone first)
-        $this->_applyBuffer();
+        $this->_mode = null;
+        // get setted or PHP current time zone
+        $tz = self::$_timezone ? : date_default_timezone_get();
 
-        return $this->_carbonThen ? $this->_carbonThen->timestamp : PHP_INT_MAX;
+        $now = Chronos::now($tz);
+        $then = $now->copy();
+
+        foreach ($this->_buffer as $call) {
+            $then = $this->_apply($call[0], $call[1], $now, $then);
+        }
+
+        if ($this->_mode === null) {
+            // duration
+            return [null, $now->diffInSeconds($then)];
+        } else {
+            // timestamp
+            return [$then->timestamp, null];
+        }
     }
 
-    protected function _timestamp($timestamp)
+    /**
+     * Defined by timestamp (timezone independant)
+     * @param  int $value
+     * @return self
+     */
+    public function timestamp($value)
     {
-        $this->_isTimestamp = true;
-
-        $this->getCarbonThen()->timestamp = $timestamp;
+        $this->_buffer[] = [__FUNCTION__, $value];
 
         return $this;
     }
 
-    protected function _at($time)
+    public function at($value)
     {
-        $this->_isTimestamp = true;
-
-        $segments = explode(':', $time);
-        $h = (int) $segments[0];
-        $m = count($segments) > 1 ? (int) $segments[1] : 0;
-        $s = count($segments) > 2 ? (int) $segments[2] : 0;
-
-        $t = $this->getCarbonThen()->setTime($h, $m, $s);
-
-        // if time is past, target next day
-        ($this->_carbonNow)->gt($t) ? $t->addDay() : $t;
+        $this->_buffer[] = [__FUNCTION__, $value];
 
         return $this;
     }
 
-    protected function _onDay($day)
+    public function dayOfMonth($value)
     {
-        $this->_isTimestamp = true;
+        $this->_buffer[] = [__FUNCTION__, $value];
 
-        $t = $this->getCarbonThen();
-        $t->day = $day;
+        return $this;
+    }
+
+    public function monday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function tuesday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function wednesday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function thursday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function friday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function saturday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    public function sunday($value = 1)
+    {
+        $this->_buffer[] = [__FUNCTION__, $value];
+
+        return $this;
+    }
+
+    protected function _timestamp($timestamp, $then)
+    {
+        $this->_setMode(self::$_MODE_TIMESTAMP);
+
+        $then = $then->timestamp($timestamp);
+
+        return $then;
+    }
+
+    protected function _at($time, $now, $then)
+    {
+        $this->_setMode(self::$_MODE_AT);
+
+        $then = $then->setTimeFromTimeString($time);
+
+        // if time is past, target next day/week/month
+        if ($now->gt($then)) {
+            switch ($this->_mode) {
+                case self::$_MODE_AT:
+                    $then = $then->addDay();
+                    break;
+                case self::$_MODE_WEEK_DAY:
+                    $then = $then->addWeek();
+                    break;
+                case self::$_MODE_MONTH_DAY:
+                    $then = $then->addMonth();
+                    break;
+                default:
+                    throw new InternalZenatonException('Unknown mode: ' . $this->_mode);
+            }
+        }
+
+        return $then;
+    }
+
+    protected function _dayOfMonth($day, $now, $then)
+    {
+        $this->_setMode(self::$_MODE_MONTH_DAY);
+
+        $then = $then->day($day);
 
         // if time is past, target next month
-        ($this->_carbonNow)->gt($t) ? $t->addMonth() : $t;
+        if ($now->gt($then)) {
+            $then = $then->addMonth();
+        }
 
-        return $this;
+        return $then;
     }
 
-    protected function _monday($n = 1)
+    protected function _weekDay($n, $day, $then)
     {
-        $this->_isTimestamp = true;
+        $this->_setMode(self::$_MODE_WEEK_DAY);
 
-        $t = $this->getCarbonThen();
+        [$h, $m, $s] = [$then->hour, $then->minute, $then->second];
+        $then = $then->previous($day)->addWeeks($n)->setTime($h, $m, $s);
 
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::MONDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
+        return $then;
     }
 
-    protected function _tuesday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::TUESDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
+    protected function _apply($method, $value, $now, $then) {
+        switch ($method) {
+            case 'timestamp':
+                return $this->_timestamp($value, $then);
+            case 'at':
+                return $this->_at($value, $now, $then);
+            case 'dayOfMonth':
+                return $this->_dayOfMonth($value, $now, $then);
+            case 'monday':
+                return $this->_weekDay($value, ChronosInterface::MONDAY, $then);
+            case 'tuesday':
+                return $this->_weekDay($value, ChronosInterface::TUESDAY, $then);
+            case 'wednesday':
+                return $this->_weekDay($value, ChronosInterface::WEDNESDAY, $then);
+            case 'thursday':
+                return $this->_weekDay($value, ChronosInterface::THURSDAY, $then);
+            case 'friday':
+                return $this->_weekDay($value, ChronosInterface::FRIDAY, $then);
+            case 'saturday':
+                return $this->_weekDay($value, ChronosInterface::SATURDAY, $then);
+            case 'sunday':
+                return $this->_weekDay($value, ChronosInterface::SUNDAY, $then);
+            default:
+                return $this->_applyDuration($method, $value, $then);
+        }
     }
 
-    protected function _wednesday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::WEDNESDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
-    }
-
-    protected function _thursday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::THURSDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
-    }
-
-    protected function _friday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::FRIDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
-    }
-
-    protected function _saturday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::SATURDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
-    }
-
-    protected function _sunday($n = 1)
-    {
-        $this->_isTimestamp = true;
-
-        $t = $this->getCarbonThen();
-        list($h, $m, $s) = [$t->hour, $t->minute, $t->second];
-        $t->previous(Carbon::SUNDAY)->addWeeks($n)->setTime($h, $m, $s);
-
-        return $this;
-    }
-
-    protected function _timezone($timezone)
-    {
-        $this->getCarbonThen()->setTimezone($timezone);
-
-        return $this;
+    protected function _setMode($mode) {
+        // can not apply twice the same method
+        if ($mode === $this->_mode) {
+            throw new ExternalZenatonException('Incompatible definition in Wait methods');
+        }
+        // timestamp can only be used alone
+        if ((null !== $this->_mode && self::$_MODE_TIMESTAMP === $mode) || (self::$_MODE_TIMESTAMP === $this->_mode)) {
+            throw new ExternalZenatonException('Incompatible definition in Wait methods');
+        }
+        // other mode takes precedence to MODE_AT
+        if (null === $this->_mode || self::$_MODE_AT === $this->_mode) {
+            $this->_mode = $mode;
+        }
     }
 }

@@ -13,10 +13,10 @@
     "license": "Apache-2.0",
     "require": {
         "php": ">=5.4.0",
-        "nesbot/carbon": "~1.22",
         "vlucas/phpdotenv": "^2.4",
         "nategood/httpful": "~0.2",
-        "jeremeamia/superclosure": "^2.0"
+        "jeremeamia/superclosure": "^2.0",
+        "cakephp/chronos": "^1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0"
