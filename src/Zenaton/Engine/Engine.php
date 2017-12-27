@@ -69,14 +69,13 @@ class Engine
 
     protected function checkArguments($jobs)
     {
-        $check = function ($arg) {
-            if ( ! is_object($arg) || (! $arg instanceof TaskInterface && ! $arg instanceof WorkflowInterface)) {
+        foreach ($jobs as $job) {
+            if ( ! is_object($job) || (! $job instanceof TaskInterface && ! $job instanceof WorkflowInterface)) {
                 throw new InvalidArgumentException(
-                    'You can only execute or dispatch only object implementing '.TaskInterface::class.
+                    'You can only execute or dispatch object implementing '.TaskInterface::class.
                     ' or '.WorkflowInterface::class
                 );
             }
-        };
-        array_map($check, $jobs);
+        }
     }
 }
