@@ -35,27 +35,28 @@ trait WithTimestamp
 
     /**
      * Return Wait timestamp or duration depending on methods used
-     * @return Array [null, duration] or [timestamp, null]
+     * @return Array [null, duration] or [timestamp, null] or [null, null]
      */
     public function _getTimestampOrDuration()
     {
+        if (null === $this->_buffer) {
+            return [null, null];
+        }
+
+        [$now, $then] = $this->_initNowThen();
+
         $this->_mode = null;
-        // get setted or PHP current time zone
-        $tz = self::$_timezone ? : date_default_timezone_get();
-
-        $now = Chronos::now($tz);
-        $then = $now->copy();
-
+        // apply buffered methods
         foreach ($this->_buffer as $call) {
             $then = $this->_apply($call[0], $call[1], $now, $then);
         }
-
-        if ($this->_mode === null) {
-            // duration or null if user did nothing
-            return [null, count($this->_buffer) > 0 ? $now->diffInSeconds($then) : null];
-        } else {
-            // timestamp
+        // has user used a method by timestamp?
+        $isTimestamp = $this->_mode !== null;
+        //return
+        if ($isTimestamp) {
             return [$then->timestamp, null];
+        } else {
+            return [null, $now->diffInSeconds($then)];
         }
     }
 
@@ -66,70 +67,70 @@ trait WithTimestamp
      */
     public function timestamp($value)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function at($value)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function dayOfMonth($value)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function monday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function tuesday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function wednesday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function thursday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function friday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function saturday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function sunday($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }

@@ -7,15 +7,18 @@ use Cake\Chronos\Chronos;
 
 trait WithDuration
 {
-    protected $_buffer = [];
+    protected $_buffer;
 
     public function _getDuration()
     {
-        $now = Chronos::now();
-        $then = $now->copy();
+        if (null === $this->_buffer) {
+            return null;
+        }
+
+        [$now, $then] = $this->_initNowThen();
 
         foreach ($this->_buffer as $call) {
-            $this->_applyDuration($call[0], $call[1], $then);
+            $then = $this->_applyDuration($call[0], $call[1], $then);
         }
 
         return $now->diffInSeconds($then);
@@ -23,51 +26,69 @@ trait WithDuration
 
     public function seconds($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function minutes($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function hours($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function days($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function weeks($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function months($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function years($value = 1)
     {
-        $this->_buffer[] = [__FUNCTION__, $value];
+        $this->push([__FUNCTION__, $value]);
 
         return $this;
+    }
+
+    protected function _initNowThen() {
+        // get setted or current time zone
+        $tz = self::$_timezone ? : date_default_timezone_get();
+
+        $now = Chronos::now($tz);
+        $then = $now->copy();
+
+        return [$now, $then];
+    }
+
+    protected function _push($data) {
+		if (null === $this->_buffer) {
+			$this->_buffer = [];
+		}
+
+		$this->_buffer[] = data;
     }
 
     protected function _applyDuration($method, $value, $then) {
