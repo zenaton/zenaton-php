@@ -51,8 +51,8 @@ trait WithTimestamp
         }
 
         if ($this->_mode === null) {
-            // duration
-            return [null, $now->diffInSeconds($then)];
+            // duration or null if user did nothing
+            return [null, count($this->_buffer) > 0 ? $now->diffInSeconds($then) : null];
         } else {
             // timestamp
             return [$then->timestamp, null];
