@@ -14,18 +14,20 @@ class Engine
 {
     use SingletonTrait;
 
-    protected $worker;
     protected $client;
+    protected $processer;
 
     public function construct()
     {
         $this->client = Client::getInstance();
 
-        // executed by Zenaton worker
-        if (class_exists(Worker::class)) {
-            $this->worker = Worker::getInstance();
-        }
+        // No processer
+        $this->processer = null;
     }
+
+    public function setProcesser($processer) {
+		$this->processer = $processer;
+	}
 
     public function execute($jobs)
     {
@@ -33,7 +35,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker) || count($jobs) == 0) {
+        if (is_null($this->processer) || count($jobs) == 0) {
             $outputs = [];
             // simply apply handle method
             foreach ($jobs as $job) {
@@ -44,7 +46,7 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->worker->process($jobs, true);
+        return $this->processer->process($jobs, true);
     }
 
     public function dispatch($jobs)
@@ -53,7 +55,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->worker) || count($jobs) == 0) {
+        if (is_null($this->processer) || count($jobs) == 0) {
             $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
@@ -64,7 +66,7 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->worker->process($jobs, false);
+        return $this->processer->process($jobs, false);
     }
 
     protected function checkArguments($jobs)
