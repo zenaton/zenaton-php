@@ -26,49 +26,49 @@ trait WithDuration
 
     public function seconds($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function minutes($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function hours($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function days($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function weeks($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function months($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
 
     public function years($value = 1)
     {
-        $this->push([__FUNCTION__, $value]);
+        $this->_push([__FUNCTION__, $value]);
 
         return $this;
     }
@@ -88,7 +88,7 @@ trait WithDuration
 			$this->_buffer = [];
 		}
 
-		$this->_buffer[] = data;
+		$this->_buffer[] = $data;
     }
 
     protected function _applyDuration($method, $value, $then) {
