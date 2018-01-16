@@ -59,7 +59,13 @@ class Engine
             $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
-                $outputs[] = $this->client->startWorkflow($job);
+                if ($job instanceof WorkflowInterface) {
+                    $outputs[] = $this->client->startWorkflow($job);
+                } elseif ($job instanceof TaskInterface) {
+                    $outputs[] = $job->handle();
+                } else {
+                    throw new InvalidArgumentException("Object to dispatch should implement " . WorkflowInterface::class);
+                }
             }
             // return results
             return $outputs;
