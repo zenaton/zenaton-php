@@ -64,7 +64,11 @@ class Properties
             if (! $property->isStatic()) {
                 $property->setAccessible(true);
                 $key = $property->getName();
-                $property->setValue($o, $properties[$key]);
+                // check if $key exist in properties
+                // eg. keys not in _sleep() (if any) won't be here
+                if (isset($properties[$key])) {
+                    $property->setValue($o, $properties[$key]);
+                }
                 $keys[] = $key;
             }
         }
