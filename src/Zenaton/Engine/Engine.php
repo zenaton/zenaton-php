@@ -8,25 +8,24 @@ use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
 use Zenaton\Client;
-use Zenaton\Worker;
 
 class Engine
 {
     use SingletonTrait;
 
     protected $client;
-    protected $processer;
+    protected $processor;
 
     public function construct()
     {
         $this->client = Client::getInstance();
 
-        // No processer
-        $this->processer = null;
+        // No processor
+        $this->processor = null;
     }
 
-    public function setProcesser($processer) {
-		$this->processer = $processer;
+    public function setProcessor($processor) {
+		$this->processor = $processor;
 	}
 
     public function execute($jobs)
@@ -35,7 +34,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->processer) || count($jobs) == 0) {
+        if (is_null($this->processor) || count($jobs) == 0) {
             $outputs = [];
             // simply apply handle method
             foreach ($jobs as $job) {
@@ -46,7 +45,7 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->processer->process($jobs, true);
+        return $this->processor->process($jobs, true);
     }
 
     public function dispatch($jobs)
@@ -55,13 +54,14 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->processer) || count($jobs) == 0) {
+        if (is_null($this->processor) || count($jobs) == 0) {
             $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
                 if ($job instanceof WorkflowInterface) {
                     $outputs[] = $this->client->startWorkflow($job);
                 } elseif ($job instanceof TaskInterface) {
+                    // $outputs[] = $this->client->startTask($job);
                     $outputs[] = $job->handle();
                 } else {
                     throw new InvalidArgumentException("Object to dispatch should implement " . WorkflowInterface::class);
@@ -72,7 +72,7 @@ class Engine
         }
 
         // executed by Zenaton worker
-        return $this->processer->process($jobs, false);
+        return $this->processor->process($jobs, false);
     }
 
     protected function checkArguments($jobs)
