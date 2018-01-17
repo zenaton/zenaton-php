@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton;
+namespace Zenaton\v2;
 
 use Zenaton\v2\Traits\SingletonTrait;
 use Zenaton\v2\Workflows\Version;

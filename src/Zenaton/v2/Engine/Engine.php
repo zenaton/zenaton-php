@@ -1,13 +1,13 @@
 <?php
 
-namespace Zenaton\Engine;
+namespace Zenaton\v2\Engine;
 
-use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Interfaces\JobInterface;
-use Zenaton\Interfaces\TaskInterface;
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Traits\SingletonTrait;
-use Zenaton\Client;
+use Zenaton\v2\Exceptions\InvalidArgumentException;
+use Zenaton\v2\Interfaces\JobInterface;
+use Zenaton\v2\Interfaces\TaskInterface;
+use Zenaton\v2\Interfaces\WorkflowInterface;
+use Zenaton\v2\Traits\SingletonTrait;
+use Zenaton\v2\Client;
 
 class Engine
 {
