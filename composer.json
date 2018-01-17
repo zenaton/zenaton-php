@@ -3,18 +3,16 @@
     "description": "Zenaton PHP library",
     "autoload": {
         "psr-4" : {
-            "Zenaton\\" : "src/Zenaton/"
-        },
-        "files": [
-            "src/Zenaton/functions.php"
-        ]
+            "Zenaton\\v2\\" : "src/Zenaton/v2/",
+            "Zenaton\\" : "src/Zenaton/v1/"
+        }
     },
     "type": "library",
     "license": "Apache-2.0",
     "require": {
         "php": ">=5.4.0",
         "vlucas/phpdotenv": "^2.4",
-        "nategood/httpful": "~0.2",
+        "nategood/httpful": "^0.2",
         "jeremeamia/superclosure": "^2.0",
         "cakephp/chronos": "^1.1"
     },
