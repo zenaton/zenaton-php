@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Tasks;
+namespace Zenaton\v2\Tasks;
 
 use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Interfaces\EventInterface;

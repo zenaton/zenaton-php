@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Services;
+namespace Zenaton\v2\Services;
 
 use ReflectionClass;
 use SuperClosure\Serializer as ClosureSerializer;

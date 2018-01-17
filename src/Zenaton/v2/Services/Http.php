@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Services;
+namespace Zenaton\v2\Services;
 
 use Httpful\Request as Httpful;
 use Httpful\Exception\ConnectionErrorException;

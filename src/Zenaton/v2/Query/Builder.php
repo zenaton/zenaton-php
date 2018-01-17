@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Query;
+namespace Zenaton\v2\Query;
 
 use Zenaton\Client;
 use Zenaton\Workflows\Version;

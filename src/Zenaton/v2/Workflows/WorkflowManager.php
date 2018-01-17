@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Workflows;
+namespace Zenaton\v2\Workflows;
 
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Properties;

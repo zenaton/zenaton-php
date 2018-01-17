@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Traits;
+namespace Zenaton\v2\Traits;
 
 trait IsImplementationOfTrait
 {

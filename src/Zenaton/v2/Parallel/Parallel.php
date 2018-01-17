@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Parallel;
+namespace Zenaton\v2\Parallel;
 
 use Zenaton\Traits\Zenatonable;
 use Zenaton\Interfaces\TaskInterface;

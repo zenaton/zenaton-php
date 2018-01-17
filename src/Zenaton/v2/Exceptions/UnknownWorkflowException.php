@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenaton\Exceptions;
+namespace Zenaton\v2\Exceptions;
 
 class UnknownWorkflowException extends ExternalZenatonException
 {
