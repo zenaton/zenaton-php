@@ -2,9 +2,9 @@
 
 namespace Zenaton\v2\Workflows;
 
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Services\Properties;
-use Zenaton\Services\Serializer;
+use Zenaton\v2\Interfaces\WorkflowInterface;
+use Zenaton\v2\Services\Properties;
+use Zenaton\v2\Services\Serializer;
 
 class WorkflowManager
 {

@@ -2,7 +2,7 @@
 
 namespace Zenaton\v2\Traits;
 
-use Zenaton\Exceptions\InternalZenatonException;
+use Zenaton\v2\Exceptions\InternalZenatonException;
 use Cake\Chronos\Chronos;
 
 trait WithDuration

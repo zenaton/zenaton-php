@@ -2,8 +2,8 @@
 
 namespace Zenaton\v2\Traits;
 
-use Zenaton\Exceptions\InternalZenatonException;
-use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\v2\Exceptions\InternalZenatonException;
+use Zenaton\v2\Exceptions\ExternalZenatonException;
 use Cake\Chronos\Chronos;
 use Cake\Chronos\ChronosInterface;
 use DateTimeZone;

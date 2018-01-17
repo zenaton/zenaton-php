@@ -2,12 +2,12 @@
 
 namespace Zenaton\v2\Tasks;
 
-use Zenaton\Exceptions\ExternalZenatonException;
-use Zenaton\Interfaces\EventInterface;
-use Zenaton\Interfaces\WaitInterface;
-use Zenaton\Traits\IsImplementationOfTrait;
-use Zenaton\Traits\WithTimestamp;
-use Zenaton\Traits\Zenatonable;
+use Zenaton\v2\Exceptions\ExternalZenatonException;
+use Zenaton\v2\Interfaces\EventInterface;
+use Zenaton\v2\Interfaces\WaitInterface;
+use Zenaton\v2\Traits\IsImplementationOfTrait;
+use Zenaton\v2\Traits\WithTimestamp;
+use Zenaton\v2\Traits\Zenatonable;
 
 class Wait implements WaitInterface
 {

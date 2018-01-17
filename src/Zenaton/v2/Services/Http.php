@@ -4,8 +4,8 @@ namespace Zenaton\v2\Services;
 
 use Httpful\Request as Httpful;
 use Httpful\Exception\ConnectionErrorException;
-use Zenaton\Exception\ConnectionErrorException as ZenatonConnectionErrorException;
-use Zenaton\Exceptions\InternalZenatonException;
+use Zenaton\v2\Exception\ConnectionErrorException as ZenatonConnectionErrorException;
+use Zenaton\v2\Exceptions\InternalZenatonException;
 
 class Http
 {

@@ -3,11 +3,11 @@
 namespace Zenaton\v2\Workflows;
 
 use ReflectionClass;
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Interfaces\VersionInterface;
-use Zenaton\Traits\Zenatonable;
-use Zenaton\Traits\IsImplementationOfTrait;
-use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\v2\Interfaces\WorkflowInterface;
+use Zenaton\v2\Interfaces\VersionInterface;
+use Zenaton\v2\Traits\Zenatonable;
+use Zenaton\v2\Traits\IsImplementationOfTrait;
+use Zenaton\v2\Exceptions\ExternalZenatonException;
 
 abstract class Version implements WorkflowInterface
 {

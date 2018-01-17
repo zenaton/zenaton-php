@@ -2,15 +2,15 @@
 
 namespace Zenaton;
 
-use Zenaton\Traits\SingletonTrait;
-use Zenaton\Workflows\Version;
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Interfaces\EventInterface;
-use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Exception\ConnectionErrorException;
-use Zenaton\Services\Http;
-use Zenaton\Services\Serializer;
-use Zenaton\Services\Properties;
+use Zenaton\v2\Traits\SingletonTrait;
+use Zenaton\v2\Workflows\Version;
+use Zenaton\v2\Interfaces\WorkflowInterface;
+use Zenaton\v2\Interfaces\EventInterface;
+use Zenaton\v2\Exceptions\InvalidArgumentException;
+use Zenaton\v2\Exception\ConnectionErrorException;
+use Zenaton\v2\Services\Http;
+use Zenaton\v2\Services\Serializer;
+use Zenaton\v2\Services\Properties;
 
 class Client
 {

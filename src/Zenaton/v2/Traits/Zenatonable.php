@@ -2,8 +2,8 @@
 
 namespace Zenaton\v2\Traits;
 
-use Zenaton\Engine\Engine;
-use Zenaton\Query\Builder as QueryBuilder;
+use Zenaton\v2\Engine\Engine;
+use Zenaton\v2\Query\Builder as QueryBuilder;
 
 trait Zenatonable
 {

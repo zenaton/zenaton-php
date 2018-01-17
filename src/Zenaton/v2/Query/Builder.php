@@ -2,15 +2,15 @@
 
 namespace Zenaton\v2\Query;
 
-use Zenaton\Client;
-use Zenaton\Workflows\Version;
-use Zenaton\Exceptions\ExternalZenatonException;
-use Zenaton\Exceptions\UnknownWorkflowException;
-use Zenaton\Interfaces\EventInterface;
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Services\Serializer;
-use Zenaton\Services\Properties;
-use Zenaton\Traits\IsImplementationOfTrait;
+use Zenaton\v2\Client;
+use Zenaton\v2\Workflows\Version;
+use Zenaton\v2\Exceptions\ExternalZenatonException;
+use Zenaton\v2\Exceptions\UnknownWorkflowException;
+use Zenaton\v2\Interfaces\EventInterface;
+use Zenaton\v2\Interfaces\WorkflowInterface;
+use Zenaton\v2\Services\Serializer;
+use Zenaton\v2\Services\Properties;
+use Zenaton\v2\Traits\IsImplementationOfTrait;
 
 class Builder
 {
