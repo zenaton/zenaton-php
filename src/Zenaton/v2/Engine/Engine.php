@@ -2,7 +2,8 @@
 
 namespace Zenaton\v2\Engine;
 
-use Zenaton\v2\Exceptions\InvalidArgumentException;
+use Zenaton\Exceptions\InvalidArgumentException;
+
 use Zenaton\v2\Interfaces\JobInterface;
 use Zenaton\v2\Interfaces\TaskInterface;
 use Zenaton\v2\Interfaces\WorkflowInterface;

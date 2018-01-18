@@ -2,10 +2,11 @@
 
 namespace Zenaton\v2\Query;
 
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Exceptions\UnknownWorkflowException;
+
 use Zenaton\v2\Client;
 use Zenaton\v2\Workflows\Version;
-use Zenaton\v2\Exceptions\ExternalZenatonException;
-use Zenaton\v2\Exceptions\UnknownWorkflowException;
 use Zenaton\v2\Interfaces\EventInterface;
 use Zenaton\v2\Interfaces\WorkflowInterface;
 use Zenaton\v2\Services\Serializer;

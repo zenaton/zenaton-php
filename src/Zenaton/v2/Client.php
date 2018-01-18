@@ -2,12 +2,13 @@
 
 namespace Zenaton\v2;
 
+use Zenaton\Exceptions\InvalidArgumentException;
+use Zenaton\Exception\ConnectionErrorException;
+
 use Zenaton\v2\Traits\SingletonTrait;
 use Zenaton\v2\Workflows\Version;
 use Zenaton\v2\Interfaces\WorkflowInterface;
 use Zenaton\v2\Interfaces\EventInterface;
-use Zenaton\v2\Exceptions\InvalidArgumentException;
-use Zenaton\v2\Exception\ConnectionErrorException;
 use Zenaton\v2\Services\Http;
 use Zenaton\v2\Services\Serializer;
 use Zenaton\v2\Services\Properties;

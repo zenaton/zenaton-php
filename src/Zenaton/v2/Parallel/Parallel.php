@@ -2,9 +2,10 @@
 
 namespace Zenaton\v2\Parallel;
 
+use Zenaton\Exceptions\InvalidArgumentException;
+
 use Zenaton\v2\Traits\Zenatonable;
 use Zenaton\v2\Interfaces\TaskInterface;
-use Zenaton\v2\Exceptions\InvalidArgumentException;
 use Zenaton\v2\Engine\Engine;
 
 class Parallel

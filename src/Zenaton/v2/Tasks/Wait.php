@@ -2,7 +2,8 @@
 
 namespace Zenaton\v2\Tasks;
 
-use Zenaton\v2\Exceptions\ExternalZenatonException;
+use Zenaton\Exceptions\ExternalZenatonException;
+
 use Zenaton\v2\Interfaces\EventInterface;
 use Zenaton\v2\Interfaces\WaitInterface;
 use Zenaton\v2\Traits\IsImplementationOfTrait;

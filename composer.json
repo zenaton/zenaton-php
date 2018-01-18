@@ -3,6 +3,7 @@
     "description": "Zenaton PHP library",
     "autoload": {
         "psr-4" : {
+            "Zenaton\\Exceptions\\" : "src/Zenaton/Exceptions/",
             "Zenaton\\v2\\" : "src/Zenaton/v2/",
             "Zenaton\\" : "src/Zenaton/v1/"
         }
