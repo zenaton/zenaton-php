@@ -2,9 +2,6 @@
 
 namespace Zenaton\Parallel;
 
-use Zenaton\Traits\Zenatonable;
-use Zenaton\Interfaces\TaskInterface;
-use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Engine\Engine;
 
 class Parallel
@@ -19,12 +16,11 @@ class Parallel
     /**
      * Create a new collection.
      *
-     * @param  mixed  $items
-     * @return void
+     * @param mixed $items
      */
-    public function __construct($items = [])
+    public function __construct()
     {
-        $this->items = $items;
+        $this->items = func_get_args();
     }
 
     public function dispatch()
