@@ -3,7 +3,6 @@
 namespace Zenaton\Engine;
 
 use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Interfaces\JobInterface;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
@@ -24,9 +23,10 @@ class Engine
         $this->processor = null;
     }
 
-    public function setProcessor($processor) {
-		$this->processor = $processor;
-	}
+    public function setProcessor($processor)
+    {
+        $this->processor = $processor;
+    }
 
     public function execute($jobs)
     {
@@ -34,7 +34,7 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->processor) || count($jobs) == 0) {
+        if (is_null($this->processor) || 0 == count($jobs)) {
             $outputs = [];
             // simply apply handle method
             foreach ($jobs as $job) {
@@ -54,17 +54,19 @@ class Engine
         $this->checkArguments($jobs);
 
         // local execution
-        if (is_null($this->processor) || count($jobs) == 0) {
+        if (is_null($this->processor) || 0 == count($jobs)) {
             $outputs = [];
             // dispatch works to Zenaton (only workflows by now)
             foreach ($jobs as $job) {
-                if ($job instanceof WorkflowInterface) {
-                    $outputs[] = $this->client->startWorkflow($job);
-                } elseif ($job instanceof TaskInterface) {
+                if ($this->isWorkflow($job)) {
+                    $this->client->startWorkflow($job);
+                    $outputs[] = null;
+                } elseif ($this->isTask($job)) {
                     // $outputs[] = $this->client->startTask($job);
-                    $outputs[] = $job->handle();
+                    $job->handle();
+                    $outputs[] = null;
                 } else {
-                    throw new InvalidArgumentException("Object to dispatch should implement " . WorkflowInterface::class);
+                    throw new InvalidArgumentException();
                 }
             }
             // return results
@@ -78,12 +80,21 @@ class Engine
     protected function checkArguments($jobs)
     {
         foreach ($jobs as $job) {
-            if ( ! is_object($job) || (! $job instanceof TaskInterface && ! $job instanceof WorkflowInterface)) {
+            if (!$this->isWorkflow($job) && (!$this->isTask($job))) {
                 throw new InvalidArgumentException(
-                    'You can only execute or dispatch object implementing '.TaskInterface::class.
-                    ' or '.WorkflowInterface::class
+                    'You can only execute or dispatch Zenaton Task or Workflow'
                 );
             }
         }
+    }
+
+    protected function isWorkflow($job)
+    {
+        return is_object($job) && $job instanceof WorkflowInterface;
+    }
+
+    protected function isTask($job)
+    {
+        return is_object($job) && $job instanceof TaskInterface;
     }
 }

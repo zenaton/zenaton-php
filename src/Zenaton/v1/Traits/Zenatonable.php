@@ -9,7 +9,7 @@ trait Zenatonable
 {
     public function dispatch()
     {
-        Engine::getInstance()->dispatch([$this]);
+        return Engine::getInstance()->dispatch([$this])[0];
     }
 
     public function execute()
