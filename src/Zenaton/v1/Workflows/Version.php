@@ -4,7 +4,6 @@ namespace Zenaton\Workflows;
 
 use ReflectionClass;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Interfaces\VersionInterface;
 use Zenaton\Traits\Zenatonable;
 use Zenaton\Traits\IsImplementationOfTrait;
 use Zenaton\Exceptions\ExternalZenatonException;
@@ -27,7 +26,9 @@ abstract class Version implements WorkflowInterface
     // useful for local implementation
     public function handle()
     {
-        return ($this->getCurrentImplementation())->handle();
+        $current = $this->getCurrentImplementation();
+
+        return $current->handle();
     }
 
     // current implementation
@@ -52,17 +53,17 @@ abstract class Version implements WorkflowInterface
     {
         $versions = $this->versions();
 
-        if (! is_array($versions)) {
+        if (!is_array($versions)) {
             throw new ExternalZenatonException("'versions' method must return an array");
         }
 
-        if (count($versions) == 0) {
+        if (0 == count($versions)) {
             throw new ExternalZenatonException("'versions' method must return at least one element");
         }
 
         foreach ($versions as $key => $class) {
-            if (! $this->isImplementationOf($class, WorkflowInterface::class)) {
-                throw new ExternalZenatonException("Element returned by 'versions' method for key '" . $key . "' is not the name of a class implementing " . WorkflowInterface::class);
+            if (!$this->isImplementationOf($class, WorkflowInterface::class)) {
+                throw new ExternalZenatonException("Element returned by 'versions' method for key '".$key."' is not the name of a class implementing ".WorkflowInterface::class);
             }
         }
 

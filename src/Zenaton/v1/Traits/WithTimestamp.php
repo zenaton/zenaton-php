@@ -4,7 +4,6 @@ namespace Zenaton\Traits;
 
 use Zenaton\Exceptions\InternalZenatonException;
 use Zenaton\Exceptions\ExternalZenatonException;
-use Cake\Chronos\Chronos;
 use Cake\Chronos\ChronosInterface;
 use DateTimeZone;
 
@@ -12,30 +11,32 @@ trait WithTimestamp
 {
     use WithDuration;
 
-    static $_MODE_AT = 'AT';
-    static $_MODE_WEEK_DAY = 'WEEK_DAY';
-    static $_MODE_MONTH_DAY = 'MONTH_DAY';
-    static $_MODE_TIMESTAMP = 'TIMESTAMP';
+    public static $_MODE_AT = 'AT';
+    public static $_MODE_WEEK_DAY = 'WEEK_DAY';
+    public static $_MODE_MONTH_DAY = 'MONTH_DAY';
+    public static $_MODE_TIMESTAMP = 'TIMESTAMP';
 
     protected $_mode;
-    static protected $_timezone;
+    protected static $_timezone;
 
     /**
-     * Define timezone used when setting date / time
-     * @var String $timezone
+     * Define timezone used when setting date / time.
+     *
+     * @var string
      */
-    static public function timezone($timezone)
+    public static function timezone($timezone)
     {
-        if (! in_array($timezone, DateTimeZone::listIdentifiers())) {
-            throw new ExternalZenatonException("Unknown timezone");
+        if (!in_array($timezone, DateTimeZone::listIdentifiers())) {
+            throw new ExternalZenatonException('Unknown timezone');
         }
 
         self::$_timezone = $timezone;
     }
 
     /**
-     * Return Wait timestamp or duration depending on methods used
-     * @return Array [null, duration] or [timestamp, null] or [null, null]
+     * Return Wait timestamp or duration depending on methods used.
+     *
+     * @return array [null, duration] or [timestamp, null] or [null, null]
      */
     public function _getTimestampOrDuration()
     {
@@ -43,7 +44,7 @@ trait WithTimestamp
             return [null, null];
         }
 
-        [$now, $then] = $this->_initNowThen();
+        list($now, $then) = $this->_initNowThen();
 
         $this->_mode = null;
         // apply buffered methods
@@ -51,7 +52,7 @@ trait WithTimestamp
             $then = $this->_apply($call[0], $call[1], $now, $then);
         }
         // has user used a method by timestamp?
-        $isTimestamp = $this->_mode !== null;
+        $isTimestamp = null !== $this->_mode;
         //return
         if ($isTimestamp) {
             return [$then->timestamp, null];
@@ -61,8 +62,10 @@ trait WithTimestamp
     }
 
     /**
-     * Defined by timestamp (timezone independant)
-     * @param  int $value
+     * Defined by timestamp (timezone independant).
+     *
+     * @param int $value
+     *
      * @return self
      */
     public function timestamp($value)
@@ -163,7 +166,7 @@ trait WithTimestamp
                     $then = $then->addMonth();
                     break;
                 default:
-                    throw new InternalZenatonException('Unknown mode: ' . $this->_mode);
+                    throw new InternalZenatonException('Unknown mode: '.$this->_mode);
             }
         }
 
@@ -188,13 +191,14 @@ trait WithTimestamp
     {
         $this->_setMode(self::$_MODE_WEEK_DAY);
 
-        [$h, $m, $s] = [$then->hour, $then->minute, $then->second];
+        list($h, $m, $s) = [$then->hour, $then->minute, $then->second];
         $then = $then->previous($day)->addWeeks($n)->setTime($h, $m, $s);
 
         return $then;
     }
 
-    protected function _apply($method, $value, $now, $then) {
+    protected function _apply($method, $value, $now, $then)
+    {
         switch ($method) {
             case 'timestamp':
                 return $this->_timestamp($value, $then);
@@ -221,7 +225,8 @@ trait WithTimestamp
         }
     }
 
-    protected function _setMode($mode) {
+    protected function _setMode($mode)
+    {
         // can not apply twice the same method
         if ($mode === $this->_mode) {
             throw new ExternalZenatonException('Incompatible definition in Wait methods');
