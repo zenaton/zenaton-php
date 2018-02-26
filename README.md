@@ -3,7 +3,7 @@
 This Zenaton library for PHP lets you code and launch workflows using Zenaton platform. You can sign up for an account at [https://zenaton.com](https://zenaton.com).
 
 ## Requirements
-PHP 5.4 and later.
+PHP 5.6 and later.
 
 ## Composer
 To add this library to your project, run the following command:
