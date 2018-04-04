@@ -2,7 +2,6 @@
 
 namespace Zenaton\Services;
 
-use ReflectionClass;
 use SuperClosure\Serializer as ClosureSerializer;
 use Carbon\Carbon;
 use UnexpectedValueException;
@@ -11,7 +10,7 @@ use Closure;
 class Serializer
 {
     // this string prefixs ids that are used to identify objects and Closure
-    const ID_PREFIX = "@zenaton#";
+    const ID_PREFIX = '@zenaton#';
 
     const KEY_OBJECT = 'o';
     const KEY_OBJECT_NAME = 'n';
@@ -48,9 +47,9 @@ class Serializer
             }
         } elseif (is_array($data)) {
             $value[self::KEY_ARRAY] = $this->encodeArray($data);
-        } elseif (is_resource($data)) {
-            $this->throwRessourceException();
-        } else{
+        } elseif ($this->isResource($data)) {
+            $this->throwResourceException();
+        } else {
             $value[self::KEY_DATA] = $data;
         }
         //  $this->encoded may have been updated by encodeClosure or encodeObject
@@ -68,10 +67,12 @@ class Serializer
 
         if (array_key_exists(self::KEY_OBJECT, $array)) {
             $id = substr($array[self::KEY_OBJECT], strlen(self::ID_PREFIX));
+
             return $this->decodeObject($id, $this->encoded[$id]);
         }
         if (array_key_exists(self::KEY_CLOSURE, $array)) {
             $id = substr($array[self::KEY_CLOSURE], strlen(self::ID_PREFIX));
+
             return $this->decodeClosure($id, $this->encoded[$id]);
         }
         if (array_key_exists(self::KEY_ARRAY, $array)) {
@@ -83,9 +84,9 @@ class Serializer
         throw new UnexpectedValueException('Unknown key in: '.$json);
     }
 
-    protected function throwRessourceException()
+    protected function throwResourceException()
     {
-        throw new UnexpectedValueException('Ressources can not be serialized - use __sleep to clean and __wakeup to restore them');
+        throw new UnexpectedValueException('You are trying to serialize an object containing a Resource (a turn around would be to use __sleep and __wakeup methods to remove and restore this Resource)');
     }
 
     protected function isObjectId($s)
@@ -93,7 +94,7 @@ class Serializer
         $len = strlen(self::ID_PREFIX);
 
         return is_string($s)
-            && substr($s, 0, $len) === self::ID_PREFIX
+            && self::ID_PREFIX === substr($s, 0, $len)
             && in_array(substr($s, $len), array_keys($this->encoded));
     }
 
@@ -103,14 +104,14 @@ class Serializer
         $id = array_search($o, $this->decoded, true);
 
         // store object in encoded array if not yet present
-        if ($id === false) {
+        if (false === $id) {
             $id = count($this->decoded);
             $this->decoded[$id] = $o;
             $this->encoded[$id][self::KEY_OBJECT_NAME] = get_class($o);
             $this->encoded[$id][self::KEY_OBJECT_PROPERTIES] = $this->encodeArray($this->properties->getPropertiesFromObject($o));
         }
 
-        return self::ID_PREFIX . $id;
+        return self::ID_PREFIX.$id;
     }
 
     protected function encodeClosure($c)
@@ -119,13 +120,13 @@ class Serializer
         $id = array_search($c, $this->decoded, true);
 
         // store object in encoded array if not yet present
-        if ($id === false) {
+        if (false === $id) {
             $id = count($this->decoded);
             $this->decoded[$id] = $c;
             $this->encoded[$id] = $this->closure->serialize($c);
         }
 
-        return self::ID_PREFIX . $id;
+        return self::ID_PREFIX.$id;
     }
 
     protected function encodeArray($a)
@@ -134,14 +135,14 @@ class Serializer
         foreach ($a as $key => $value) {
             if (is_object($value)) {
                 if ($value instanceof \Closure) {
-                    $array[$key] =  $this->encodeClosure($value);
+                    $array[$key] = $this->encodeClosure($value);
                 } else {
-                    $array[$key] =  $this->encodeObject($value);
+                    $array[$key] = $this->encodeObject($value);
                 }
             } elseif (is_array($value)) {
                 $array[$key] = $this->encodeArray($value);
-            } elseif (is_resource($value)) {
-                $this->throwRessourceException();
+            } elseif ($this->isResource($value)) {
+                $this->throwResourceException();
             } else {
                 $array[$key] = $value;
             }
@@ -150,7 +151,8 @@ class Serializer
         return $array;
     }
 
-    protected function decodeObject($id, $encodedObject) {
+    protected function decodeObject($id, $encodedObject)
+    {
         // return object if already known (avoid recursion)
         if (in_array($id, array_keys($this->decoded))) {
             return $this->decoded[$id];
@@ -174,6 +176,7 @@ class Serializer
             // $dt = unserialize($dt);
             $o = Carbon::instance($dt);
             $this->decoded[$id] = $o;
+
             return $o;
         }
 
@@ -187,7 +190,8 @@ class Serializer
         return $this->properties->setPropertiesToObject($o, $properties);
     }
 
-    protected function decodeClosure($id, $encodedClosure) {
+    protected function decodeClosure($id, $encodedClosure)
+    {
         // return object if already known (avoid recursion)
         if (in_array($id, array_keys($this->decoded))) {
             return $this->decoded[$id];
@@ -200,7 +204,8 @@ class Serializer
         return $closure;
     }
 
-    protected function decodeArray($array) {
+    protected function decodeArray($array)
+    {
         foreach ($array as $key => $value) {
             if ($this->isObjectId($value)) {
                 $id = substr($value, strlen(self::ID_PREFIX));
@@ -216,7 +221,14 @@ class Serializer
                 $array[$key] = $this->decodeArray($value);
             }
         }
+
         return $array;
+    }
+
+    // http://php.net/manual/fr/function.is-resource.php
+    protected function isResource($possibleResource)
+    {
+        return !is_null(@get_resource_type($possibleResource));
     }
 
     protected function jsonDecode($json, $asArray = true)
@@ -227,17 +239,17 @@ class Serializer
             case JSON_ERROR_NONE:
                 break;
             case JSON_ERROR_DEPTH:
-                throw new UnexpectedValueException('Maximum stack depth exceeded - ' . $json);
+                throw new UnexpectedValueException('Maximum stack depth exceeded - '.$json);
             case JSON_ERROR_STATE_MISMATCH:
-                throw new UnexpectedValueException('Underflow or the modes mismatch - ' . $json);
+                throw new UnexpectedValueException('Underflow or the modes mismatch - '.$json);
             case JSON_ERROR_CTRL_CHAR:
-                throw new UnexpectedValueException('Unexpected control character found - ' . $json);
+                throw new UnexpectedValueException('Unexpected control character found - '.$json);
             case JSON_ERROR_SYNTAX:
-                throw new UnexpectedValueException('Syntax error, malformed JSON - ' . $json);
+                throw new UnexpectedValueException('Syntax error, malformed JSON - '.$json);
             case JSON_ERROR_UTF8:
-                throw new UnexpectedValueException('Malformed UTF-8 characters, possibly incorrectly encoded - ' . $json);
+                throw new UnexpectedValueException('Malformed UTF-8 characters, possibly incorrectly encoded - '.$json);
             default:
-                throw new UnexpectedValueException('Unknown error - ' . $json);
+                throw new UnexpectedValueException('Unknown error - '.$json);
         }
 
         return $result;
