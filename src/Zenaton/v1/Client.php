@@ -96,7 +96,7 @@ class Client
         return $this->addAppEnv($url, $params);
     }
 
-    public function getWebsiteUrl($ressources = '' , $params = '')
+    public function getWebsiteUrl($ressources = '', $params = '')
     {
         $url = (getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL)
             . '/' . $ressources . '?'
@@ -132,7 +132,7 @@ class Client
             // at the end, it's a string
             $customId = (string) $customId;
             // should be not more than 256 bytes;
-            if (strlen($customId) > self::MAX_ID_SIZE ) {
+            if (strlen($customId) > self::MAX_ID_SIZE) {
                 throw new InvalidArgumentException('Provided Id must not exceed '. self::MAX_ID_SIZE . ' bytes');
             }
         }

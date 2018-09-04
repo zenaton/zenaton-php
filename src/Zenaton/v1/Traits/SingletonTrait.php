@@ -26,7 +26,7 @@ trait SingletonTrait
 
     public static function getInstance()
     {
-        if ( ! is_null(static::$instance)) {
+        if (!is_null(static::$instance)) {
             return static::$instance;
         }
 
