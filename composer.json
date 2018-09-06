@@ -23,6 +23,9 @@
     "autoload-dev": {
         "psr-4": {
             "Zenaton\\": "tests/Zenaton/v1/"
-        }
+        },
+        "files": [
+            "vendor/phpunit/phpunit/src/Framework/Assert/Functions.php"
+        ]
     }
 }
