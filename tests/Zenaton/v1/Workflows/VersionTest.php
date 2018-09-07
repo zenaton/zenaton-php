@@ -5,13 +5,15 @@ namespace Zenaton\Workflows;
 use PHPUnit\Framework\TestCase;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Test\Mock\Workflow\ExecutingClosureWorkflow;
+use Zenaton\Test\Mock\Workflow\NullWorkflow;
 
 final class VersionTest extends TestCase
 {
     /**
      * @dataProvider getTestGetCurrentImplementationReturnsAnInstanceData
      */
-    public function testGetCurrentImplementationReturnsAnInstance($versions)
+    public function testGetCurrentImplementationReturnsAnInstance($versions, $expected)
     {
         $workflow = $this->getMockForAbstractClass(Version::class);
 
@@ -23,20 +25,22 @@ final class VersionTest extends TestCase
 
         $instance = $workflow->getCurrentImplementation();
 
-        static::assertInstanceOf(WorkflowV2::class, $instance);
+        static::assertInstanceOf($expected, $instance);
     }
 
     public function getTestGetCurrentImplementationReturnsAnInstanceData()
     {
         yield [
-            [WorkflowV2::class],
+            [NullWorkflow::class],
+            NullWorkflow::class,
         ];
 
         yield [
             [
-                WorkflowV1::class,
-                WorkflowV2::class,
+                ExecutingClosureWorkflow::class,
+                NullWorkflow::class,
             ],
+            NullWorkflow::class,
         ];
     }
 
@@ -68,9 +72,8 @@ final class VersionTest extends TestCase
 
     public function testHandleExecutesHandleOfCurrentVersion()
     {
-        // The closure is bound to the MockWorkflow class when executed ($this = MockWorkflow instance)
         $assertions = function () {
-            assertInstanceOf(MockWorkflow::class, $this);
+            assertInstanceOf(ExecutingClosureWorkflow::class, $this);
         };
 
         $workflow = $this
@@ -84,41 +87,11 @@ final class VersionTest extends TestCase
             ->expects($this->any())
             ->method('versions')
             ->willReturn([
-                WorkflowV1::class,
-                WorkflowV2::class,
-                MockWorkflow::class,
+                NullWorkflow::class,
+                ExecutingClosureWorkflow::class,
             ])
         ;
 
         $workflow->handle();
-    }
-}
-
-final class WorkflowV1 implements WorkflowInterface
-{
-    public function handle()
-    {
-        return;
-    }
-}
-
-final class WorkflowV2 implements WorkflowInterface
-{
-    public function handle()
-    {
-        return;
-    }
-}
-
-final class MockWorkflow implements WorkflowInterface
-{
-    public function __construct(\Closure $assertions)
-    {
-        $this->assertions = $assertions;
-    }
-
-    public function handle()
-    {
-        $this->assertions->call($this);
     }
 }
