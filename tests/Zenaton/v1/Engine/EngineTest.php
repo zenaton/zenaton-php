@@ -4,23 +4,26 @@ namespace Zenaton\Engine;
 
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Test\ClientInvolvedTestCase;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Client;
 use Zenaton\Test\Mock\Processor\NullProcessor;
+use Zenaton\Test\SingletonTesting;
+use PHPUnit\Framework\TestCase;
 
-class EngineTest extends ClientInvolvedTestCase
+class EngineTest extends TestCase
 {
+    use SingletonTesting;
+
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
 
-        static::destroyEngineSingleton();
+        static::destroySingleton(Engine::class);
     }
 
     public function tearDown()
     {
-        static::destroyEngineSingleton();
+        static::destroySingleton(Engine::class);
 
         parent::tearDown();
     }
@@ -72,8 +75,8 @@ class EngineTest extends ClientInvolvedTestCase
 
     public function testDispatchWorkflowAsksClientToStartTheWorkflowWhenProcessorIsNotSet()
     {
+        $client = $this->replaceSingletonWithMock(Client::class);
         $engine = Engine::getInstance();
-        $client = $this->createClientMock();
 
         $client
             ->expects($this->once())
@@ -118,34 +121,5 @@ class EngineTest extends ClientInvolvedTestCase
         ;
 
         $engine->dispatch([$workflow, $task]);
-    }
-
-    /**
-     * Destroys the Engine singleton.
-     */
-    private static function destroyEngineSingleton()
-    {
-        $terminator = (static function () {
-            static::$instance = null;
-        })->bindTo(null, Engine::class);
-
-        $terminator();
-    }
-
-    /**
-     * Injects a mocked Client instance into the Engine singleton instance.
-     *
-     * @return \PHPUnit_Framework_MockObject_MockObject|Client
-     */
-    private function createClientMock()
-    {
-        $engine = Engine::getInstance();
-        $mock = $this->createMock(Client::class);
-
-        $injector = (function ($mock) {
-            $this->client = $mock;
-        })->call($engine, $mock);
-
-        return $mock;
     }
 }

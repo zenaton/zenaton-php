@@ -7,12 +7,40 @@ use Zenaton\Services\Http;
 use Zenaton\Workflows\Version;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
-use Zenaton\Test\ClientInvolvedTestCase;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
+use Zenaton\Test\Injector;
+use Zenaton\Test\SingletonTesting;
+use PHPUnit\Framework\TestCase;
 
-final class ClientTest extends ClientInvolvedTestCase
+final class ClientTest extends TestCase
 {
+    use SingletonTesting;
+    use Injector;
+
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        // Make sure Client singleton instance is destroyed before running any of those tests
+        static::destroySingleton(Client::class);
+    }
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        Client::init('FakeAppId', 'FakeApiToken', 'FakeAppEnv');
+    }
+
+    public function tearDown()
+    {
+        // Make sure Client singleton instance is destroyed between tests
+        static::destroySingleton(Client::class);
+
+        parent::tearDown();
+    }
+
     public function testInit()
     {
         $client = Client::getInstance();
@@ -261,9 +289,9 @@ final class ClientTest extends ClientInvolvedTestCase
         $client = Client::getInstance();
         $mock = $this->createMock(Http::class);
 
-        $injector = (function ($mock) {
+        $this->inject(function () use ($mock) {
             $this->http = $mock;
-        })->call($client, $mock);
+        }, $client);
 
         return $mock;
     }

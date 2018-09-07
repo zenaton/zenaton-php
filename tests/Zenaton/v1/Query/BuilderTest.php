@@ -3,13 +3,16 @@
 namespace Zenaton\Query;
 
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
-use Zenaton\Test\ClientInvolvedTestCase;
 use Zenaton\Client;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Test\SingletonTesting;
+use PHPUnit\Framework\TestCase;
 
-class BuilderTest extends ClientInvolvedTestCase
+class BuilderTest extends TestCase
 {
+    use SingletonTesting;
+
     public function testNewBuilderWithNotAWorkflow()
     {
         $this->expectException(ExternalZenatonException::class);
@@ -19,7 +22,7 @@ class BuilderTest extends ClientInvolvedTestCase
 
     public function testFindWhenSupplyingAnId()
     {
-        $client = $this->createClientMock();
+        $client = $this->replaceSingletonWithMock(Client::class);
 
         $client
             ->expects($this->once())
@@ -36,7 +39,7 @@ class BuilderTest extends ClientInvolvedTestCase
 
     public function testSend()
     {
-        $client = $this->createClientMock();
+        $client = $this->replaceSingletonWithMock(Client::class);
 
         $event = new DummyEvent();
 
@@ -55,7 +58,7 @@ class BuilderTest extends ClientInvolvedTestCase
 
     public function testKill()
     {
-        $client = $this->createClientMock();
+        $client = $this->replaceSingletonWithMock(Client::class);
 
         $client
             ->expects($this->once())
@@ -72,7 +75,7 @@ class BuilderTest extends ClientInvolvedTestCase
 
     public function testPause()
     {
-        $client = $this->createClientMock();
+        $client = $this->replaceSingletonWithMock(Client::class);
 
         $client
             ->expects($this->once())
@@ -89,7 +92,7 @@ class BuilderTest extends ClientInvolvedTestCase
 
     public function testResume()
     {
-        $client = $this->createClientMock();
+        $client = $this->replaceSingletonWithMock(Client::class);
 
         $client
             ->expects($this->once())
@@ -102,19 +105,5 @@ class BuilderTest extends ClientInvolvedTestCase
             ->whereId('WorkflowFakeId')
             ->resume()
         ;
-    }
-
-    private function createClientMock()
-    {
-        $client = Client::getInstance();
-        $mock = $this->createMock(Client::class);
-
-        $injector = function () use ($mock) {
-            static::$instance = $mock;
-        };
-
-        $injector->call($client);
-
-        return $mock;
     }
 }

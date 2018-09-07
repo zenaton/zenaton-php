@@ -5,12 +5,15 @@ namespace Zenaton\Parallel;
 use PHPUnit\Framework\TestCase;
 use Zenaton\Engine\Engine;
 use Zenaton\Interfaces\TaskInterface;
+use Zenaton\Test\SingletonTesting;
 
 class ParallelTest extends TestCase
 {
+    use SingletonTesting;
+
     public function testDispatchItemsGivenInConstructor()
     {
-        $engine = $this->createEngineMock();
+        $engine = $this->replaceSingletonWithMock(Engine::class);
         $tasks = [
             $this->createMock(TaskInterface::class),
             $this->createMock(TaskInterface::class),
@@ -29,7 +32,7 @@ class ParallelTest extends TestCase
 
     public function testExecuteItemsGivenInConstructor()
     {
-        $engine = $this->createEngineMock();
+        $engine = $this->replaceSingletonWithMock(Engine::class);
         $tasks = [
             $this->createMock(TaskInterface::class),
             $this->createMock(TaskInterface::class),
@@ -44,22 +47,5 @@ class ParallelTest extends TestCase
 
         $parallel = new Parallel(...$tasks);
         $parallel->execute();
-    }
-
-    /**
-     * @return PHPUnit_Framework_MockObject_MockObject|Engine
-     */
-    private function createEngineMock()
-    {
-        $engine = Engine::getInstance();
-        $mockEngine = $this->createMock(Engine::class);
-
-        $injector = function () use ($mockEngine) {
-            static::$instance = $mockEngine;
-        };
-
-        $injector->call($engine);
-
-        return $mockEngine;
     }
 }
