@@ -7,6 +7,7 @@ use Zenaton\Interfaces\EventInterface;
 use Zenaton\Exceptions\ExternalZenatonException;
 use Cake\Chronos\Chronos;
 use Cake\Chronos\MutableDateTime;
+use Zenaton\Test\Mock\Event\DummyEvent;
 
 class ZenatonTest extends TestCase
 {
@@ -30,10 +31,10 @@ class ZenatonTest extends TestCase
 
     public function testNewInstanceWithValidEvent()
     {
-        $wait = new Wait(MyEvent::class);
+        $wait = new Wait(DummyEvent::class);
 
         static::assertInstanceOf(Wait::class, $wait);
-        static::assertSame(MyEvent::class, $wait->getEvent());
+        static::assertSame(DummyEvent::class, $wait->getEvent());
     }
 
     /**
@@ -191,8 +192,4 @@ class ZenatonTest extends TestCase
 
         static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
-}
-
-class MyEvent implements EventInterface
-{
 }
