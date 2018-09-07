@@ -16,12 +16,13 @@
     },
     "autoload": {
         "psr-4" : {
-            "Zenaton\\Exceptions\\" : "src/Zenaton/Exceptions/",
-            "Zenaton\\" : "src/Zenaton/v1/"
+            "Zenaton\\Exceptions\\": "src/Zenaton/Exceptions/",
+            "Zenaton\\": "src/Zenaton/v1/"
         }
     },
     "autoload-dev": {
         "psr-4": {
+            "Zenaton\\Test\\": "tests/Zenaton/Test/",
             "Zenaton\\": "tests/Zenaton/v1/"
         },
         "files": [
