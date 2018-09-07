@@ -16,7 +16,7 @@ trait SingletonTesting
      *
      * @param string $classname The class name singleton to replace
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject A mock object corresponding to an instance of the given $classname parameter.
+     * @return \PHPUnit_Framework_MockObject_MockObject a mock object corresponding to an instance of the given $classname parameter
      */
     protected function replaceSingletonWithMock($classname)
     {

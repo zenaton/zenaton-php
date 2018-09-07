@@ -3,7 +3,6 @@
 namespace Zenaton\Workflows;
 
 use PHPUnit\Framework\TestCase;
-use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Test\Mock\Workflow\ExecutingClosureWorkflow;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;

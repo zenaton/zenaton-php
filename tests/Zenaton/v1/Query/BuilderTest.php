@@ -2,12 +2,12 @@
 
 namespace Zenaton\Query;
 
-use Zenaton\Test\Mock\Workflow\NullWorkflow;
-use Zenaton\Client;
-use Zenaton\Test\Mock\Event\DummyEvent;
-use Zenaton\Exceptions\ExternalZenatonException;
-use Zenaton\Test\SingletonTesting;
 use PHPUnit\Framework\TestCase;
+use Zenaton\Client;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Test\Mock\Event\DummyEvent;
+use Zenaton\Test\Mock\Workflow\NullWorkflow;
+use Zenaton\Test\SingletonTesting;
 
 class BuilderTest extends TestCase
 {

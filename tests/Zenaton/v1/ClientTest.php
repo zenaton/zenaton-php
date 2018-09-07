@@ -2,16 +2,15 @@
 
 namespace Zenaton;
 
+use PHPUnit\Framework\TestCase;
+use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Http;
-use Zenaton\Workflows\Version;
-use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Interfaces\EventInterface;
+use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
-use Zenaton\Test\Injector;
 use Zenaton\Test\SingletonTesting;
-use PHPUnit\Framework\TestCase;
+use Zenaton\Workflows\Version;
 
 final class ClientTest extends TestCase
 {

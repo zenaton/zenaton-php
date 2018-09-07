@@ -2,11 +2,10 @@
 
 namespace Zenaton\Tasks;
 
-use PHPUnit\Framework\TestCase;
-use Zenaton\Interfaces\EventInterface;
-use Zenaton\Exceptions\ExternalZenatonException;
 use Cake\Chronos\Chronos;
 use Cake\Chronos\MutableDateTime;
+use PHPUnit\Framework\TestCase;
+use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Test\Mock\Event\DummyEvent;
 
 class ZenatonTest extends TestCase

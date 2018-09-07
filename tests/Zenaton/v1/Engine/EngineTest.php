@@ -2,13 +2,13 @@
 
 namespace Zenaton\Engine;
 
+use PHPUnit\Framework\TestCase;
+use Zenaton\Client;
+use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Client;
 use Zenaton\Test\Mock\Processor\NullProcessor;
 use Zenaton\Test\SingletonTesting;
-use PHPUnit\Framework\TestCase;
 
 class EngineTest extends TestCase
 {
