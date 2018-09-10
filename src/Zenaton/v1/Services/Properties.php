@@ -42,7 +42,7 @@ class Properties
                 $property->setAccessible(true);
                 $value = $property->getValue($clone);
                 $properties[$property->getName()] = $value;
-           }
+            }
         }
 
         # non-declared public variables
@@ -75,7 +75,7 @@ class Properties
 
         // non-declared variables
         foreach ($properties as $key => $value) {
-            if ( ! in_array($key, $keys)) {
+            if (!in_array($key, $keys)) {
                 $o->{$key} = $value;
             }
         }
@@ -91,7 +91,7 @@ class Properties
     protected function checkClass($o, $class)
     {
         // object must be of $class type
-        if ( ! is_null($class) && ( ! is_object($o) || ! $o instanceof $class)) {
+        if (!is_null($class) && (!is_object($o) || !($o instanceof $class))) {
             throw new UnexpectedValueException('Error - '. get_class($o) .' should be an instance of '.$class);
         }
     }

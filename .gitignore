@@ -1,4 +1,5 @@
-/vendor
-.env
-composer.lock
 .DS_Store
+/.env
+/.php_cs.cache
+/composer.lock
+/vendor/

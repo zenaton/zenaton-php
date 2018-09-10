@@ -34,5 +34,4 @@ class WorkflowManager
             WorkflowInterface::class
         );
     }
-
 }
