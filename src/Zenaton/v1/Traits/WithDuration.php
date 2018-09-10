@@ -7,7 +7,22 @@ use Cake\Chronos\Chronos;
 
 trait WithDuration
 {
+    protected static $_timezone;
     protected $_buffer;
+
+    /**
+     * Define timezone used when setting date / time.
+     *
+     * @param string $timezone A PHP timezone identifier (@see http://php.net/manual/en/timezones.php)
+     */
+    public static function timezone($timezone)
+    {
+        if (!in_array($timezone, DateTimeZone::listIdentifiers())) {
+            throw new ExternalZenatonException('Unknown timezone');
+        }
+
+        self::$_timezone = $timezone;
+    }
 
     public function _getDuration()
     {

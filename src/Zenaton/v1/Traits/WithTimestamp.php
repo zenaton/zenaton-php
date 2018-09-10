@@ -17,21 +17,6 @@ trait WithTimestamp
     public static $_MODE_TIMESTAMP = 'TIMESTAMP';
 
     protected $_mode;
-    protected static $_timezone;
-
-    /**
-     * Define timezone used when setting date / time.
-     *
-     * @var string
-     */
-    public static function timezone($timezone)
-    {
-        if (!in_array($timezone, DateTimeZone::listIdentifiers())) {
-            throw new ExternalZenatonException('Unknown timezone');
-        }
-
-        self::$_timezone = $timezone;
-    }
 
     /**
      * Return Wait timestamp or duration depending on methods used.
