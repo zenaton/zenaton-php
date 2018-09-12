@@ -2,11 +2,11 @@
 
 namespace Zenaton\Engine;
 
+use Zenaton\Client;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
-use Zenaton\Client;
 
 class Engine
 {

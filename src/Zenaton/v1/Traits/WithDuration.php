@@ -2,8 +2,8 @@
 
 namespace Zenaton\Traits;
 
-use Zenaton\Exceptions\InternalZenatonException;
 use Cake\Chronos\Chronos;
+use Zenaton\Exceptions\InternalZenatonException;
 
 trait WithDuration
 {
@@ -27,7 +27,7 @@ trait WithDuration
     public function _getDuration()
     {
         if (null === $this->_buffer) {
-            return null;
+            return;
         }
 
         list($now, $then) = $this->_initNowThen();

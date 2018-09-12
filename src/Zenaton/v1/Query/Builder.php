@@ -3,13 +3,9 @@
 namespace Zenaton\Query;
 
 use Zenaton\Client;
-use Zenaton\Workflows\Version;
 use Zenaton\Exceptions\ExternalZenatonException;
-use Zenaton\Exceptions\UnknownWorkflowException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Services\Serializer;
-use Zenaton\Services\Properties;
 use Zenaton\Traits\IsImplementationOfTrait;
 
 class Builder
@@ -17,21 +13,21 @@ class Builder
     use IsImplementationOfTrait;
 
     /**
-     * The Zenaton client
+     * The Zenaton client.
      *
      * @var \Zenaton\Client
      */
     protected $client;
 
     /**
-     * The queried class
+     * The queried class.
      *
      * @var string
      */
     protected $class;
 
     /**
-     * The instance custom id
+     * The instance custom id.
      *
      * @var mixed
      */
@@ -40,7 +36,8 @@ class Builder
     /**
      * Create a new query builder.
      *
-     * @param  String  $class
+     * @param string $class
+     *
      * @return self
      */
     public function __construct($class)
@@ -64,7 +61,7 @@ class Builder
     }
 
     /**
-     * Retrieve an instance
+     * Retrieve an instance.
      *
      * @return Zenaton\Interfaces\WorkflowInterface
      */
@@ -74,7 +71,7 @@ class Builder
     }
 
     /**
-     * Send an event to a workflow instance
+     * Send an event to a workflow instance.
      *
      * @return self
      */
@@ -86,9 +83,7 @@ class Builder
     }
 
     /**
-     * Kill a workflow instance
-     *
-     * @return void
+     * Kill a workflow instance.
      */
     public function kill()
     {
@@ -98,9 +93,7 @@ class Builder
     }
 
     /**
-     * Pause a workflow instance
-     *
-     * @return void
+     * Pause a workflow instance.
      */
     public function pause()
     {
@@ -110,9 +103,7 @@ class Builder
     }
 
     /**
-     * Resume a workflow instance
-     *
-     * @return void
+     * Resume a workflow instance.
      */
     public function resume()
     {
@@ -123,8 +114,8 @@ class Builder
 
     protected function checkIsWorkflow($class)
     {
-        if (! $this->isImplementationOf($class, WorkflowInterface::class)) {
-            throw new ExternalZenatonException($class . ' should implements '. WorkflowInterface::class);
+        if (!$this->isImplementationOf($class, WorkflowInterface::class)) {
+            throw new ExternalZenatonException($class.' should implements '.WorkflowInterface::class);
         }
     }
 }
