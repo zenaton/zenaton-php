@@ -3,6 +3,8 @@
 namespace Zenaton\Tasks;
 
 use Cake\Chronos\Chronos;
+use Cake\Chronos\Date;
+use Cake\Chronos\MutableDate;
 use Cake\Chronos\MutableDateTime;
 use PHPUnit\Framework\TestCase;
 use Zenaton\Exceptions\ExternalZenatonException;
@@ -13,11 +15,17 @@ class ZenatonTest extends TestCase
     public static function setUpBeforeClass()
     {
         Chronos::setTestNow(Chronos::now());
+        MutableDateTime::setTestNow(MutableDateTime::now());
+        Date::setTestNow(Date::now());
+        MutableDate::setTestNow(MutableDate::now());
     }
 
     public static function tearDownAfterClass()
     {
         Chronos::setTestNow();
+        MutableDateTime::setTestNow();
+        Date::setTestNow();
+        MutableDate::setTestNow();
     }
 
     public function testNewInstanceWithoutEvent()
@@ -154,7 +162,7 @@ class ZenatonTest extends TestCase
     public function testGetTimestampOrDurationWhenUsingWeekDay($day)
     {
         $date = MutableDateTime::now();
-        $date->add(\DateInterval::createFromDateString('next '.$day));
+        $date->add(\Cake\Chronos\ChronosInterval::createFromDateString('next '.$day));
 
         $wait = new Wait();
         $wait->{$day}();

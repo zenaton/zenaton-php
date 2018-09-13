@@ -18,7 +18,7 @@ use Zenaton\Interfaces\WorkflowInterface;
 class ExecutingClosureWorkflow implements WorkflowInterface
 {
     /**
-     * @param \Closure $closure The closure to execute when the ::handle() method will be called
+     * @param \Closure $closure A closure to execute when the ::handle() method will be called
      */
     public function __construct(\Closure $closure)
     {
@@ -27,6 +27,7 @@ class ExecutingClosureWorkflow implements WorkflowInterface
 
     public function handle()
     {
-        $this->closure->call($this);
+        $boundedClosure = \Closure::bind($this->closure, $this);
+        $boundedClosure();
     }
 }

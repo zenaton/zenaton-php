@@ -28,8 +28,9 @@ trait SingletonTesting
         $injector = function () use ($mock) {
             static::$instance = $mock;
         };
+        $injector = $injector->bindTo(null, get_class($instance));
 
-        $injector->call($instance);
+        $injector();
 
         return $mock;
     }
@@ -51,8 +52,9 @@ trait SingletonTesting
         $injector = function () {
             static::$instance = null;
         };
+        $injector = $injector->bindTo(null, get_class($instance));
 
-        $injector->call($instance);
+        $injector();
     }
 
     private static function ensureClassIsSingleton($classname)

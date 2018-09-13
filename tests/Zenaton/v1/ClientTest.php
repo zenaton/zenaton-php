@@ -50,7 +50,8 @@ final class ClientTest extends TestCase
             assertSame('FakeAppEnv', $this->appEnv);
         };
 
-        $assertions->call($client);
+        $bounded = $assertions->bindTo($client, get_class($client));
+        $bounded();
     }
 
     public function testStartBasicWorkflow()
