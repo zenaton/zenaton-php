@@ -2,10 +2,10 @@
 
 namespace Zenaton\Services;
 
-use SuperClosure\Serializer as ClosureSerializer;
 use Carbon\Carbon;
-use UnexpectedValueException;
 use Closure;
+use SuperClosure\Serializer as ClosureSerializer;
+use UnexpectedValueException;
 
 class Serializer
 {

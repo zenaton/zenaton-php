@@ -30,7 +30,7 @@ class Properties
 
         // apply __sleep before serialization - should return an array of properties to be serialized
         if (method_exists($clone, '__sleep')) {
-            $valid = $clone->__sleep() ? : [];
+            $valid = $clone->__sleep() ?: [];
         }
 
         $properties = [];
@@ -38,16 +38,16 @@ class Properties
         // declared variables
         foreach ((new ReflectionClass($clone))->getProperties() as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (! $property->isStatic() && (! isset($valid) || in_array($property->getName(), $valid))) {
+            if (!$property->isStatic() && (!isset($valid) || in_array($property->getName(), $valid))) {
                 $property->setAccessible(true);
                 $value = $property->getValue($clone);
                 $properties[$property->getName()] = $value;
             }
         }
 
-        # non-declared public variables
+        // non-declared public variables
         foreach ($clone as $key => $value) {
-            if (! isset($properties[$key]) && (! isset($valid) || in_array($key, $valid))) {
+            if (!isset($properties[$key]) && (!isset($valid) || in_array($key, $valid))) {
                 $properties[$key] = $value;
             }
         }
@@ -61,7 +61,7 @@ class Properties
         $keys = [];
         foreach ((new ReflectionClass($o))->getProperties() as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (! $property->isStatic()) {
+            if (!$property->isStatic()) {
                 $property->setAccessible(true);
                 $key = $property->getName();
                 // check if $key exist in properties
@@ -91,8 +91,8 @@ class Properties
     protected function checkClass($o, $class)
     {
         // object must be of $class type
-        if (!is_null($class) && (!is_object($o) || !($o instanceof $class))) {
-            throw new UnexpectedValueException('Error - '. get_class($o) .' should be an instance of '.$class);
+        if (!is_null($class) && (!is_object($o) || !$o instanceof $class)) {
+            throw new UnexpectedValueException('Error - '.get_class($o).' should be an instance of '.$class);
         }
     }
 }

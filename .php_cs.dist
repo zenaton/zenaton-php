@@ -25,6 +25,7 @@ $config = PhpCsFixer\Config::create()
         // 'strict_comparison' => true,
         'yoda_style' => false,
     ])
+    ->setFinder($finder)
 ;
 
 return $config;

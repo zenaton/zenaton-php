@@ -2,10 +2,9 @@
 
 namespace Zenaton\Traits;
 
-use Zenaton\Exceptions\InternalZenatonException;
-use Zenaton\Exceptions\ExternalZenatonException;
 use Cake\Chronos\ChronosInterface;
-use DateTimeZone;
+use Zenaton\Exceptions\ExternalZenatonException;
+use Zenaton\Exceptions\InternalZenatonException;
 
 trait WithTimestamp
 {
@@ -41,9 +40,9 @@ trait WithTimestamp
         //return
         if ($isTimestamp) {
             return [$then->timestamp, null];
-        } else {
-            return [null, $now->diffInSeconds($then)];
         }
+
+        return [null, $now->diffInSeconds($then)];
     }
 
     /**
@@ -127,9 +126,7 @@ trait WithTimestamp
     {
         $this->_setMode(self::$_MODE_TIMESTAMP);
 
-        $then = $then->timestamp($timestamp);
-
-        return $then;
+        return $then->timestamp($timestamp);
     }
 
     protected function _at($time, $now, $then)
@@ -177,9 +174,8 @@ trait WithTimestamp
         $this->_setMode(self::$_MODE_WEEK_DAY);
 
         list($h, $m, $s) = [$then->hour, $then->minute, $then->second];
-        $then = $then->previous($day)->addWeeks($n)->setTime($h, $m, $s);
 
-        return $then;
+        return $then->previous($day)->addWeeks($n)->setTime($h, $m, $s);
     }
 
     protected function _apply($method, $value, $now, $then)

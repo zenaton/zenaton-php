@@ -19,7 +19,7 @@ class Wait implements WaitInterface
 
     public function __construct($event = null)
     {
-        if (!is_null($event) && (!is_string($event) || ! $this->isImplementationOf($event, EventInterface::class))) {
+        if (!is_null($event) && (!is_string($event) || !$this->isImplementationOf($event, EventInterface::class))) {
             throw new ExternalZenatonException(self::class.': Invalid parameter - argument must a class name implementing '.EventInterface::class);
         }
 
@@ -37,7 +37,7 @@ class Wait implements WaitInterface
     }
 
     /**
-     * Be a bit less fragile by linearizing only useful data
+     * Be a bit less fragile by linearizing only useful data.
      */
     public function __sleep()
     {

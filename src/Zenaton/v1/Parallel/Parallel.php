@@ -15,8 +15,6 @@ class Parallel
 
     /**
      * Create a new collection.
-     *
-     * @param mixed $items
      */
     public function __construct()
     {

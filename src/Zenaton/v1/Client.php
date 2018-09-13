@@ -2,15 +2,14 @@
 
 namespace Zenaton;
 
+use Zenaton\Exceptions\InvalidArgumentException;
+use Zenaton\Interfaces\EventInterface;
+use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Services\Http;
+use Zenaton\Services\Properties;
+use Zenaton\Services\Serializer;
 use Zenaton\Traits\SingletonTrait;
 use Zenaton\Workflows\Version;
-use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Interfaces\EventInterface;
-use Zenaton\Exceptions\InvalidArgumentException;
-use Zenaton\Exception\ConnectionErrorException;
-use Zenaton\Services\Http;
-use Zenaton\Services\Serializer;
-use Zenaton\Services\Properties;
 
 class Client
 {
@@ -88,28 +87,27 @@ class Client
 
     public function getWorkerUrl($ressources = '', $params = '')
     {
-        $url = (getenv('ZENATON_WORKER_URL') ? : self::ZENATON_WORKER_URL)
-            . ':' . (getenv('ZENATON_WORKER_PORT') ? : self::DEFAULT_WORKER_PORT)
-            . '/api/' . self::WORKER_API_VERSION
-            . '/' . $ressources . '?';
+        $url = (getenv('ZENATON_WORKER_URL') ?: self::ZENATON_WORKER_URL)
+            .':'.(getenv('ZENATON_WORKER_PORT') ?: self::DEFAULT_WORKER_PORT)
+            .'/api/'.self::WORKER_API_VERSION
+            .'/'.$ressources.'?';
 
         return $this->addAppEnv($url, $params);
     }
 
     public function getWebsiteUrl($ressources = '', $params = '')
     {
-        $url = (getenv('ZENATON_API_URL') ? : self::ZENATON_API_URL)
-            . '/' . $ressources . '?'
-            . self::API_TOKEN.'='.$this->apiToken . '&';
+        $url = (getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL)
+            .'/'.$ressources.'?'
+            .self::API_TOKEN.'='.$this->apiToken.'&';
 
         return $this->addAppEnv($url, $params);
     }
 
     /**
-     * Start a workflow instance
+     * Start a workflow instance.
      *
-     * @param  Zenaton\Interfaces\WorkflowInterface  $flow Workflow to start
-     * @return void
+     * @param WorkflowInterface $flow Workflow to start
      */
     public function startWorkflow(WorkflowInterface $flow)
     {
@@ -126,14 +124,14 @@ class Client
         $customId = null;
         if (method_exists($flow, 'getId')) {
             $customId = $flow->getId();
-            if (! is_string($customId) && ! is_int($customId)) {
+            if (!is_string($customId) && !is_int($customId)) {
                 throw new InvalidArgumentException('Provided Id must be a string or an integer');
             }
             // at the end, it's a string
             $customId = (string) $customId;
             // should be not more than 256 bytes;
             if (strlen($customId) > self::MAX_ID_SIZE) {
-                throw new InvalidArgumentException('Provided Id must not exceed '. self::MAX_ID_SIZE . ' bytes');
+                throw new InvalidArgumentException('Provided Id must not exceed '.self::MAX_ID_SIZE.' bytes');
             }
         }
 
@@ -143,16 +141,15 @@ class Client
             self::ATTR_CANONICAL => $canonical,
             self::ATTR_NAME => get_class($flow),
             self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
-            self::ATTR_ID => $customId
+            self::ATTR_ID => $customId,
         ]);
     }
 
     /**
-     * Kill a workflow instance
+     * Kill a workflow instance.
      *
-     * @param  String  $workflowName Workflow class name
-     * @param  String  $customId     Provided custom id
-     * @return void
+     * @param string $workflowName Workflow class name
+     * @param string $customId     Provided custom id
      */
     public function killWorkflow($workflowName, $customId)
     {
@@ -160,11 +157,10 @@ class Client
     }
 
     /**
-     * Pause a workflow instance
+     * Pause a workflow instance.
      *
-     * @param  String  $workflowName Workflow class name
-     * @param  String  $customId     Provided custom id
-     * @return void
+     * @param string $workflowName Workflow class name
+     * @param string $customId     Provided custom id
      */
     public function pauseWorkflow($workflowName, $customId)
     {
@@ -172,11 +168,10 @@ class Client
     }
 
     /**
-     * Resume a workflow instance
+     * Resume a workflow instance.
      *
-     * @param  String  $workflowName Workflow class name
-     * @param  String  $customId     Provided custom id
-     * @return void
+     * @param string $workflowName Workflow class name
+     * @param string $customId     Provided custom id
      */
     public function resumeWorkflow($workflowName, $customId)
     {
@@ -184,11 +179,12 @@ class Client
     }
 
     /**
-     * Find a workflow instance
+     * Find a workflow instance.
      *
-     * @param  String  $workflowName Workflow class name
-     * @param  String  $customId     Provided custom id
-     * @return Zenaton\Interfaces\WorkflowInterface
+     * @param string $workflowName Workflow class name
+     * @param string $customId     Provided custom id
+     *
+     * @return WorkflowInterface
      */
     public function findWorkflow($workflowName, $customId)
     {
@@ -203,12 +199,11 @@ class Client
     }
 
     /**
-     * Send an event to a workflow instance
+     * Send an event to a workflow instance.
      *
-     * @param  String  $workflowName Workflow class name
-     * @param  String  $customId     Provided custom id
-     * @param  Zenaton\Interfaces\EventInterface $event Event to send
-     * @return void
+     * @param string         $workflowName Workflow class name
+     * @param string         $customId     Provided custom id
+     * @param EventInterface $event        Event to send
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
@@ -228,6 +223,7 @@ class Client
     protected function updateInstance($workflowName, $customId, $mode)
     {
         $params = self::ATTR_ID.'='.$customId;
+
         return $this->http->put($this->getInstanceWorkerUrl($params), [
             self::ATTR_PROG => self::PROG,
             self::ATTR_NAME => $workflowName,
@@ -254,8 +250,8 @@ class Client
     {
         // when called from worker, APP_ENV and APP_ID is not defined
         return $url
-            . ($this->appEnv ? self::APP_ENV . '=' . $this->appEnv . '&' : '')
-            . ($this->appId ? self::APP_ID . '=' . $this->appId . '&' : '')
-            . ($params ? $params . '&' : '');
+            .($this->appEnv ? self::APP_ENV.'='.$this->appEnv.'&' : '')
+            .($this->appId ? self::APP_ID.'='.$this->appId.'&' : '')
+            .($params ? $params.'&' : '');
     }
 }
