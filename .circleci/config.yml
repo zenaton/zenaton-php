@@ -5,14 +5,14 @@ shared: &shared
         - checkout
         - restore_cache:
             keys:
-                - '{{ .Environment.VENDOR_CACHE_DIR }}'
+                - '{{ .Environment.VENDOR_CACHE_KEY }}'
         - run:
             name: Install dependencies
             command: composer up $COMPOSER_OPTIONS
         - save_cache:
             paths:
                 - vendor/
-            key: '{{ .Environment.VENDOR_CACHE_DIR }}'
+            key: '{{ .Environment.VENDOR_CACHE_KEY }}'
         - run:
             name: Lint PHP files
             command: find src tests -name "*.php" | xargs -n 1 php -l
