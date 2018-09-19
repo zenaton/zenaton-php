@@ -2,6 +2,7 @@
 
 namespace Zenaton;
 
+use Httpful\Response;
 use PHPUnit\Framework\TestCase;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
@@ -213,21 +214,67 @@ final class ClientTest extends TestCase
         $client = Client::getInstance();
         $http = $this->createHttpMock();
 
-        $data = (object) [
+        $body = (object) [
             'data' => (object) [
                 'name' => NullWorkflow::class,
                 'properties' => '{"a":[1,2,3],"s":[]}',
             ],
         ];
+        $response = $this
+            ->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+        $response
+            ->expects($this->once())
+            ->method('hasErrors')
+            ->willReturn(false)
+        ;
+        $response->body = $body;
 
         $http
             ->expects($this->once())
             ->method('get')
             ->with('https://zenaton.com/api/v1/instances?api_token=FakeApiToken&app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be resumed workflow&name=Zenaton\Test\Mock\Workflow\NullWorkflow&programming_language=PHP&')
-            ->willReturn($data)
+            ->willReturn($response)
         ;
 
-        $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
+        $workflow = $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
+
+        static::assertInstanceOf(NullWorkflow::class, $workflow);
+    }
+
+    public function testFindWorkflowReturnsNullWhenWorkflowDoesNotExists()
+    {
+        $client = Client::getInstance();
+        $http = $this->createHttpMock();
+
+        $body = (object) [
+            'error' => 'No workflow instance found with the id : 12',
+        ];
+
+        $response = $this
+            ->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+        $response
+            ->expects($this->once())
+            ->method('hasErrors')
+            ->willReturn(true)
+        ;
+        $response->body = $body;
+
+        $http
+            ->expects($this->once())
+            ->method('get')
+            ->with('https://zenaton.com/api/v1/instances?api_token=FakeApiToken&app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be resumed workflow&name=Zenaton\Test\Mock\Workflow\NullWorkflow&programming_language=PHP&')
+            ->willReturn($response)
+        ;
+
+        $workflow = $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
+
+        static::assertNull($workflow);
     }
 
     public function testSendEvent()
