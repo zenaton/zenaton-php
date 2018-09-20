@@ -205,6 +205,7 @@ class Client
             return null;
         }
 
+        // TODO : Remove when API does not return 200 response anymore instead of 404 when workflow is not found
         if (!isset($response->body->data)) {
             return null;
         }
