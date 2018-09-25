@@ -5,7 +5,6 @@ namespace Zenaton\Services;
 use Httpful\Exception\ConnectionErrorException;
 use Httpful\Request as Httpful;
 use Zenaton\Exceptions\ConnectionErrorException as ZenatonConnectionErrorException;
-use Zenaton\Exceptions\InternalZenatonException;
 
 class Http
 {
@@ -49,13 +48,7 @@ class Http
     protected function request($f)
     {
         try {
-            $response = $f();
-
-            if ($response->hasErrors()) {
-                throw new InternalZenatonException($response->raw_body, $response->code);
-            }
-
-            return $response->body;
+            return $f();
         } catch (ConnectionErrorException $e) {
             throw new ZenatonConnectionErrorException($e->getMessage(), $e->getCode(), $e);
         }

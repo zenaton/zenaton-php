@@ -21,7 +21,6 @@ $config = PhpCsFixer\Config::create()
         'phpdoc_order' => true,
         'phpdoc_trim_consecutive_blank_line_separation' => true,
         'return_assignment' => true,
-        'simplified_null_return' => true,
         // 'strict_comparison' => true,
         'yoda_style' => false,
     ])

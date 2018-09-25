@@ -184,7 +184,7 @@ class Client
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
      *
-     * @return WorkflowInterface
+     * @return WorkflowInterface|null
      */
     public function findWorkflow($workflowName, $customId)
     {
@@ -193,9 +193,24 @@ class Client
             self::ATTR_NAME.'='.$workflowName.'&'.
             self::ATTR_PROG.'='.self::PROG;
 
-        $data = $this->http->get($this->getInstanceWebsiteUrl($params))->data;
+        // TODO : Have a better error handling by introducing an object between Client and Http that will
+        // return domain exceptions and be able to work with multiple transport layers
+        try {
+            $response = $this->http->get($this->getInstanceWebsiteUrl($params));
+        } catch (\Exception $e) {
+            return null;
+        }
 
-        return $this->properties->getObjectFromNameAndProperties($data->name, $this->serializer->decode($data->properties));
+        if ($response->hasErrors()) {
+            return null;
+        }
+
+        // TODO : Remove when API does not return 200 response anymore instead of 404 when workflow is not found
+        if (!isset($response->body->data)) {
+            return null;
+        }
+
+        return $this->properties->getObjectFromNameAndProperties($response->body->data->name, $this->serializer->decode($response->body->data->properties));
     }
 
     /**
