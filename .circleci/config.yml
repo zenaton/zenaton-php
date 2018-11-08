@@ -1,97 +1,123 @@
-version: 2
+version: 2.1
 
-shared: &shared
+commands:
+  run_tests:
+    parameters:
+      version:
+        description: PHP version
+        type: string
+        default: latest
+      lowest:
+        description: Install lowest deps
+        type: boolean
+        default: false
+    description: Run PHP tests
     steps:
-        - checkout
-        - restore_cache:
-            keys:
-                - '{{ .Environment.VENDOR_CACHE_KEY }}'
-        - run:
-            name: Install dependencies
-            command: composer up $COMPOSER_OPTIONS
-        - save_cache:
-            paths:
-                - vendor/
-            key: '{{ .Environment.VENDOR_CACHE_KEY }}'
-        - run:
-            name: Lint PHP files
-            command: find src tests -name "*.php" | xargs -n 1 php -l
-        - run:
-            name: Run tests
-            command: php vendor/bin/phpunit --coverage-html=./build/coverage --log-junit=./build/tests-results/phpunit.xml
-        - store_test_results:
-            path: ./build/tests-results
-        - store_artifacts:
-            path: ./build/coverage
-            destination: coverage
+      - checkout
+      - restore_cache:
+          keys:
+            - 'v1-php-<<parameters.version>><<#parameters.lowest>>-lowest<</parameters.lowest>>'
+      - run:
+          name: Install dependencies
+          command: composer up $COMPOSER_OPTIONS <<#parameters.lowest>>--prefer-lowest<</parameters.lowest>>
+      - save_cache:
+          paths:
+            - vendor/
+          key: 'v1-php-<<parameters.version>><<#parameters.lowest>>-lowest<</parameters.lowest>>'
+      - run:
+          name: Lint PHP files
+          command: find src tests -name "*.php" | xargs -n 1 php -l
+      - run:
+          name: Run tests
+          command: php vendor/bin/phpunit --coverage-html=./build/coverage --log-junit=./build/tests-results/phpunit.xml
+      - store_test_results:
+          path: ./build/tests-results
+      - store_artifacts:
+          path: ./build/coverage
+          destination: coverage
 
 jobs:
-    'php-5.6':
-        <<: *shared
+  'php-56':
+    executor:
+      name: php
+      version: "5.6"
+    steps:
+      - run_tests:
+          version: "5.6"
+  'php-56-lowest-deps':
+    executor:
+      name: php
+      version: "5.6"
+    steps:
+      - run_tests:
+          version: "5.6"
+          lowest: true
+  'php-70':
+    executor:
+      name: php
+      version: "7.0"
+    steps:
+      - run_tests:
+          version: "7.0"
+  'php-70-lowest-deps':
+    executor:
+      name: php
+      version: "7.0"
+    steps:
+      - run_tests:
+          version: "7.0"
+          lowest: true
+  'php-71':
+    executor:
+      name: php
+      version: "7.1"
+    steps:
+      - run_tests:
+          version: "7.1"
+  'php-71-lowest-deps':
+    executor:
+      name: php
+      version: "7.1"
+    steps:
+      - run_tests:
+          version: "7.1"
+          lowest: true
+  'php-72':
+    executor:
+      name: php
+      version: "7.2"
+    steps:
+      - run_tests:
+          version: "7.2"
+  'php-72-lowest-deps':
+    executor:
+      name: php
+      version: "7.2"
+    steps:
+      - run_tests:
+          version: "7.2"
+          lowest: true
+
+executors:
+  php:
+    parameters:
+      version:
+        type: string
+        default: latest
+    docker:
+      - image: 'circleci/php:<<parameters.version>>-cli-node-browsers-legacy'
         environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable'
-            VENDOR_CACHE_KEY: 'v1-php-5.6-vendor-'
-        docker:
-            - image: 'circleci/php:5.6-cli-node-browsers-legacy'
-    'php-5.6-lowest-deps':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable --prefer-lowest'
-            VENDOR_CACHE_KEY: 'v1-php-5.6-lowest-vendor-'
-        docker:
-            - image: 'circleci/php:5.6-cli-node-browsers-legacy'
-    'php-7.0':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable'
-            VENDOR_CACHE_KEY: 'v1-php-7.0-vendor-'
-        docker:
-            - image: 'circleci/php:7.0-zts-stretch-node-browsers-legacy'
-    'php-7.0-lowest-deps':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable --prefer-lowest'
-            VENDOR_CACHE_KEY: 'v1-php-7.0-lowest-vendor-'
-        docker:
-            - image: 'circleci/php:7.0-zts-stretch-node-browsers-legacy'
-    'php-7.1':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable'
-            VENDOR_CACHE_KEY: 'v1-php-7.1-vendor-'
-        docker:
-            - image: 'circleci/php:7.1-cli-node-browsers-legacy'
-    'php-7.1-lowest-deps':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable --prefer-lowest'
-            VENDOR_CACHE_KEY: 'v1-php-7.1-lowest-vendor-'
-        docker:
-            - image: 'circleci/php:7.1-cli-node-browsers-legacy'
-    'php-7.2':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable'
-            VENDOR_CACHE_KEY: 'v1-php-7.2-vendor-'
-        docker:
-            - image: 'circleci/php:7.2-cli-node-browsers-legacy'
-    'php-7.2-lowest-deps':
-        <<: *shared
-        environment:
-            COMPOSER_OPTIONS: '--no-interaction --no-suggest --prefer-dist --prefer-stable --prefer-lowest'
-            VENDOR_CACHE_KEY: 'v1-php-7.2-lowest-vendor-'
-        docker:
-            - image: 'circleci/php:7.2-cli-node-browsers-legacy'
+          COMPOSER_OPTIONS: '--no-interaction --no-suggest --no-progress --prefer-dist --prefer-stable'
 
 workflows:
-    version: 2
-    build:
-        jobs:
-            - 'php-5.6'
-            - 'php-5.6-lowest-deps'
-            - 'php-7.0'
-            - 'php-7.0-lowest-deps'
-            - 'php-7.1'
-            - 'php-7.1-lowest-deps'
-            - 'php-7.2'
-            - 'php-7.2-lowest-deps'
+  version: 2
+  build:
+    jobs:
+      - 'php-56'
+      - 'php-56-lowest-deps'
+      - 'php-70'
+      - 'php-70-lowest-deps'
+      - 'php-71'
+      - 'php-71-lowest-deps'
+      - 'php-72'
+      - 'php-72-lowest-deps'
