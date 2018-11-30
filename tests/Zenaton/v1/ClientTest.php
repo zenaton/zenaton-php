@@ -329,7 +329,7 @@ final class ClientTest extends TestCase
     /**
      * Inject a mocked Http instance into the Client singleton instance.
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject|Http
+     * @return Http|\PHPUnit_Framework_MockObject_MockObject
      */
     private function createHttpMock()
     {

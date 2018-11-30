@@ -221,7 +221,7 @@ class Client
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
      *
-     * @return WorkflowInterface|null
+     * @return null|WorkflowInterface
      */
     public function findWorkflow($workflowName, $customId)
     {

@@ -20,6 +20,7 @@ $config = PhpCsFixer\Config::create()
         'ordered_imports' => true,
         'phpdoc_order' => true,
         'phpdoc_trim_consecutive_blank_line_separation' => true,
+        'phpdoc_types_order' => true,
         'return_assignment' => true,
         // 'strict_comparison' => true,
         'yoda_style' => false,
