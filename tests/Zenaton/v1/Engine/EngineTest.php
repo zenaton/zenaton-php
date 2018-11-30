@@ -89,14 +89,17 @@ class EngineTest extends TestCase
         static::assertSame([null], $outputs);
     }
 
-    public function testDispatchTaskExecuteHandleMethodOfTaskWhenProcessorIsNotSet()
+    public function testDispatchTaskAsksClientToStartTaskWhenProcessorIsNotSet()
     {
+        $client = $this->replaceSingletonWithMock(Client::class);
         $engine = Engine::getInstance();
 
         $task = $this->createMock(TaskInterface::class);
-        $task
+
+        $client
             ->expects($this->once())
-            ->method('handle')
+            ->method('startTask')
+            ->with($task)
         ;
 
         $outputs = $engine->dispatch([$task]);

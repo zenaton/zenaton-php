@@ -37,6 +37,14 @@ commands:
           destination: coverage
 
 jobs:
+  'check-code-style':
+    docker:
+      - image: jakzal/phpqa:alpine
+    steps:
+      - checkout
+      - run:
+          name: Check code style
+          command: php-cs-fixer fix -v --diff --dry-run --using-cache=no
   'php-56':
     executor:
       name: php
@@ -113,6 +121,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - 'check-code-style'
       - 'php-56'
       - 'php-56-lowest-deps'
       - 'php-70'

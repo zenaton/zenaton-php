@@ -2,8 +2,12 @@
 
 namespace Zenaton;
 
+use Zenaton\Exceptions\AgentException;
+use Zenaton\Exceptions\AgentNotListeningException;
+use Zenaton\Exceptions\AgentUpdateRequiredException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
+use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Http;
 use Zenaton\Services\Properties;
@@ -32,6 +36,7 @@ class Client
     const ATTR_DATA = 'data';
     const ATTR_PROG = 'programming_language';
     const ATTR_MODE = 'mode';
+    const ATTR_MAX_PROCESSING_TIME = 'maxProcessingTime';
 
     const PROG = 'PHP';
 
@@ -45,8 +50,11 @@ class Client
     protected $appId;
     protected $apiToken;
     protected $appEnv;
+    /** @var Http */
     protected $http;
+    /** @var Serializer */
     protected $serializer;
+    /** @var Properties */
     protected $properties;
 
     public static function init($appId, $apiToken, $appEnv)
@@ -102,6 +110,35 @@ class Client
             .self::API_TOKEN.'='.$this->apiToken.'&';
 
         return $this->addAppEnv($url, $params);
+    }
+
+    /**
+     * Start a single task.
+     *
+     * @throws AgentNotListeningException   If the agent is not listening to the application
+     * @throws AgentUpdateRequiredException If the agent does not have the minimum required version
+     * @throws AgentException               For any other error coming from the agent
+     */
+    public function startTask(TaskInterface $task)
+    {
+        $response = $this->http->post($this->getTaskWorkerUrl(), [
+            self::ATTR_PROG => self::PROG,
+            self::ATTR_NAME => get_class($task),
+            self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+            self::ATTR_MAX_PROCESSING_TIME => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
+        ]);
+
+        if ($response->hasErrors()) {
+            if (strpos($response->body->error, 'Your worker does not listen') !== false) {
+                throw new AgentNotListeningException($this->appId, $this->appEnv);
+            }
+
+            if (strpos($response->body->error, 'Unknown version') !== false) {
+                throw new AgentUpdateRequiredException('>=0.5.0');
+            }
+
+            throw new AgentException($response->body->error);
+        }
     }
 
     /**
@@ -184,7 +221,7 @@ class Client
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
      *
-     * @return WorkflowInterface|null
+     * @return null|WorkflowInterface
      */
     public function findWorkflow($workflowName, $customId)
     {
@@ -249,6 +286,11 @@ class Client
     protected function getInstanceWorkerUrl($params = '')
     {
         return $this->getWorkerUrl('instances', $params);
+    }
+
+    protected function getTaskWorkerUrl($params = '')
+    {
+        return $this->getWorkerUrl('tasks', $params);
     }
 
     protected function getSendEventURL()

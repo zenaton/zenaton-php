@@ -62,8 +62,7 @@ class Engine
                     $this->client->startWorkflow($job);
                     $outputs[] = null;
                 } elseif ($this->isTask($job)) {
-                    // $outputs[] = $this->client->startTask($job);
-                    $job->handle();
+                    $this->client->startTask($job);
                     $outputs[] = null;
                 } else {
                     throw new InvalidArgumentException();
