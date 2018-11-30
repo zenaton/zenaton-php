@@ -28,5 +28,10 @@
         "files": [
             "vendor/phpunit/phpunit/src/Framework/Assert/Functions.php"
         ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.3.x-dev"
+        }
     }
 }
