@@ -155,7 +155,7 @@ final class ClientTest extends TestCase
             ->expects($this->once())
             ->method('put')
             ->with(
-                'http://localhost:4001/api/v_newton/instances?app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be dead workflow&',
+                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+dead+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
                 [
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
@@ -176,7 +176,7 @@ final class ClientTest extends TestCase
             ->expects($this->once())
             ->method('put')
             ->with(
-                'http://localhost:4001/api/v_newton/instances?app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be paused workflow&',
+                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+paused+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
                 [
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
@@ -197,7 +197,7 @@ final class ClientTest extends TestCase
             ->expects($this->once())
             ->method('put')
             ->with(
-                'http://localhost:4001/api/v_newton/instances?app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be resumed workflow&',
+                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+resumed+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
                 [
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
@@ -235,7 +235,7 @@ final class ClientTest extends TestCase
         $http
             ->expects($this->once())
             ->method('get')
-            ->with('https://zenaton.com/api/v1/instances?api_token=FakeApiToken&app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be resumed workflow&name=Zenaton\Test\Mock\Workflow\NullWorkflow&programming_language=PHP&')
+            ->with('https://zenaton.com/api/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
             ->willReturn($response)
         ;
 
@@ -268,7 +268,7 @@ final class ClientTest extends TestCase
         $http
             ->expects($this->once())
             ->method('get')
-            ->with('https://zenaton.com/api/v1/instances?api_token=FakeApiToken&app_env=FakeAppEnv&app_id=FakeAppId&custom_id=Soon to be resumed workflow&name=Zenaton\Test\Mock\Workflow\NullWorkflow&programming_language=PHP&')
+            ->with('https://zenaton.com/api/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
             ->willReturn($response)
         ;
 
@@ -286,7 +286,7 @@ final class ClientTest extends TestCase
             ->expects($this->once())
             ->method('post')
             ->with(
-                'http://localhost:4001/api/v_newton/events?app_env=FakeAppEnv&app_id=FakeAppId&',
+                'http://localhost:4001/api/v_newton/events?app_id=FakeAppId&app_env=FakeAppEnv',
                 [
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
@@ -300,6 +300,54 @@ final class ClientTest extends TestCase
         $event = new DummyEvent();
 
         $client->sendEvent(NullWorkflow::class, 'Workflow to send event to', $event);
+    }
+
+    /**
+     * @dataProvider getTestGetWorkerUrlWithParamsAsArrayData
+     */
+    public function testGetWorkerUrlWithParamsAsArray($resource, $params, $expected)
+    {
+        $client = Client::getInstance();
+
+        $actual = $client->getWorkerUrl($resource, $params);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function getTestGetWorkerUrlWithParamsAsArrayData()
+    {
+        yield ['resource', [], 'http://localhost:4001/api/v_newton/resource?app_id=FakeAppId&app_env=FakeAppEnv'];
+        yield ['resource/sub-resource', [], 'http://localhost:4001/api/v_newton/resource/sub-resource?app_id=FakeAppId&app_env=FakeAppEnv'];
+        yield ['resource/sub-resource', ['custom_id' => 'zenaton'], 'http://localhost:4001/api/v_newton/resource/sub-resource?custom_id=zenaton&app_id=FakeAppId&app_env=FakeAppEnv'];
+        yield ['resource/sub-resource', ['custom_id' => 'SpecialCharsé&@#"(!-_$ùàç+'], 'http://localhost:4001/api/v_newton/resource/sub-resource?custom_id=SpecialChars%C3%A9%26%40%23%22%28%21-_%24%C3%B9%C3%A0%C3%A7%2B&app_id=FakeAppId&app_env=FakeAppEnv'];
+    }
+
+    /**
+     * @dataProvider getTestGetWorkerUrlWithParamsAsStringData
+     */
+    public function testGetWorkerUrlWithParamsAsString($resource, $params, $expected)
+    {
+        $client = Client::getInstance();
+
+        // The library will use `trigger_error` function. We register an error handler to avoid phpunit thinking there is
+        // an error in the test and marking test results as a failure.
+        set_error_handler(function ($errno, $errstr) {
+            static::assertEquals('You are running a Zenaton agent version <= 0.4.5 which is using deprecated code. Please consider upgrading your agent.', $errstr);
+        }, E_USER_DEPRECATED);
+
+        $actual = $client->getWorkerUrl($resource, $params);
+
+        restore_error_handler();
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function getTestGetWorkerUrlWithParamsAsStringData()
+    {
+        yield ['resource', '', 'http://localhost:4001/api/v_newton/resource?app_env=FakeAppEnv&app_id=FakeAppId&'];
+        yield ['resource/sub-resource', '', 'http://localhost:4001/api/v_newton/resource/sub-resource?app_env=FakeAppEnv&app_id=FakeAppId&'];
+        yield ['resource/sub-resource', 'custom_id=zenaton', 'http://localhost:4001/api/v_newton/resource/sub-resource?app_env=FakeAppEnv&app_id=FakeAppId&custom_id=zenaton&'];
+        yield ['resource/sub-resource', 'custom_id=SpecialCharsé&@#"(!-_$ùàç', 'http://localhost:4001/api/v_newton/resource/sub-resource?app_env=FakeAppEnv&app_id=FakeAppId&custom_id=SpecialCharsé&@#"(!-_$ùàç&'];
     }
 
     /**
