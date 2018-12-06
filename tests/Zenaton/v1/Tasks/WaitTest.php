@@ -3,29 +3,22 @@
 namespace Zenaton\Tasks;
 
 use Cake\Chronos\Chronos;
-use Cake\Chronos\Date;
-use Cake\Chronos\MutableDate;
+use Cake\Chronos\ChronosInterface;
 use Cake\Chronos\MutableDateTime;
 use PHPUnit\Framework\TestCase;
 use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Test\Mock\Event\DummyEvent;
 
-class ZenatonTest extends TestCase
+class WaitTest extends TestCase
 {
-    public static function setUpBeforeClass()
+    public function setUp()
     {
         Chronos::setTestNow(Chronos::now());
-        MutableDateTime::setTestNow(MutableDateTime::now());
-        Date::setTestNow(Date::now());
-        MutableDate::setTestNow(MutableDate::now());
     }
 
-    public static function tearDownAfterClass()
+    public function tearDown()
     {
         Chronos::setTestNow();
-        MutableDateTime::setTestNow();
-        Date::setTestNow();
-        MutableDate::setTestNow();
     }
 
     public function testNewInstanceWithoutEvent()
@@ -107,10 +100,10 @@ class ZenatonTest extends TestCase
     {
         $wait = new Wait();
 
-        static::assertSame(null, $wait->_getDuration());
+        static::assertNull($wait->_getDuration());
     }
 
-    public function testGetTimestampOrDurationWhenUsingTimestamp()
+    public function testGetTimestampOrDurationWhenWaitingForATimestamp()
     {
         $wait = new Wait();
         $currentTimestamp = time();
@@ -121,7 +114,7 @@ class ZenatonTest extends TestCase
         static::assertSame([$targetTimestamp, null], $wait->_getTimestampOrDuration());
     }
 
-    public function testGetTimestampOrDurationWhenUsingAt()
+    public function testGetTimestampOrDurationWhenWaitingForAFutureTime()
     {
         $wait = new Wait();
         $date = MutableDateTime::now();
@@ -132,7 +125,7 @@ class ZenatonTest extends TestCase
         static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 
-    public function testGetTimestampOrDurationWhenUsingAtWithPastTimeTargetsNextDay()
+    public function testGetTimestampOrDurationWhenWaitingForAPastTime()
     {
         $wait = new Wait();
         $date = MutableDateTime::now();
@@ -142,16 +135,6 @@ class ZenatonTest extends TestCase
 
         // Correct $date because wait should target the next day
         $date->add(new \DateInterval('P1D'));
-
-        static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
-    }
-
-    public function testGetTimestampOrDurationWhenUsingDayOfMonth()
-    {
-        $wait = new Wait();
-        $date = Chronos::parse('first day of next month');
-
-        $wait->dayOfMonth(1);
 
         static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
@@ -172,7 +155,7 @@ class ZenatonTest extends TestCase
 
     public function getTestGetTimestampOrDurationWhenUsingWeekDayData()
     {
-        $weekDays = [
+        return [
             ['sunday'],
             ['monday'],
             ['tuesday'],
@@ -181,22 +164,152 @@ class ZenatonTest extends TestCase
             ['friday'],
             ['saturday'],
         ];
-
-        // Skip current day as the result would be wrong
-        $currentDay = (int) date('w');
-        unset($weekDays[$currentDay]);
-
-        return $weekDays;
     }
 
-    public function testGetTimestampOrDurationWhenUsingCurrentWeekDayTargetsCurrentDay()
+    public function testGetTimestampOrDurationWhenAlreadyMondayAndWaitingForNextMonday()
     {
-        $date = MutableDateTime::now();
-        $day = strtolower($date->format('l'));
+        $date = Chronos::create(2018, 12, 3, 11, 00, 00);
+        Chronos::setTestNow($date);
 
         $wait = new Wait();
-        $wait->{$day}();
+        $wait->monday();
 
-        static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
+        $expectedDate = Chronos::create(2018, 12, 10, 11, 00, 00);
+
+        static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndLaterTime()
+    {
+        $date = Chronos::create(2018, 12, 3, 11, 00, 00);
+        Chronos::setTestNow($date);
+
+        $wait = new Wait();
+        $wait
+            ->monday()
+            ->at('13:00')
+        ;
+
+        $expectedDate = Chronos::create(2018, 12, 3, 13, 00, 00);
+
+        static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndPastTime()
+    {
+        $date = Chronos::create(2018, 12, 3, 11, 00, 00);
+        Chronos::setTestNow($date);
+
+        $wait = new Wait();
+        $wait
+            ->monday()
+            ->at('9:00')
+        ;
+
+        $expectedDate = Chronos::create(2018, 12, 10, 9, 00, 00);
+
+        static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndCurrentTime()
+    {
+        $date = Chronos::create(2018, 12, 3, 11, 00, 00);
+        Chronos::setTestNow($date);
+
+        $wait = new Wait();
+        $wait
+            ->monday()
+            ->at('11:00')
+        ;
+
+        $expectedDate = Chronos::create(2018, 12, 10, 11, 00, 00);
+
+        static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    /**
+     * @dataProvider getWaitForCurrentDayData
+     */
+    public function testGetTimestampOrDurationWhenWaitingForCurrentDayWaitsOneMonth(ChronosInterface $current, $day, ChronosInterface $expected)
+    {
+        Chronos::setTestNow($current);
+
+        $wait = new Wait();
+        $wait
+            ->dayOfMonth($day)
+        ;
+
+        static::assertSame([$expected->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function getWaitForCurrentDayData()
+    {
+        yield [Chronos::create(2018, 12, 3, 11, 00, 00), 3, Chronos::create(2019, 1, 3, 11, 00, 00)];
+        yield [Chronos::create(2018, 12, 17, 11, 00, 00), 17, Chronos::create(2019, 1, 17, 11, 00, 00)];
+        yield [Chronos::create(2018, 02, 15, 11, 00, 00), 31, Chronos::create(2018, 3, 3, 11, 00, 00)];
+        yield [Chronos::create(2018, 01, 31, 11, 00, 00), 31, Chronos::create(2018, 2, 28, 11, 00, 00)];
+        yield [Chronos::create(2018, 03, 31, 11, 00, 00), 31, Chronos::create(2018, 4, 30, 11, 00, 00)];
+    }
+
+    /**
+     * @dataProvider getWaitForCurrentDayAtFutureTimeData
+     */
+    public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtFutureTimeWaitsFewHours(ChronosInterface $current, ChronosInterface $expected)
+    {
+        Chronos::setTestNow($current);
+
+        $wait = new Wait();
+        $wait
+            ->dayOfMonth(3)
+            ->at('13:00')
+        ;
+
+        static::assertSame([$expected->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function getWaitForCurrentDayAtFutureTimeData()
+    {
+        yield [Chronos::create(2018, 12, 3, 11, 00, 00), Chronos::create(2018, 12, 3, 13, 00, 00)];
+    }
+
+    /**
+     * @dataProvider getWaitForCurrentDayAtPastTimeData
+     */
+    public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtPastTimeWaitsOneMonth(ChronosInterface $current, $day, ChronosInterface $expected)
+    {
+        Chronos::setTestNow($current);
+
+        $wait = new Wait();
+        $wait
+            ->dayOfMonth($day)
+            ->at('9:00')
+        ;
+
+        static::assertSame([$expected->getTimestamp(), null], $wait->_getTimestampOrDuration());
+    }
+
+    public function getWaitForCurrentDayAtPastTimeData()
+    {
+        yield [Chronos::create(2018, 12, 3, 11, 00, 00), 3, Chronos::create(2019, 1, 3, 9, 00, 00)];
+        yield [Chronos::create(2018, 12, 17, 11, 00, 00), 17, Chronos::create(2019, 1, 17, 9, 00, 00)];
+        yield [Chronos::create(2018, 02, 15, 11, 00, 00), 15, Chronos::create(2018, 3, 15, 9, 00, 00)];
+        yield [Chronos::create(2018, 01, 31, 11, 00, 00), 31, Chronos::create(2018, 2, 28, 9, 00, 00)];
+        yield [Chronos::create(2018, 03, 31, 11, 00, 00), 31, Chronos::create(2018, 4, 30, 9, 00, 00)];
+    }
+
+    public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtCurrentTimeWaitsOneMonth()
+    {
+        $date = Chronos::create(2018, 12, 3, 11, 00, 00);
+        Chronos::setTestNow($date);
+
+        $wait = new Wait();
+        $wait
+            ->dayOfMonth(3)
+            ->at('11:00')
+        ;
+
+        $expected = Chronos::create(2019, 1, 3, 11, 00, 00);
+
+        static::assertSame([$expected->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 }
