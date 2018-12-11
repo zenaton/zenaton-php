@@ -93,8 +93,20 @@ class Client
         return $this;
     }
 
-    public function getWorkerUrl($ressources = '', $params = '')
+    /**
+     * @param string       $ressources
+     * @param array|string $params
+     *
+     * @return string
+     *
+     * @internal Used by the Zenaton agent. Should not be called by user code.
+     */
+    public function getWorkerUrl($ressources = '', $params = [])
     {
+        if (is_array($params)) {
+            return $this->getWorkerUrlV2($ressources, $params);
+        }
+
         $url = (getenv('ZENATON_WORKER_URL') ?: self::ZENATON_WORKER_URL)
             .':'.(getenv('ZENATON_WORKER_PORT') ?: self::DEFAULT_WORKER_PORT)
             .'/api/'.self::WORKER_API_VERSION
@@ -103,8 +115,20 @@ class Client
         return $this->addAppEnv($url, $params);
     }
 
-    public function getWebsiteUrl($ressources = '', $params = '')
+    /**
+     * @param string       $ressources
+     * @param array|string $params
+     *
+     * @return string
+     *
+     * @internal Used by the Zenaton agent. Should not be called by user code.
+     */
+    public function getWebsiteUrl($ressources = '', $params = [])
     {
+        if (is_array($params)) {
+            return $this->getWebsiteUrlV2($ressources, $params);
+        }
+
         $url = (getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL)
             .'/'.$ressources.'?'
             .self::API_TOKEN.'='.$this->apiToken.'&';
@@ -225,10 +249,11 @@ class Client
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $params =
-            self::ATTR_ID.'='.$customId.'&'.
-            self::ATTR_NAME.'='.$workflowName.'&'.
-            self::ATTR_PROG.'='.self::PROG;
+        $params = [
+            static::ATTR_ID => $customId,
+            static::ATTR_NAME => $workflowName,
+            static::ATTR_PROG => static::PROG,
+        ];
 
         // TODO : Have a better error handling by introducing an object between Client and Http that will
         // return domain exceptions and be able to work with multiple transport layers
@@ -269,7 +294,9 @@ class Client
 
     protected function updateInstance($workflowName, $customId, $mode)
     {
-        $params = self::ATTR_ID.'='.$customId;
+        $params = [
+            self::ATTR_ID => $customId,
+        ];
 
         return $this->http->put($this->getInstanceWorkerUrl($params), [
             self::ATTR_PROG => self::PROG,
@@ -278,17 +305,43 @@ class Client
         ]);
     }
 
+    private function getWorkerUrlV2($resource = '', array $params = [])
+    {
+        $url = sprintf(
+            '%s:%s/api/%s/%s',
+            getenv('ZENATON_WORKER_URL') ?: static::ZENATON_WORKER_URL,
+            getenv('ZENATON_WORKER_PORT') ?: static::DEFAULT_WORKER_PORT,
+            static::WORKER_API_VERSION,
+            $resource
+        );
+
+        return $this->addQueryParams($url, $params);
+    }
+
+    private function getWebsiteUrlV2($ressources = '', array $params = [])
+    {
+        $url = sprintf(
+            '%s/%s',
+            getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL,
+            $ressources
+        );
+
+        $params[static::API_TOKEN] = $this->apiToken;
+
+        return $this->addQueryParams($url, $params);
+    }
+
     protected function getInstanceWebsiteUrl($params)
     {
         return $this->getWebsiteUrl('instances', $params);
     }
 
-    protected function getInstanceWorkerUrl($params = '')
+    protected function getInstanceWorkerUrl($params = [])
     {
         return $this->getWorkerUrl('instances', $params);
     }
 
-    protected function getTaskWorkerUrl($params = '')
+    protected function getTaskWorkerUrl($params = [])
     {
         return $this->getWorkerUrl('tasks', $params);
     }
@@ -298,12 +351,39 @@ class Client
         return $this->getWorkerUrl('events');
     }
 
+    /**
+     * @param string $url
+     * @param string $params
+     *
+     * @return string
+     *
+     * @deprecated 0.3.0 Does not properly encode url parameters.
+     */
     protected function addAppEnv($url, $params = '')
     {
+        static $triggeredDeprecation = false;
+        if (!$triggeredDeprecation) {
+            trigger_error('You are running a Zenaton agent version <= 0.4.5 which is using deprecated code. Please consider upgrading your agent.', E_USER_DEPRECATED);
+        }
+        $triggeredDeprecation = true;
+
         // when called from worker, APP_ENV and APP_ID is not defined
         return $url
             .($this->appEnv ? self::APP_ENV.'='.$this->appEnv.'&' : '')
             .($this->appId ? self::APP_ID.'='.$this->appId.'&' : '')
             .($params ? $params.'&' : '');
+    }
+
+    protected function addQueryParams($url, array $params = [])
+    {
+        // When called from worker, APP_ENV and APP_ID are not defined
+        if ($this->appId) {
+            $params[static::APP_ID] = $this->appId;
+        }
+        if ($this->appEnv) {
+            $params[static::APP_ENV] = $this->appEnv;
+        }
+
+        return sprintf('%s?%s', $url, http_build_query($params));
     }
 }
