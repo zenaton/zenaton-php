@@ -19,7 +19,7 @@ class Client
 {
     use SingletonTrait;
 
-    const ZENATON_API_URL = 'https://zenaton.com/api/v1';
+    const ZENATON_API_URL = 'https://api.zenaton.com/v1';
     const ZENATON_WORKER_URL = 'http://localhost';
     const DEFAULT_WORKER_PORT = 4001;
     const WORKER_API_VERSION = 'v_newton';
