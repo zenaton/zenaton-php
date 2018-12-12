@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 * `Client::findWorkflow()` now returns `null` instead of throwing an exception when the workflow cannot be found.
 * Using `Zenatonable::dispatch()` on a task outside of a workflow now dispatches the task execution instead of executing it synchronously.
+* Changed `Client::ZENATON_API_URL` constant value to `https://api.zenaton.com/v1`.
 
 ### Fixed
 

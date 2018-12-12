@@ -235,7 +235,7 @@ final class ClientTest extends TestCase
         $http
             ->expects($this->once())
             ->method('get')
-            ->with('https://zenaton.com/api/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
+            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
             ->willReturn($response)
         ;
 
@@ -268,7 +268,7 @@ final class ClientTest extends TestCase
         $http
             ->expects($this->once())
             ->method('get')
-            ->with('https://zenaton.com/api/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
+            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
             ->willReturn($response)
         ;
 
