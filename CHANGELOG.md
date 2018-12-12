@@ -21,7 +21,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 
 * `Client` now properly encode parameters sent in query strings.
-* `Zenaton\Workflow\Version` class is now aliased to avoid namespace shadowing bug in PHP 5.6. See https://bugs.php.net/bug.php?id=66862.
+* `Zenaton\Workflow\Version` class is now aliased to avoid namespace shadowing bug in PHP 5.6. See <https://bugs.php.net/bug.php?id=66862>.
+* `Wait::monday()` when already a monday will now wait for the next monday instead of expiring immediately, except when
+  a specific time is set with `::at()` and is not already past. This behavior is also implemented in related methods
+  `::tuesday()`, `::wednesday()`, `::thursday()`, `::friday()`, `::saturday()` and `::sunday()`, and also in the
+  `::dayOfMonth()` method.
 
 ### Deprecated
 

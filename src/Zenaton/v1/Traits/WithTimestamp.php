@@ -161,21 +161,28 @@ trait WithTimestamp
 
         $then = $then->day($day);
 
-        // if time is past, target next month
-        if ($now->gt($then)) {
+        if ($now->gte($then) && !$this->sameMonthDayLater($now, $day)) {
             $then = $then->addMonth();
         }
 
         return $then;
     }
 
-    protected function _weekDay($n, $day, $then)
+    protected function _weekDay($n, $day, $now, $then)
     {
         $this->_setMode(self::$_MODE_WEEK_DAY);
 
+        if ($this->sameWeekDayLater($now, $day)) {
+            --$n;
+        }
+
         list($h, $m, $s) = [$then->hour, $then->minute, $then->second];
 
-        return $then->previous($day)->addWeeks($n)->setTime($h, $m, $s);
+        for ($i = 0; $i < $n; ++$i) {
+            $then = $then->next($day);
+        }
+
+        return $then->setTime($h, $m, $s);
     }
 
     protected function _apply($method, $value, $now, $then)
@@ -188,19 +195,19 @@ trait WithTimestamp
             case 'dayOfMonth':
                 return $this->_dayOfMonth($value, $now, $then);
             case 'monday':
-                return $this->_weekDay($value, ChronosInterface::MONDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::MONDAY, $now, $then);
             case 'tuesday':
-                return $this->_weekDay($value, ChronosInterface::TUESDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::TUESDAY, $now, $then);
             case 'wednesday':
-                return $this->_weekDay($value, ChronosInterface::WEDNESDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::WEDNESDAY, $now, $then);
             case 'thursday':
-                return $this->_weekDay($value, ChronosInterface::THURSDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::THURSDAY, $now, $then);
             case 'friday':
-                return $this->_weekDay($value, ChronosInterface::FRIDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::FRIDAY, $now, $then);
             case 'saturday':
-                return $this->_weekDay($value, ChronosInterface::SATURDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::SATURDAY, $now, $then);
             case 'sunday':
-                return $this->_weekDay($value, ChronosInterface::SUNDAY, $then);
+                return $this->_weekDay($value, ChronosInterface::SUNDAY, $now, $then);
             default:
                 return $this->_applyDuration($method, $value, $then);
         }
@@ -220,5 +227,74 @@ trait WithTimestamp
         if (null === $this->_mode || self::$_MODE_AT === $this->_mode) {
             $this->_mode = $mode;
         }
+    }
+
+    /**
+     * @param \Cake\Chronos\Chronos $now
+     * @param int                   $day
+     *
+     * @return bool
+     */
+    protected function sameMonthDayLater($now, $day)
+    {
+        return $this->sameMonthDay($now, $day) && $this->later($now);
+    }
+
+    /**
+     * @param \Cake\Chronos\Chronos $now
+     * @param int                   $day
+     *
+     * @return bool
+     */
+    protected function sameWeekDayLater($now, $day)
+    {
+        return $this->sameWeekDay($now, $day) && $this->later($now);
+    }
+
+    /**
+     * @param \Cake\Chronos\Chronos $now
+     * @param int                   $day
+     *
+     * @return bool
+     */
+    protected function sameMonthDay($now, $day)
+    {
+        return $now->day === $day;
+    }
+
+    /**
+     * @param \Cake\Chronos\Chronos $now
+     * @param int                   $day
+     *
+     * @return bool
+     */
+    protected function sameWeekDay($now, $day)
+    {
+        return $now->dayOfWeek === $day;
+    }
+
+    /**
+     * @param \Cake\Chronos\Chronos $now
+     *
+     * @return bool
+     */
+    protected function later($now)
+    {
+        // Find in the buffer if the method `at` was used to set the time
+        $time = array_reduce($this->_buffer, function ($carry, $item) {
+            if ($item[0] === 'at') {
+                return $item[1];
+            }
+
+            return $carry;
+        }, null);
+
+        if ($time === null) {
+            return false;
+        }
+
+        $other = $now->setTimeFromTimeString($time);
+
+        return $now->diffInHours($other, false) > 0;
     }
 }
