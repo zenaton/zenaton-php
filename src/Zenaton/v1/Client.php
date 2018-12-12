@@ -13,7 +13,7 @@ use Zenaton\Services\Http;
 use Zenaton\Services\Properties;
 use Zenaton\Services\Serializer;
 use Zenaton\Traits\SingletonTrait;
-use Zenaton\Workflows\Version;
+use Zenaton\Workflows\Version as VersionedWorkflow; // Alias is required because of a bug in PHP 5.6 namespace shadowing. See https://bugs.php.net/bug.php?id=66862.
 
 class Client
 {
@@ -174,7 +174,7 @@ class Client
     {
         $canonical = null;
         // if $flow is a versionned workflow
-        if ($flow instanceof Version) {
+        if ($flow instanceof VersionedWorkflow) {
             // store canonical name
             $canonical = get_class($flow);
             // replace by true current implementation

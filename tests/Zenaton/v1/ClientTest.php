@@ -11,7 +11,7 @@ use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
-use Zenaton\Workflows\Version;
+use Zenaton\Workflows\Version as VersionedWorkflow; // Alias is required because of a bug in PHP 5.6 namespace shadowing. See https://bugs.php.net/bug.php?id=66862.
 
 final class ClientTest extends TestCase
 {
@@ -81,7 +81,7 @@ final class ClientTest extends TestCase
         ;
 
         $workflow = $this
-            ->getMockBuilder(Version::class)
+            ->getMockBuilder(VersionedWorkflow::class)
             ->setMethods([
                 'versions',
             ])

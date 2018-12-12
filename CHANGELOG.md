@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 
 * `Client` now properly encode parameters sent in query strings.
+* `Zenaton\Workflow\Version` class is now aliased to avoid namespace shadowing bug in PHP 5.6. See https://bugs.php.net/bug.php?id=66862.
 
 ### Deprecated
 
