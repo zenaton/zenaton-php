@@ -4,6 +4,7 @@ namespace Zenaton;
 
 use Httpful\Response;
 use PHPUnit\Framework\TestCase;
+use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Http;
@@ -244,8 +245,10 @@ final class ClientTest extends TestCase
         static::assertInstanceOf(NullWorkflow::class, $workflow);
     }
 
-    public function testFindWorkflowReturnsNullWhenWorkflowDoesNotExists()
+    public function testFindWorkflowThrowsAnExceptionWhenApiReturnsAnError()
     {
+        $this->expectException(ApiException::class);
+
         $client = Client::getInstance();
         $http = $this->createHttpMock();
 
@@ -264,6 +267,34 @@ final class ClientTest extends TestCase
             ->willReturn(true)
         ;
         $response->body = $body;
+        $response->code = 500;
+
+        $http
+            ->expects($this->once())
+            ->method('get')
+            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
+            ->willReturn($response)
+        ;
+
+        $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
+    }
+
+    public function testFindWorkflowReturnsNullWhenWorkflowDoesNotExists()
+    {
+        $client = Client::getInstance();
+        $http = $this->createHttpMock();
+
+        $body = (object) [
+            'error' => 'No workflow instance found with the id : 12',
+        ];
+
+        $response = $this
+            ->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+        $response->body = $body;
+        $response->code = 404;
 
         $http
             ->expects($this->once())

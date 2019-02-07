@@ -5,6 +5,7 @@ namespace Zenaton;
 use Zenaton\Exceptions\AgentException;
 use Zenaton\Exceptions\AgentNotListeningException;
 use Zenaton\Exceptions\AgentUpdateRequiredException;
+use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\TaskInterface;
@@ -255,16 +256,13 @@ class Client
             static::ATTR_PROG => static::PROG,
         ];
 
-        // TODO : Have a better error handling by introducing an object between Client and Http that will
-        // return domain exceptions and be able to work with multiple transport layers
-        try {
-            $response = $this->http->get($this->getInstanceWebsiteUrl($params));
-        } catch (\Exception $e) {
+        $response = $this->http->get($this->getInstanceWebsiteUrl($params));
+        if ($response->code === 404) {
             return null;
         }
 
         if ($response->hasErrors()) {
-            return null;
+            throw ApiException::unexpectedStatusCode($response->code);
         }
 
         return $this->properties->getObjectFromNameAndProperties($response->body->data->name, $this->serializer->decode($response->body->data->properties));
