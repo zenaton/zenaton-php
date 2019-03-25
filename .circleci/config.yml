@@ -105,6 +105,21 @@ jobs:
       - run_tests:
           version: "7.2"
           lowest: true
+  'php-73':
+    executor:
+      name: php
+      version: "7.3"
+    steps:
+      - run_tests:
+          version: "7.3"
+  'php-73-lowest-deps':
+    executor:
+      name: php
+      version: "7.3"
+    steps:
+      - run_tests:
+          version: "7.3"
+          lowest: true
 
 executors:
   php:
@@ -130,3 +145,5 @@ workflows:
       - 'php-71-lowest-deps'
       - 'php-72'
       - 'php-72-lowest-deps'
+      - 'php-73'
+      - 'php-73-lowest-deps'
