@@ -1,6 +1,6 @@
 # Upgrade instructions
 
-## Unreleased
+## 0.3.0
 
 * Using `Zenatonable::dispatch()` on tasks outside of a workflow now executes tasks asynchronously.
 
