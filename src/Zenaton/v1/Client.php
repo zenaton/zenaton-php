@@ -159,7 +159,7 @@ class Client
             }
 
             if (strpos($response->body->error, 'Unknown version') !== false) {
-                throw new AgentUpdateRequiredException('>=0.5.0');
+                throw new AgentUpdateRequiredException('>=0.6.0');
             }
 
             throw new AgentException($response->body->error);
