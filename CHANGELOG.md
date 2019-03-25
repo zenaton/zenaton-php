@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [0.3.0] - 2019-03-25
 
 ### Added
@@ -27,4 +41,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `::tuesday()`, `::wednesday()`, `::thursday()`, `::friday()`, `::saturday()` and `::sunday()`, and also in the
   `::dayOfMonth()` method.
 
+[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.3.0...HEAD
 [0.3.0]: https://github.com/zenaton/zenaton-php/compare/0.2.4...0.3.0
