@@ -89,6 +89,9 @@ final class SerializerTest extends TestCase
         yield [[$closure, $closure], '{"a":["@zenaton#0","@zenaton#0"],"s":['.$serializeClosure($closure).']}'];
         // Objects
         yield [new \DateTime('2018-09-05 11:33:00'), '{"o":"@zenaton#0","s":[{"n":"DateTime","p":{"date":"2018-09-05 11:33:00.000000","timezone_type":3,"timezone":"UTC"}}]}'];
+        $object = new \stdClass();
+        $object->nonDeclaredProperty = 42;
+        yield [$object, '{"o":"@zenaton#0","s":[{"n":"stdClass","p":{"nonDeclaredProperty":42}}]}'];
         // Objects referencing other objects
         yield [
             call_user_func(function () {
@@ -161,6 +164,8 @@ final class SerializerTest extends TestCase
             }
             '),
         ];
+        // Objects inheriting other objects
+        yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
     }
 
     public function testEncodeAResourceMustThrowAnException()
@@ -289,6 +294,11 @@ final class SerializerTest extends TestCase
             static::assertEquals($equalDateTime, $actual);
         }, '{"o":"@zenaton#0","s":[{"n":"DateTime","p":{"date":"2018-09-05 11:33:00.000000","timezone_type":3,"timezone":"UTC"}}]}'];
 
+        yield [function ($actual) {
+            static::assertInstanceOf(\stdClass::class, $actual);
+            static::assertEquals(42, $actual->nonDeclaredProperty);
+        }, '{"o":"@zenaton#0","s":[{"n":"stdClass","p":{"nonDeclaredProperty":42}}]}'];
+
         // Objects referencing other objects
         yield [
             function ($actual) {
@@ -360,6 +370,18 @@ final class SerializerTest extends TestCase
             }
             ',
         ];
+
+        // Objects inheriting other objects
+        yield [function ($actual) {
+            static::assertInstanceOf(ChildClass::class, $actual);
+            static::assertAttributeSame('zenaton', 'grandParentProperty', $actual);
+            static::assertAttributeSame('is dope', 'zenaton', $actual);
+            static::assertAttributeSame(21, 'parentProperty', $actual);
+            static::assertAttributeSame(22, 'parentConstructorDefinedProperty', $actual);
+            static::assertAttributeSame(false, 'parentOverridableProperty', $actual);
+            static::assertAttributeSame(42, 'childProperty', $actual);
+            static::assertAttributeSame(43, 'childConstructorDefinedProperty', $actual);
+        }, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
     }
 
     public function testDecodeStringContainingWrongKeyThrowsAnException()
@@ -400,4 +422,36 @@ class C3
 {
     public $zenaton = true;
     public $c2;
+}
+
+class GrandParentClass
+{
+    private $grandParentProperty = 'zenaton';
+    public $zenaton = 'is dope';
+}
+
+class ParentClass extends GrandParentClass
+{
+    private $parentProperty = 21;
+    private $parentConstructorDefinedProperty;
+    protected $parentOverridableProperty = true;
+
+    public function __construct()
+    {
+        $this->parentConstructorDefinedProperty = 22;
+    }
+}
+
+class ChildClass extends ParentClass
+{
+    private $childProperty = 42;
+    private $childConstructorDefinedProperty;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->childConstructorDefinedProperty = 43;
+        $this->parentOverridableProperty = false;
+    }
 }
