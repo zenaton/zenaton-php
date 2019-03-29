@@ -166,6 +166,8 @@ final class SerializerTest extends TestCase
         ];
         // Objects inheriting other objects
         yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
+        // Objects implementing Traversable
+        yield [new SimpleCollection(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
     }
 
     public function testEncodeAResourceMustThrowAnException()
@@ -382,6 +384,16 @@ final class SerializerTest extends TestCase
             static::assertAttributeSame(42, 'childProperty', $actual);
             static::assertAttributeSame(43, 'childConstructorDefinedProperty', $actual);
         }, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
+
+        // Objects implementing Traversable
+        yield [function ($actual) {
+            static::assertInstanceOf(SimpleCollection::class, $actual);
+            $items = [];
+            foreach ($actual as $item) {
+                $items[] = $item;
+            }
+            static::assertEquals(['z', 'e', 'n', 'a', 't', 'o', 'n'], $items);
+        }, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
     }
 
     public function testDecodeStringContainingWrongKeyThrowsAnException()
@@ -453,5 +465,13 @@ class ChildClass extends ParentClass
 
         $this->childConstructorDefinedProperty = 43;
         $this->parentOverridableProperty = false;
+    }
+}
+
+class SimpleCollection implements \IteratorAggregate
+{
+    public function getIterator()
+    {
+        return new \ArrayIterator(['z', 'e', 'n', 'a', 't', 'o', 'n']);
     }
 }

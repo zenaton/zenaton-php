@@ -45,10 +45,12 @@ class Properties
             }
         }
 
-        // non-declared public variables
-        foreach ($clone as $key => $value) {
-            if (!isset($properties[$key]) && (!isset($valid) || in_array($key, $valid))) {
-                $properties[$key] = $value;
+        // non-declared public variables. Only if object does not implement \Traversable, because otherwise it can iterate things that are not properties
+        if (!($clone instanceof \Traversable)) {
+            foreach ($clone as $key => $value) {
+                if (!isset($properties[$key]) && (!isset($valid) || in_array($key, $valid))) {
+                    $properties[$key] = $value;
+                }
             }
         }
 
