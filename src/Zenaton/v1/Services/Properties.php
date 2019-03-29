@@ -36,7 +36,7 @@ class Properties
         $properties = [];
 
         // declared variables
-        foreach ((new ReflectionClass($clone))->getProperties() as $property) {
+        foreach ($this->getClassProperties($clone) as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
             if (!$property->isStatic() && (!isset($valid) || in_array($property->getName(), $valid))) {
                 $property->setAccessible(true);
@@ -59,7 +59,7 @@ class Properties
     {
         // declared variables
         $keys = [];
-        foreach ((new ReflectionClass($o))->getProperties() as $property) {
+        foreach ($this->getClassProperties($o) as $property) {
             // the PHP serialize method doesn't take static variables so we respect this philosophy
             if (!$property->isStatic()) {
                 $property->setAccessible(true);
@@ -94,5 +94,30 @@ class Properties
         if (!is_null($class) && (!is_object($o) || !$o instanceof $class)) {
             throw new UnexpectedValueException('Error - '.get_class($o).' should be an instance of '.$class);
         }
+    }
+
+    /**
+     * Return properties of a class and all its inheritance hierarchy.
+     *
+     * @param object|string $argument Object or class name to get properties from
+     * @param null|int      $filter   Optional filter, for filtering desired property types. It's configured using the `\ReflectionProperty` constants, and defaults to all property types.
+     *
+     * @throws \ReflectionException if the class to reflect does not exist
+     *
+     * @return \ReflectionProperty[]
+     */
+    private function getClassProperties($argument, $filter = null)
+    {
+        if (null === $filter) {
+            $filter = \ReflectionProperty::IS_STATIC | \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED | \ReflectionProperty::IS_PRIVATE;
+        }
+
+        $reflectionClass = new \ReflectionClass($argument);
+
+        if ($parentClass = $reflectionClass->getParentClass()) {
+            return array_merge($this->getClassProperties($parentClass->getName(), $filter), $reflectionClass->getProperties($filter));
+        }
+
+        return $reflectionClass->getProperties($filter);
     }
 }

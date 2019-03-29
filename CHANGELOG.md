@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+* Fixed an issue with the serializer not serializing private properties defined in parent classes of the object to serialize. (#33) 
+
 ### Security
 
 ## [0.3.0] - 2019-03-25
