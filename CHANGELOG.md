@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 
+* Serialization of resources now results in the integer `0` instead of throwing
+  an exception in order to be consistent with the behavior of the PHP serialize
+  function.
+
 ### Deprecated
 
 ### Removed
