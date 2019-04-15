@@ -87,6 +87,10 @@ final class SerializerTest extends TestCase
             return 'Zenaton';
         };
         yield [[$closure, $closure], '{"a":["@zenaton#0","@zenaton#0"],"s":['.$serializeClosure($closure).']}'];
+        // Array containing a resource
+        $resource = fopen(__FILE__, 'r');
+        yield [[$resource], '{"a":[0],"s":[]}'];
+        fclose($resource);
         // Objects
         yield [new \DateTime('2018-09-05 11:33:00'), '{"o":"@zenaton#0","s":[{"n":"DateTime","p":{"date":"2018-09-05 11:33:00.000000","timezone_type":3,"timezone":"UTC"}}]}'];
         $object = new \stdClass();
@@ -168,35 +172,22 @@ final class SerializerTest extends TestCase
         yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
         // Objects implementing Traversable
         yield [new SimpleCollection(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
+        // Objects containing a resource
+        $object = new C1();
+        $object->name = fopen(__FILE__, 'r');
+        yield [$object, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\C1","p":{"name":0,"c2":null}}]}'];
+        fclose($object->name);
     }
 
-    public function testEncodeAResourceMustThrowAnException()
+    public function testEncodeAResourceReturnsSerializationOfIntegerZero()
     {
-        $this->expectException(\UnexpectedValueException::class);
-
         $handle = fopen(__FILE__, 'r');
         if ($handle === false) {
             static::fail('Cannot open file the current file using read access.');
         }
 
         try {
-            $this->serializer->encode($handle);
-        } finally {
-            fclose($handle);
-        }
-    }
-
-    public function testEncodeAResourceInsideAnArrayThrowsAnException()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-
-        $handle = fopen(__FILE__, 'r');
-        if ($handle === false) {
-            static::fail('Cannot open file the current file using read access.');
-        }
-
-        try {
-            $this->serializer->encode([1, 2, $handle]);
+            static::assertEquals('{"d":0,"s":[]}', $this->serializer->encode($handle));
         } finally {
             fclose($handle);
         }

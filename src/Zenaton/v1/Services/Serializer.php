@@ -48,7 +48,8 @@ class Serializer
         } elseif (is_array($data)) {
             $value[self::KEY_ARRAY] = $this->encodeArray($data);
         } elseif ($this->isResource($data)) {
-            $this->throwResourceException();
+            // Same behavior as the PHP serialize function: resources are serialized as the integer `0`.
+            $value[self::KEY_DATA] = 0;
         } else {
             $value[self::KEY_DATA] = $data;
         }
@@ -82,11 +83,6 @@ class Serializer
             return $array[self::KEY_DATA];
         }
         throw new UnexpectedValueException('Unknown key in: '.$json);
-    }
-
-    protected function throwResourceException()
-    {
-        throw new UnexpectedValueException('You are trying to serialize an object containing a Resource (a turn around would be to use __sleep and __wakeup methods to remove and restore this Resource)');
     }
 
     protected function isObjectId($s)
@@ -142,7 +138,8 @@ class Serializer
             } elseif (is_array($value)) {
                 $array[$key] = $this->encodeArray($value);
             } elseif ($this->isResource($value)) {
-                $this->throwResourceException();
+                // Same behavior as the PHP serialize function: resources are serialized as the integer `0`.
+                $array[$key] = 0;
             } else {
                 $array[$key] = $value;
             }
