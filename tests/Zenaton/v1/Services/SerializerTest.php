@@ -30,6 +30,7 @@ final class SerializerTest extends TestCase
 
         // Null
         yield [null, '{"d":null,"s":[]}'];
+
         // Scalar
         yield ['Zenaton is awesome', '{"d":"Zenaton is awesome","s":[]}'];
         yield ['', '{"d":"","s":[]}'];
@@ -38,14 +39,17 @@ final class SerializerTest extends TestCase
         yield [true, '{"d":true,"s":[]}'];
         yield [false, '{"d":false,"s":[]}'];
         yield [9000.123, '{"d":9000.123,"s":[]}'];
+
         // Simple array
         yield [[1, 2, 3], '{"a":[1,2,3],"s":[]}'];
         yield [[1, 'e'], '{"a":[1,"e"],"s":[]}'];
         yield [['hello zenaton' => 'hello', 'are you okay?' => true], '{"a":{"hello zenaton":"hello","are you okay?":true},"s":[]}'];
         yield [['hello zenaton' => 'hello', 'are you okay?' => true, 'mixing arrays !', 123], '{"a":{"hello zenaton":"hello","are you okay?":true,"0":"mixing arrays !","1":123},"s":[]}'];
+
         // Nested arrays
         yield [[1, 2, 3, [4, 5, 6]], '{"a":[1,2,3,[4,5,6]],"s":[]}'];
         yield [['hello', 2, true, [4, 5, [6, 7, 8], [9, 10, 11]]], '{"a":["hello",2,true,[4,5,[6,7,8],[9,10,11]]],"s":[]}'];
+
         // Closures
         // Here we rely on SuperClosure serialization to give us the expected result because depending on the versions of dependencies the results are not always the same
         $serializeClosure = function (\Closure $closure) {
@@ -53,6 +57,7 @@ final class SerializerTest extends TestCase
 
             return json_encode($serializer->serialize($closure));
         };
+
         $closure = function () {
             return 'Zenaton';
         };
@@ -60,6 +65,7 @@ final class SerializerTest extends TestCase
             $closure,
             '{"c":"@zenaton#0","s":['.$serializeClosure($closure).']}',
         ];
+
         $closure = function ($punctuation) {
             return 'Zenaton'.$punctuation;
         };
@@ -67,6 +73,7 @@ final class SerializerTest extends TestCase
             $closure,
             '{"c":"@zenaton#0","s":['.$serializeClosure($closure).']}',
         ];
+
         $closure = function ($punctuation) use ($closureStringContext) {
             return $closureStringContext.$punctuation;
         };
@@ -74,6 +81,7 @@ final class SerializerTest extends TestCase
             $closure,
             '{"c":"@zenaton#0","s":['.$serializeClosure($closure).']}',
         ];
+
         // Array containing a closure
         $closure = function () {
             return 'Zenaton';
@@ -82,20 +90,25 @@ final class SerializerTest extends TestCase
             [$closure],
             '{"a":["@zenaton#0"],"s":['.$serializeClosure($closure).']}',
         ];
+
         // Array containing the same closure twice
         $closure = function () {
             return 'Zenaton';
         };
         yield [[$closure, $closure], '{"a":["@zenaton#0","@zenaton#0"],"s":['.$serializeClosure($closure).']}'];
+
         // Array containing a resource
         $resource = fopen(__FILE__, 'r');
         yield [[$resource], '{"a":[0],"s":[]}'];
         fclose($resource);
+
         // Objects
         yield [new \DateTime('2018-09-05 11:33:00'), '{"o":"@zenaton#0","s":[{"n":"DateTime","p":{"date":"2018-09-05 11:33:00.000000","timezone_type":3,"timezone":"UTC"}}]}'];
+
         $object = new \stdClass();
         $object->nonDeclaredProperty = 42;
         yield [$object, '{"o":"@zenaton#0","s":[{"n":"stdClass","p":{"nonDeclaredProperty":42}}]}'];
+
         // Objects referencing other objects
         yield [
             call_user_func(function () {
@@ -127,6 +140,7 @@ final class SerializerTest extends TestCase
             }
             '),
         ];
+
         // Objects referencing other objects and having a circular reference
         yield [
             call_user_func(function () {
@@ -168,15 +182,22 @@ final class SerializerTest extends TestCase
             }
             '),
         ];
+
         // Objects inheriting other objects
         yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
+
         // Objects implementing Traversable
         yield [new SimpleCollection(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
+
         // Objects containing a resource
         $object = new C1();
         $object->name = fopen(__FILE__, 'r');
         yield [$object, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\C1","p":{"name":0,"c2":null}}]}'];
         fclose($object->name);
+
+        // Objects that cannot be cloned
+        $object = new CannotBeCloned();
+        yield [$object, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\CannotBeCloned","p":{"a":42}}]}'];
     }
 
     public function testEncodeAResourceReturnsSerializationOfIntegerZero()
@@ -464,5 +485,14 @@ class SimpleCollection implements \IteratorAggregate
     public function getIterator()
     {
         return new \ArrayIterator(['z', 'e', 'n', 'a', 't', 'o', 'n']);
+    }
+}
+
+class CannotBeCloned
+{
+    private $a = 42;
+
+    private function __clone()
+    {
     }
 }

@@ -26,7 +26,8 @@ class Properties
     public function getPropertiesFromObject($o)
     {
         // why cloning ? https://divinglaravel.com/queue-system/preparing-jobs-for-queue
-        $clone = $o instanceof \Exception ? $o : clone $o;
+        $reflectionObject = new \ReflectionObject($o);
+        $clone = $reflectionObject->isCloneable() ? clone $o : $o;
 
         // apply __sleep before serialization - should return an array of properties to be serialized
         if (method_exists($clone, '__sleep')) {
