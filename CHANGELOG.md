@@ -4,21 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
-
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
+## [0.3.3] - 2019-04-16
 
 ### Fixed
 
 * Fixed an error when serializing objects having a private `::__clone()` method.
-
-### Security
 
 ## [0.3.2] - 2019-04-15
 
@@ -58,7 +48,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `::tuesday()`, `::wednesday()`, `::thursday()`, `::friday()`, `::saturday()` and `::sunday()`, and also in the
   `::dayOfMonth()` method.
 
-[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.3.2...HEAD
+[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.3.3...HEAD
+[0.3.3]: https://github.com/zenaton/zenaton-php/compare/0.3.2...0.3.3
 [0.3.2]: https://github.com/zenaton/zenaton-php/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/zenaton/zenaton-php/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/zenaton/zenaton-php/compare/0.2.4...0.3.0
