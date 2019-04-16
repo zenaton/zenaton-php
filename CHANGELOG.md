@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+* Fixed an error when serializing objects having a private `::__clone()` method.
+
 ### Security
 
 ## [0.3.2] - 2019-04-15
