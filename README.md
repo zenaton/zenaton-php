@@ -1,16 +1,21 @@
 <p align="center">
-<img src="https://user-images.githubusercontent.com/36400935/58254828-e5176880-7d6b-11e9-9094-3f46d91faeee.png" /><br>
+  <a href="https://zenaton.com" target="_blank">
+    <img src="https://user-images.githubusercontent.com/36400935/58254828-e5176880-7d6b-11e9-9094-3f46d91faeee.png" target="_blank" />
+  </a><br>
   Easy Asynchronous Jobs Manager for Developers <br>
-  <a href="https://zenaton.com/documentation/php/getting-started/">
+  <a href="https://zenaton.com/documentation/php/getting-started/" target="_blank">
     <strong> Explore the docs » </strong>
   </a> <br>
-  <a href="https://zenaton.com"> Website </a>
-     ·
-  <a href="https://github.com/zenaton/examples-php"> Examples in PHP </a>
-   ·
-  <a href="https://app.zenaton.com/tutorial/php"> Tutorial in PHP </a> <br>
-  <a href="https://circleci.com/gh/zenaton/zenaton-php/tree/master" rel="nofollow"><img src="https://img.shields.io/circleci/project/github/zenaton/zenaton-ruby/master.svg" alt="CircleCI" style="max-width:100%;"></a>
-  <a href="/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License" style="max-width:100%;"></a>
+  <a href="https://zenaton.com" target="_blank"> Website </a>
+    ·
+  <a href="https://github.com/zenaton/examples-php" target="_blank"> Examples in PHP </a>
+    ·
+  <a href="https://app.zenaton.com/tutorial/php" target="_blank"> Tutorial in PHP </a>
+</p>
+<p align="center">
+  <a href="https://packagist.org/packages/zenaton/zenaton-php" rel="nofollow" target="_blank"><img src="https://img.shields.io/packagist/v/zenaton/zenaton-php.svg" alt="Packagist" style="max-width:100%;"></a>
+  <a href="https://circleci.com/gh/zenaton/zenaton-php/tree/master" rel="nofollow" target="_blank"><img src="https://img.shields.io/circleci/project/github/zenaton/zenaton-php/master.svg" alt="CircleCI" style="max-width:100%;"></a>
+  <a href="/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License" style="max-width:100%;"></a>
 </p>
 
 # Zenaton library for PHP
@@ -29,20 +34,17 @@ You can find all details on [Zenaton's website](https://zenaton.com/documentatio
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
-- [Zenaton library for PHP](#zenaton-library-for-php)
-  - [PHP Documentation](#php-documentation)
-  - [Getting started](#getting-started)
-    - [Installation](#installation)
-      - [Install the Zenaton Agent](#install-the-zenaton-agent)
-      - [Install the library](#install-the-library)
-      - [Framework integration](#framework-integration)
-    - [Quick start](#quick-start)
-      - [Client Initialization](#client-initialization)
-      - [Executing a background job](#executing-a-background-job)
-    - [Orchestrating background jobs](#orchestrating-background-jobs)
-      - [Using workflows](#using-workflows)
-  - [Getting help](#getting-help)
+- [Getting started](#getting-started)
+  - [Installation](#installation)
+    - [Install the Zenaton Agent](#install-the-zenaton-agent)
+    - [Install the library](#install-the-library)
+    - [Framework integration](#framework-integration)
+  - [Quick start](#quick-start)
+    - [Client Initialization](#client-initialization)
+    - [Executing a background job](#executing-a-background-job)
+  - [Orchestrating background jobs](#orchestrating-background-jobs)
+    - [Using workflows](#using-workflows)
+- [Getting help](#getting-help)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
