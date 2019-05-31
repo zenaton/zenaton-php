@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 
+* Added a `intent_id` property when dispatching workflows and tasks, sending events to workflows, and
+  pausing/resuming/killing workflows.
+
 ### Changed
 
 ### Deprecated

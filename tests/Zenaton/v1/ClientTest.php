@@ -4,6 +4,8 @@ namespace Zenaton;
 
 use Httpful\Response;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
@@ -150,8 +152,14 @@ final class ClientTest extends TestCase
     public function testKillWorkflow()
     {
         $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('194910b6-cadd-4d2a-8d55-366a09654df6');
+            })
+        ;
         $http = $this->createHttpMock();
-
         $http
             ->expects($this->once())
             ->method('put')
@@ -161,6 +169,7 @@ final class ClientTest extends TestCase
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
                     'mode' => 'kill',
+                    'intent_id' => '194910b6-cadd-4d2a-8d55-366a09654df6',
                 ]
             )
         ;
@@ -171,8 +180,14 @@ final class ClientTest extends TestCase
     public function testPauseWorkflow()
     {
         $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('c9d5de11-a513-408b-bc30-82a85fe82c07');
+            })
+        ;
         $http = $this->createHttpMock();
-
         $http
             ->expects($this->once())
             ->method('put')
@@ -182,6 +197,7 @@ final class ClientTest extends TestCase
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
                     'mode' => 'pause',
+                    'intent_id' => 'c9d5de11-a513-408b-bc30-82a85fe82c07',
                 ]
             )
         ;
@@ -192,8 +208,14 @@ final class ClientTest extends TestCase
     public function testResumeWorkflow()
     {
         $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb');
+            })
+        ;
         $http = $this->createHttpMock();
-
         $http
             ->expects($this->once())
             ->method('put')
@@ -203,6 +225,7 @@ final class ClientTest extends TestCase
                     'programming_language' => 'PHP',
                     'name' => NullWorkflow::class,
                     'mode' => 'run',
+                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
                 ]
             )
         ;
@@ -311,8 +334,14 @@ final class ClientTest extends TestCase
     public function testSendEvent()
     {
         $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb');
+            })
+        ;
         $http = $this->createHttpMock();
-
         $http
             ->expects($this->once())
             ->method('post')
@@ -325,6 +354,7 @@ final class ClientTest extends TestCase
                     'event_name' => DummyEvent::class,
                     'event_input' => '{"a":[],"s":[]}',
                     'event_data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
+                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
                 ]
             )
         ;
@@ -418,6 +448,21 @@ final class ClientTest extends TestCase
 
         $this->inject(function () use ($mock) {
             $this->http = $mock;
+        }, $client);
+
+        return $mock;
+    }
+
+    /**
+     * Inject a mocked UuidFactory instance into the Client singleton instance.
+     */
+    private function createUuidFactoryMock()
+    {
+        $client = Client::getInstance();
+        $mock = $this->createMock(UuidFactoryInterface::class);
+
+        $this->inject(function () use ($mock) {
+            $this->uuidFactory = $mock;
         }, $client);
 
         return $mock;
