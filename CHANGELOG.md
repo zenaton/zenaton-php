@@ -4,23 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.3.4] - 2019-06-05
 
 ### Added
 
-- Added `event_data` property when sending event.
-
-### Changed
-
-### Deprecated
+* Added `event_data` property when sending event.
 
 ### Removed
 
-- Removed dependency `vlucas/phpdotenv`.
-
-### Fixed
-
-### Security
+* Removed dependency `vlucas/phpdotenv`.
 
 ## [0.3.3] - 2019-04-16
 
@@ -66,7 +58,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `::tuesday()`, `::wednesday()`, `::thursday()`, `::friday()`, `::saturday()` and `::sunday()`, and also in the
   `::dayOfMonth()` method.
 
-[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.3.3...HEAD
+[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.3.4...HEAD
+[0.3.4]: https://github.com/zenaton/zenaton-php/compare/0.3.3...0.3.4
 [0.3.3]: https://github.com/zenaton/zenaton-php/compare/0.3.2...0.3.3
 [0.3.2]: https://github.com/zenaton/zenaton-php/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/zenaton/zenaton-php/compare/0.3.0...0.3.1
