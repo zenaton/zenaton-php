@@ -43,6 +43,7 @@ class Client
 
     const EVENT_INPUT = 'event_input';
     const EVENT_NAME = 'event_name';
+    const EVENT_DATA = 'event_data';
 
     const WORKFLOW_KILL = 'kill';
     const WORKFLOW_PAUSE = 'pause';
@@ -285,6 +286,7 @@ class Client
             self::ATTR_ID => $customId,
             self::EVENT_NAME => get_class($event),
             self::EVENT_INPUT => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
+            self::EVENT_DATA => $this->serializer->encode($event),
         ];
 
         $this->http->post($url, $body);

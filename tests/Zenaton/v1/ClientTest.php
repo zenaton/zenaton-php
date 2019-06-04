@@ -324,6 +324,7 @@ final class ClientTest extends TestCase
                     'custom_id' => 'Workflow to send event to',
                     'event_name' => DummyEvent::class,
                     'event_input' => '{"a":[],"s":[]}',
+                    'event_data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
                 ]
             )
         ;
