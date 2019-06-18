@@ -2,6 +2,8 @@
 
 namespace Zenaton;
 
+use Ramsey\Uuid\UuidFactory;
+use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\AgentException;
 use Zenaton\Exceptions\AgentNotListeningException;
 use Zenaton\Exceptions\AgentUpdateRequiredException;
@@ -31,6 +33,7 @@ class Client
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
 
+    const ATTR_INTENT_ID = 'intent_id';
     const ATTR_ID = 'custom_id';
     const ATTR_NAME = 'name';
     const ATTR_CANONICAL = 'canonical_name';
@@ -58,6 +61,8 @@ class Client
     protected $serializer;
     /** @var Properties */
     protected $properties;
+    /** @var UuidFactoryInterface */
+    protected $uuidFactory;
 
     public static function init($appId, $apiToken, $appEnv)
     {
@@ -72,6 +77,7 @@ class Client
         $this->http = new Http();
         $this->serializer = new Serializer();
         $this->properties = new Properties();
+        $this->uuidFactory = new UuidFactory();
     }
 
     public function setAppId($appId)
@@ -148,6 +154,7 @@ class Client
     public function startTask(TaskInterface $task)
     {
         $response = $this->http->post($this->getTaskWorkerUrl(), [
+            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
             self::ATTR_PROG => self::PROG,
             self::ATTR_NAME => get_class($task),
             self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
@@ -200,6 +207,7 @@ class Client
 
         // start workflow
         $this->http->post($this->getInstanceWorkerUrl(), [
+            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
             self::ATTR_PROG => self::PROG,
             self::ATTR_CANONICAL => $canonical,
             self::ATTR_NAME => get_class($flow),
@@ -281,6 +289,7 @@ class Client
         $url = $this->getSendEventURL();
 
         $body = [
+            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
             self::ATTR_PROG => self::PROG,
             self::ATTR_NAME => $workflowName,
             self::ATTR_ID => $customId,
@@ -302,6 +311,7 @@ class Client
             self::ATTR_PROG => self::PROG,
             self::ATTR_NAME => $workflowName,
             self::ATTR_MODE => $mode,
+            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
         ]);
     }
 
