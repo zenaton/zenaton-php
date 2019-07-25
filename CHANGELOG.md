@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 
+* Dispatch of tasks and workflows are now done using the API instead of a local agent.
+
 ### Deprecated
 
 ### Removed

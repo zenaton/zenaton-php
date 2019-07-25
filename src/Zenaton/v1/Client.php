@@ -2,12 +2,10 @@
 
 namespace Zenaton;
 
+use Httpful\Request;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Api\GraphQL\Mutations;
-use Zenaton\Exceptions\AgentException;
-use Zenaton\Exceptions\AgentNotListeningException;
-use Zenaton\Exceptions\AgentUpdateRequiredException;
 use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
@@ -151,30 +149,46 @@ class Client
     /**
      * Start a single task.
      *
-     * @throws AgentNotListeningException   If the agent is not listening to the application
-     * @throws AgentUpdateRequiredException If the agent does not have the minimum required version
-     * @throws AgentException               For any other error coming from the agent
+     * @throws ApiException If the API returns some errors
      */
     public function startTask(TaskInterface $task)
     {
-        $response = $this->http->post($this->getTaskWorkerUrl(), [
-            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
-            self::ATTR_PROG => self::PROG,
-            self::ATTR_NAME => get_class($task),
-            self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
-            self::ATTR_MAX_PROCESSING_TIME => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
-        ]);
-
-        if ($response->hasErrors()) {
-            if (strpos($response->body->error, 'Your worker does not listen') !== false) {
-                throw new AgentNotListeningException($this->appId, $this->appEnv);
+        $mutation = <<<'MUTATION'
+            mutation dispatchTask($input: DispatchTaskInput!) {
+                dispatchTask(input: $input) {
+                    task {
+                        intentId
+                        name
+                        data
+                        maxProcessingTime
+                        programmingLanguage
+                    }
+                }
             }
+MUTATION;
 
-            if (strpos($response->body->error, 'Unknown version') !== false) {
-                throw new AgentUpdateRequiredException('>=0.6.0');
-            }
+        $variables = [
+            'input' => [
+                'environmentName' => $this->appEnv,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'maxProcessingTime' => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
+                'programmingLanguage' => self::PROG,
+                'name' => \get_class($task),
+                'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+            ],
+        ];
 
-            throw new AgentException($response->body->error);
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
         }
     }
 
@@ -182,26 +196,25 @@ class Client
      * Start a workflow instance.
      *
      * @param WorkflowInterface $flow Workflow to start
+     *
+     * @throws ApiException if the API returns some errors
      */
     public function startWorkflow(WorkflowInterface $flow)
     {
         $canonical = null;
-        // if $flow is a versionned workflow
         if ($flow instanceof VersionedWorkflow) {
-            // store canonical name
-            $canonical = get_class($flow);
-            // replace by true current implementation
+            $canonical = \get_class($flow);
+            // replace $flow by true current implementation
             $flow = $flow->getCurrentImplementation();
         }
 
-        // custom id management
         $customId = null;
         if (method_exists($flow, 'getId')) {
             $customId = $flow->getId();
             if (!is_string($customId) && !is_int($customId)) {
                 throw new InvalidArgumentException('Provided Id must be a string or an integer');
             }
-            // at the end, it's a string
+            // convert it to a string
             $customId = (string) $customId;
             // should be not more than 256 bytes;
             if (strlen($customId) > self::MAX_ID_SIZE) {
@@ -209,15 +222,44 @@ class Client
             }
         }
 
-        // start workflow
-        $this->http->post($this->getInstanceWorkerUrl(), [
-            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
-            self::ATTR_PROG => self::PROG,
-            self::ATTR_CANONICAL => $canonical,
-            self::ATTR_NAME => get_class($flow),
-            self::ATTR_DATA => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
-            self::ATTR_ID => $customId,
-        ]);
+        $mutation = <<<'MUTATION'
+            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+                dispatchWorkflow(input: $input) {
+                    workflow {
+                        environmentId
+                        canonicalName
+                        id
+                        name
+                        properties
+                    }
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => self::PROG,
+                'canonicalName' => $canonical,
+                'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
+                'name' => \get_class($flow),
+            ],
+        ];
+
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
     }
 
     /**
@@ -491,5 +533,23 @@ class Client
         }
 
         return sprintf('%s?%s', $url, http_build_query($params));
+    }
+
+    /**
+     * @return Request
+     */
+    private function createPubliclyAuthenticatedApiRequest()
+    {
+        return Request::post($this->getApiUrl())
+            ->addHeader('Api-Token', $this->apiToken)
+            ->addHeader('App-Id', $this->appId)
+            ->sendsJson()
+            ->expectsJson()
+        ;
+    }
+
+    private function getApiUrl()
+    {
+        return \getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL;
     }
 }
