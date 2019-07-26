@@ -501,33 +501,43 @@ MUTATION;
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
-        $url = $this->getSendEventURL();
+        $mutation = <<<'MUTATION'
+            mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
+                sendEventToWorkflowByNameAndCustomId(input: $input) {
+                    event {
+                        intentId
+                        name
+                        input
+                    }
+                }
+            }
+MUTATION;
 
-        $body = [
-            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
-            self::ATTR_PROG => self::PROG,
-            self::ATTR_NAME => $workflowName,
-            self::ATTR_ID => $customId,
-            self::EVENT_NAME => get_class($event),
-            self::EVENT_INPUT => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
-            self::EVENT_DATA => $this->serializer->encode($event),
+        $variables = [
+            'input' => [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'name' => get_class($event),
+                'input' => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
+                'data' => $this->serializer->encode($event),
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => self::PROG,
+                'workflowName' => $workflowName,
+            ],
         ];
 
-        $this->http->post($url, $body);
-    }
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
 
-    protected function updateInstance($workflowName, $customId, $mode)
-    {
-        $params = [
-            self::ATTR_ID => $customId,
-        ];
-
-        return $this->http->put($this->getInstanceWorkerUrl($params), [
-            self::ATTR_PROG => self::PROG,
-            self::ATTR_NAME => $workflowName,
-            self::ATTR_MODE => $mode,
-            self::ATTR_INTENT_ID => $this->uuidFactory->uuid4()->toString(),
-        ]);
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
     }
 
     private function getWorkerUrlV2($resource = '', array $params = [])
@@ -559,21 +569,6 @@ MUTATION;
     protected function getInstanceWebsiteUrl($params)
     {
         return $this->getWebsiteUrl('instances', $params);
-    }
-
-    protected function getInstanceWorkerUrl($params = [])
-    {
-        return $this->getWorkerUrl('instances', $params);
-    }
-
-    protected function getTaskWorkerUrl($params = [])
-    {
-        return $this->getWorkerUrl('tasks', $params);
-    }
-
-    protected function getSendEventURL()
-    {
-        return $this->getWorkerUrl('events');
     }
 
     /**
@@ -626,6 +621,8 @@ MUTATION;
     }
 
     /**
+     * Creates an http request to the API, adding the app id and api token as headers, and adding json as content type and accept headers
+     *
      * @return Request
      */
     private function createPubliclyAuthenticatedApiRequest()
@@ -638,6 +635,14 @@ MUTATION;
         ;
     }
 
+    /**
+     * Returns the Zenaton API url to send requests to.
+     *
+     * This will check the ZENATON_API_URL environment variable first if it is defined. Otherwise, it will use the
+     * default production url.
+     *
+     * @return string
+     */
     private function getApiUrl()
     {
         return \getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL;

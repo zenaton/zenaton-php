@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 * Dispatch of tasks and workflows are now done using the API instead of a local agent.
 * Pause, Resume and Kill workflows are now done using the API instead of a local agent.
+* Send event to workflow is now done using the API instead of a local agent.
 
 ### Deprecated
 
