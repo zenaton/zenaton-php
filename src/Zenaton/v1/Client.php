@@ -270,7 +270,37 @@ MUTATION;
      */
     public function killWorkflow($workflowName, $customId)
     {
-        $this->updateInstance($workflowName, $customId, self::WORKFLOW_KILL);
+        $mutation = <<<'MUTATION'
+            mutation killWorkflow($input: KillWorkflowInput!) {
+                killWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => self::PROG,
+                'name' => $workflowName,
+            ],
+        ];
+
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
     }
 
     /**
@@ -281,7 +311,37 @@ MUTATION;
      */
     public function pauseWorkflow($workflowName, $customId)
     {
-        $this->updateInstance($workflowName, $customId, self::WORKFLOW_PAUSE);
+        $mutation = <<<'MUTATION'
+            mutation pauseWorkflow($input: PauseWorkflowInput!) {
+                pauseWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => self::PROG,
+                'name' => $workflowName,
+            ],
+        ];
+
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
     }
 
     /**
@@ -292,7 +352,37 @@ MUTATION;
      */
     public function resumeWorkflow($workflowName, $customId)
     {
-        $this->updateInstance($workflowName, $customId, self::WORKFLOW_RUN);
+        $mutation = <<<'MUTATION'
+            mutation resumeWorkflow($input: ResumeWorkflowInput!) {
+                resumeWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => self::PROG,
+                'name' => $workflowName,
+            ],
+        ];
+
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
     }
 
     /**
