@@ -15,9 +15,9 @@ use Zenaton\Services\Http;
 use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Tasks\NullTask;
+use Zenaton\Test\Mock\Workflow\IdentifiedWorkflow;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
-use Zenaton\Workflows\Version as VersionedWorkflow; // Alias is required because of a bug in PHP 5.6 namespace shadowing. See https://bugs.php.net/bug.php?id=66862.
 
 final class ClientTest extends TestCase
 {
@@ -64,71 +64,171 @@ final class ClientTest extends TestCase
     public function testStartBasicWorkflow()
     {
         $client = Client::getInstance();
+
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('78ca2686-1024-4223-8b07-4b9a664a7bab');
+            })
+        ;
+
         $http = $this->createHttpMock();
+
+        $expectedQuery = <<<'BODY'
+            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+                dispatchWorkflow(input: $input) {
+                    workflow {
+                        canonicalName
+                        id
+                        name
+                        properties
+                    }
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => null,
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '78ca2686-1024-4223-8b07-4b9a664a7bab',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => null,
+                'data' => '{"a":[],"s":[]}',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
 
         $http
             ->expects(static::once())
             ->method('post')
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
-        $workflow = $this->createMock(WorkflowInterface::class);
-
-        $client->startWorkflow($workflow);
+        $client->startWorkflow(new NullWorkflow());
     }
 
     public function testStartVersionWorkflow()
     {
         $client = Client::getInstance();
+
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('d0a33416-8c5b-4d2f-804d-4c413faed83f');
+            })
+        ;
+
         $http = $this->createHttpMock();
+
+        $expectedQuery = <<<'BODY'
+            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+                dispatchWorkflow(input: $input) {
+                    workflow {
+                        canonicalName
+                        id
+                        name
+                        properties
+                    }
+                }
+            }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => null,
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'd0a33416-8c5b-4d2f-804d-4c413faed83f',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => Test\Mock\Workflow\VersionedWorkflow::class,
+                'data' => '{"a":[],"s":[]}',
+                'name' => Test\Mock\Workflow\VersionedWorkflow_v0::class,
+            ],
+        ];
+
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
 
         $http
             ->expects(static::once())
             ->method('post')
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
-        $workflow = $this
-            ->getMockBuilder(VersionedWorkflow::class)
-            ->setMethods([
-                'versions',
-            ])
-            ->getMock()
-        ;
-        $workflow
-            ->expects(static::any())
-            ->method('versions')
-            ->willReturn([
-                NullWorkflow::class,
-            ])
-        ;
-
-        $client->startWorkflow($workflow);
+        $client->startWorkflow(new Test\Mock\Workflow\VersionedWorkflow());
     }
 
     public function testStartWorkflowWithId()
     {
         $client = Client::getInstance();
+
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('e7eccb45-dcdf-46b2-b94c-205e778d4f6f');
+            })
+        ;
+
         $http = $this->createHttpMock();
+
+        $expectedQuery = <<<'BODY'
+            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+                dispatchWorkflow(input: $input) {
+                    workflow {
+                        canonicalName
+                        id
+                        name
+                        properties
+                    }
+                }
+            }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'static-identifier',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'e7eccb45-dcdf-46b2-b94c-205e778d4f6f',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => null,
+                'data' => '{"a":[],"s":[]}',
+                'name' => Test\Mock\Workflow\IdentifiedWorkflow::class,
+            ],
+        ];
+
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
 
         $http
             ->expects(static::once())
             ->method('post')
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
-        $workflow = $this
-            ->getMockBuilder(WorkflowInterface::class)
-            ->setMethods([
-                'getId',
-                'handle',
-            ])
-            ->getMock()
-        ;
-        $workflow
-            ->expects(static::any())
-            ->method('getId')
-            ->willReturn('WorkflowIdentifier')
-        ;
-
-        $client->startWorkflow($workflow);
+        $client->startWorkflow(new IdentifiedWorkflow());
     }
 
     /**
@@ -138,7 +238,6 @@ final class ClientTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        Client::init('FakeAppId', 'FakeApiToken', 'FakeAppEnv');
         $client = Client::getInstance();
         $workflow = $this->createWorkflowWithIdentifierMock($identifier);
 
@@ -163,10 +262,39 @@ final class ClientTest extends TestCase
             })
         ;
         $http = $this->createHttpMock();
+
+        $expectedQuery = <<<'BODY'
+            mutation killWorkflow($input: KillWorkflowInput!) {
+                killWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be dead workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '194910b6-cadd-4d2a-8d55-366a09654df6',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
+
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
         $client->killWorkflow(NullWorkflow::class, 'Soon to be dead workflow');
@@ -183,10 +311,34 @@ final class ClientTest extends TestCase
             })
         ;
         $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            mutation pauseWorkflow($input: PauseWorkflowInput!) {
+                pauseWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be paused workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'c9d5de11-a513-408b-bc30-82a85fe82c07',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
         $client->pauseWorkflow(NullWorkflow::class, 'Soon to be paused workflow');
@@ -203,10 +355,34 @@ final class ClientTest extends TestCase
             })
         ;
         $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            mutation resumeWorkflow($input: ResumeWorkflowInput!) {
+                resumeWorkflow(input: $input) {
+                    id
+                    intent_id
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be resumed workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
         $client->resumeWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -216,6 +392,27 @@ final class ClientTest extends TestCase
     {
         $client = Client::getInstance();
         $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                    name
+                    properties
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'customId' => 'Soon to be resumed workflow',
+            'environmentName' => 'FakeAppEnv',
+            'programmingLanguage' => 'PHP',
+            'workflowName' => NullWorkflow::class,
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
 
         $body = (object) [
             'data' => (object) [
@@ -235,7 +432,7 @@ final class ClientTest extends TestCase
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
             ->willReturn($response)
         ;
 
@@ -265,6 +462,27 @@ final class ClientTest extends TestCase
     {
         $client = Client::getInstance();
         $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                    name
+                    properties
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'customId' => 'Soon to be resumed workflow',
+            'environmentName' => 'FakeAppEnv',
+            'programmingLanguage' => 'PHP',
+            'workflowName' => NullWorkflow::class,
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
 
         $body = (object) [
             'errors' => [
@@ -286,7 +504,7 @@ final class ClientTest extends TestCase
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
             ->willReturn($response)
         ;
 
@@ -306,10 +524,40 @@ final class ClientTest extends TestCase
             })
         ;
         $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
+                sendEventToWorkflowByNameAndCustomId(input: $input) {
+                    event {
+                        intentId
+                        name
+                        input
+                    }
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Workflow to send event to',
+                'environmentName' => 'FakeAppEnv',
+                'name' => DummyEvent::class,
+                'input' => '{"a":[],"s":[]}',
+                'data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
+                'intentId' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
+                'programmingLanguage' => 'PHP',
+                'workflowName' => NullWorkflow::class,
+            ],
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
         $http
             ->expects(static::once())
             ->method('post')
-            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->with('https://api.zenaton.com/v1', $expectedBody, $expectedOptions)
         ;
 
         $event = new DummyEvent();
