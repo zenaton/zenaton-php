@@ -474,22 +474,49 @@ MUTATION;
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $params = [
-            static::ATTR_ID => $customId,
-            static::ATTR_NAME => $workflowName,
-            static::ATTR_PROG => static::PROG,
+        $query = <<<'QUERY'
+            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                    canonicalName
+                    environmentId
+                    id
+                    name
+                    programmingLanguage
+                    properties
+                }
+            }
+QUERY;
+
+        $variables = [
+            'customId' => $customId,
+            'environmentName' => $this->appEnv,
+            'programmingLanguage' => self::PROG,
+            'workflowName' => $workflowName,
         ];
 
-        $response = $this->http->get($this->getInstanceWebsiteUrl($params));
-        if ($response->code === 404) {
-            return null;
+        try {
+            $response = $this->createPubliclyAuthenticatedApiRequest()
+                ->body(\json_encode(['query' => $query, 'variables' => $variables]))
+                ->send()
+            ;
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
         }
 
-        if ($response->hasErrors()) {
-            throw ApiException::unexpectedStatusCode($response->code);
+        if (isset($response->body->errors)) {
+            // If there is a NOT_FOUND error, we return null
+            $notFoundErrors = \array_filter($response->body->errors, static function ($error) {
+                return isset($error->type) && $error->type === 'NOT_FOUND';
+            });
+            if (\count($notFoundErrors) > 0) {
+                return null;
+            }
+
+            // Otherwise, we generate an exception from the error list
+            throw ApiException::fromErrorList($response->body->errors);
         }
 
-        return $this->properties->getObjectFromNameAndProperties($response->body->data->name, $this->serializer->decode($response->body->data->properties));
+        return $this->properties->getObjectFromNameAndProperties($response->body->data->workflow->name, $this->serializer->decode($response->body->data->workflow->properties));
     }
 
     /**
