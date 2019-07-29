@@ -3,9 +3,6 @@
 namespace Zenaton\Exceptions;
 
 use PHPUnit\Framework\TestCase;
-use Zenaton\Engine\Engine;
-use Zenaton\Interfaces\TaskInterface;
-use Zenaton\Test\SingletonTesting;
 
 class ApiExceptionTest extends TestCase
 {

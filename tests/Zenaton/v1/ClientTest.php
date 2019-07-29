@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\ApiException;
+use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Http;
@@ -66,7 +67,7 @@ final class ClientTest extends TestCase
         $http = $this->createHttpMock();
 
         $http
-            ->expects($this->once())
+            ->expects(static::once())
             ->method('post')
         ;
 
@@ -81,7 +82,7 @@ final class ClientTest extends TestCase
         $http = $this->createHttpMock();
 
         $http
-            ->expects($this->once())
+            ->expects(static::once())
             ->method('post')
         ;
 
@@ -93,7 +94,7 @@ final class ClientTest extends TestCase
             ->getMock()
         ;
         $workflow
-            ->expects($this->any())
+            ->expects(static::any())
             ->method('versions')
             ->willReturn([
                 NullWorkflow::class,
@@ -109,7 +110,7 @@ final class ClientTest extends TestCase
         $http = $this->createHttpMock();
 
         $http
-            ->expects($this->once())
+            ->expects(static::once())
             ->method('post')
         ;
 
@@ -122,7 +123,7 @@ final class ClientTest extends TestCase
             ->getMock()
         ;
         $workflow
-            ->expects($this->any())
+            ->expects(static::any())
             ->method('getId')
             ->willReturn('WorkflowIdentifier')
         ;
@@ -163,17 +164,9 @@ final class ClientTest extends TestCase
         ;
         $http = $this->createHttpMock();
         $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+dead+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'kill',
-                    'intent_id' => '194910b6-cadd-4d2a-8d55-366a09654df6',
-                ]
-            )
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
         ;
 
         $client->killWorkflow(NullWorkflow::class, 'Soon to be dead workflow');
@@ -191,17 +184,9 @@ final class ClientTest extends TestCase
         ;
         $http = $this->createHttpMock();
         $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+paused+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'pause',
-                    'intent_id' => 'c9d5de11-a513-408b-bc30-82a85fe82c07',
-                ]
-            )
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
         ;
 
         $client->pauseWorkflow(NullWorkflow::class, 'Soon to be paused workflow');
@@ -219,17 +204,9 @@ final class ClientTest extends TestCase
         ;
         $http = $this->createHttpMock();
         $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+resumed+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'run',
-                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
-                ]
-            )
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
         ;
 
         $client->resumeWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -242,8 +219,10 @@ final class ClientTest extends TestCase
 
         $body = (object) [
             'data' => (object) [
-                'name' => NullWorkflow::class,
-                'properties' => '{"a":[1,2,3],"s":[]}',
+                'workflow' => (object) [
+                    'name' => NullWorkflow::class,
+                    'properties' => '{"a":[1,2,3],"s":[]}',
+                ],
             ],
         ];
         $response = $this
@@ -251,17 +230,12 @@ final class ClientTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $response
-            ->expects($this->once())
-            ->method('hasErrors')
-            ->willReturn(false)
-        ;
         $response->body = $body;
 
         $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
             ->willReturn($response)
         ;
 
@@ -275,30 +249,13 @@ final class ClientTest extends TestCase
         $this->expectException(ApiException::class);
 
         $client = Client::getInstance();
+
         $http = $this->createHttpMock();
-
-        $body = (object) [
-            'error' => 'No workflow instance found with the id : 12',
-        ];
-
-        $response = $this
-            ->getMockBuilder(Response::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $response
-            ->expects($this->once())
-            ->method('hasErrors')
-            ->willReturn(true)
-        ;
-        $response->body = $body;
-        $response->code = 500;
-
         $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
-            ->willReturn($response)
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
+            ->willThrowException(new ConnectionErrorException('Connection error from testFindWorkflowThrowsAnExceptionWhenApiReturnsAnError', 42))
         ;
 
         $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -310,7 +267,12 @@ final class ClientTest extends TestCase
         $http = $this->createHttpMock();
 
         $body = (object) [
-            'error' => 'No workflow instance found with the id : 12',
+            'errors' => [
+                (object) [
+                    'type' => 'NOT_FOUND',
+                    'message' => 'No workflow instance found with the id : 12',
+                ],
+            ],
         ];
 
         $response = $this
@@ -319,12 +281,12 @@ final class ClientTest extends TestCase
             ->getMock()
         ;
         $response->body = $body;
-        $response->code = 404;
+        $response->code = 200;
 
         $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
             ->willReturn($response)
         ;
 
@@ -339,26 +301,15 @@ final class ClientTest extends TestCase
         $uuidFactory = $this->createUuidFactoryMock();
         $uuidFactory
             ->method('uuid4')
-            ->willReturnCallback(function () {
+            ->willReturnCallback(static function () {
                 return Uuid::fromString('1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb');
             })
         ;
         $http = $this->createHttpMock();
         $http
-            ->expects($this->once())
+            ->expects(static::once())
             ->method('post')
-            ->with(
-                'http://localhost:4001/api/v_newton/events?app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'custom_id' => 'Workflow to send event to',
-                    'event_name' => DummyEvent::class,
-                    'event_input' => '{"a":[],"s":[]}',
-                    'event_data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
-                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
-                ]
-            )
+            ->with('https://api.zenaton.com/v1', static::anything(), static::anything())
         ;
 
         $event = new DummyEvent();
@@ -541,7 +492,7 @@ BODY;
             ->getMock()
         ;
         $workflow
-            ->expects($this->any())
+            ->expects(static::any())
             ->method('getId')
             ->willReturn($identifier)
         ;

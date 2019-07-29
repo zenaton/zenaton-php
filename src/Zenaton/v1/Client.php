@@ -2,7 +2,6 @@
 
 namespace Zenaton;
 
-use Httpful\Request;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Api\GraphQL\Mutations;
@@ -179,10 +178,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -226,7 +227,6 @@ MUTATION;
             mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
                 dispatchWorkflow(input: $input) {
                     workflow {
-                        environmentId
                         canonicalName
                         id
                         name
@@ -249,10 +249,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -267,6 +269,8 @@ MUTATION;
      *
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
+     *
+     * @throws ApiException if the API returns some errors
      */
     public function killWorkflow($workflowName, $customId)
     {
@@ -290,10 +294,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -308,6 +314,8 @@ MUTATION;
      *
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
+     *
+     * @throws ApiException if the API returns some errors
      */
     public function pauseWorkflow($workflowName, $customId)
     {
@@ -331,10 +339,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -349,6 +359,8 @@ MUTATION;
      *
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
+     *
+     * @throws ApiException if the API returns some errors
      */
     public function resumeWorkflow($workflowName, $customId)
     {
@@ -372,10 +384,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -470,6 +484,8 @@ MUTATION;
      * @param string $workflowName Workflow class name
      * @param string $customId     Provided custom id
      *
+     * @throws ApiException if the API returns some errors
+     *
      * @return null|WorkflowInterface
      */
     public function findWorkflow($workflowName, $customId)
@@ -477,11 +493,7 @@ MUTATION;
         $query = <<<'QUERY'
             query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
                 workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
-                    canonicalName
-                    environmentId
-                    id
                     name
-                    programmingLanguage
                     properties
                 }
             }
@@ -495,10 +507,12 @@ QUERY;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $query, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $query, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -525,6 +539,8 @@ QUERY;
      * @param string         $workflowName Workflow class name
      * @param string         $customId     Provided custom id
      * @param EventInterface $event        Event to send
+     *
+     * @throws ApiException if the API returns some errors
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
@@ -554,10 +570,12 @@ MUTATION;
         ];
 
         try {
-            $response = $this->createPubliclyAuthenticatedApiRequest()
-                ->body(\json_encode(['query' => $mutation, 'variables' => $variables]))
-                ->send()
-            ;
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
         }
@@ -567,6 +585,11 @@ MUTATION;
         }
     }
 
+    /**
+     * @param string $resource
+     *
+     * @return string
+     */
     private function getWorkerUrlV2($resource = '', array $params = [])
     {
         $url = sprintf(
@@ -580,6 +603,11 @@ MUTATION;
         return $this->addQueryParams($url, $params);
     }
 
+    /**
+     * @param string $ressources
+     *
+     * @return string
+     */
     private function getWebsiteUrlV2($ressources = '', array $params = [])
     {
         $url = sprintf(
@@ -591,11 +619,6 @@ MUTATION;
         $params[static::API_TOKEN] = $this->apiToken;
 
         return $this->addQueryParams($url, $params);
-    }
-
-    protected function getInstanceWebsiteUrl($params)
-    {
-        return $this->getWebsiteUrl('instances', $params);
     }
 
     /**
@@ -634,6 +657,11 @@ MUTATION;
             .($params ? $params.'&' : '');
     }
 
+    /**
+     * @param string $url
+     *
+     * @return string
+     */
     protected function addQueryParams($url, array $params = [])
     {
         // When called from worker, APP_ENV and APP_ID are not defined
@@ -645,21 +673,6 @@ MUTATION;
         }
 
         return sprintf('%s?%s', $url, http_build_query($params));
-    }
-
-    /**
-     * Creates an http request to the API, adding the app id and api token as headers, and adding json as content type and accept headers
-     *
-     * @return Request
-     */
-    private function createPubliclyAuthenticatedApiRequest()
-    {
-        return Request::post($this->getApiUrl())
-            ->addHeader('Api-Token', $this->apiToken)
-            ->addHeader('App-Id', $this->appId)
-            ->sendsJson()
-            ->expectsJson()
-        ;
     }
 
     /**
