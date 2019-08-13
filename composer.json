@@ -2,6 +2,19 @@
     "name": "zenaton/zenaton-php",
     "type": "library",
     "description": "Zenaton PHP library",
+    "keywords": [
+        "workflow engine",
+        "workflows",
+        "orchestration",
+        "event-driven architecture",
+        "queuing systems",
+        "orchestration engine",
+        "background jobs",
+        "hosted queues",
+        "queues",
+        "jobs",
+        "asynchronous tasks"
+    ],
     "homepage": "https://zenaton.com",
     "license": "Apache-2.0",
     "require": {
