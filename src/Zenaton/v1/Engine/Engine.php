@@ -8,6 +8,9 @@ use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Traits\SingletonTrait;
 
+/**
+ * @internal Should not be called by user code. Use the `Zenatonable` trait instead.
+ */
 class Engine
 {
     use SingletonTrait;
@@ -31,7 +34,7 @@ class Engine
     public function execute($jobs)
     {
         // check arguments'type
-        $this->checkArguments($jobs);
+        $this->checkArguments($jobs, __METHOD__);
 
         // local execution
         if (is_null($this->processor) || 0 == count($jobs)) {
@@ -40,7 +43,7 @@ class Engine
             foreach ($jobs as $job) {
                 $outputs[] = $job->handle();
             }
-            // return results
+
             return $outputs;
         }
 
@@ -51,12 +54,12 @@ class Engine
     public function dispatch($jobs)
     {
         // check arguments'type
-        $this->checkArguments($jobs);
+        $this->checkArguments($jobs, __METHOD__);
 
         // local execution
         if (is_null($this->processor) || 0 == count($jobs)) {
             $outputs = [];
-            // dispatch works to Zenaton (only workflows by now)
+            // dispatch jobs to Zenaton
             foreach ($jobs as $job) {
                 if ($this->isWorkflow($job)) {
                     $this->client->startWorkflow($job);
@@ -68,7 +71,7 @@ class Engine
                     throw new InvalidArgumentException();
                 }
             }
-            // return results
+
             return $outputs;
         }
 
@@ -76,13 +79,40 @@ class Engine
         return $this->processor->process($jobs, false);
     }
 
-    protected function checkArguments($jobs)
+    public function schedule($jobs, $cron)
+    {
+        // check arguments' types
+        $this->checkArguments($jobs, __METHOD__);
+
+        // local execution
+        if (\count($jobs) === 0) {
+            return [];
+        }
+
+        $outputs = [];
+        // schedule jobs
+        foreach ($jobs as $job) {
+            if ($this->isWorkflow($job)) {
+                $outputs[] = $this->client->scheduleWorkflow($job, $cron);
+            } elseif ($this->isTask($job)) {
+                $outputs[] = $this->client->scheduleTask($job, $cron);
+            } else {
+                // This should never happen because the call to `::checkArguments()` method at the beginning ensures we won't encounter unknown types at this point.
+                throw new \LogicException(\sprintf('Cannot schedule job of type %s.', \is_object($job) ? \get_class($job) : \gettype($job)));
+            }
+        }
+
+        return $outputs;
+    }
+
+    protected function checkArguments($jobs, $method)
     {
         foreach ($jobs as $job) {
             if (!$this->isWorkflow($job) && (!$this->isTask($job))) {
-                throw new InvalidArgumentException(
-                    'You can only execute or dispatch Zenaton Task or Workflow'
-                );
+                throw new InvalidArgumentException(\sprintf(
+                    'You can only %s a Zenaton Task or Workflow',
+                    $method
+                ));
             }
         }
     }

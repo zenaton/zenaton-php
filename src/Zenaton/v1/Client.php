@@ -8,10 +8,12 @@ use Zenaton\Exceptions\AgentException;
 use Zenaton\Exceptions\AgentNotListeningException;
 use Zenaton\Exceptions\AgentUpdateRequiredException;
 use Zenaton\Exceptions\ApiException;
+use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Model\Scheduling\Schedule;
 use Zenaton\Services\Http;
 use Zenaton\Services\Properties;
 use Zenaton\Services\Serializer;
@@ -23,6 +25,7 @@ class Client
     use SingletonTrait;
 
     const ZENATON_API_URL = 'https://api.zenaton.com/v1';
+    const ZENATON_ALFRED_URL = 'https://gateway.zenaton.com/api';
     const ZENATON_WORKER_URL = 'http://localhost';
     const DEFAULT_WORKER_PORT = 4001;
     const WORKER_API_VERSION = 'v_newton';
@@ -250,6 +253,146 @@ class Client
     }
 
     /**
+     * Schedule a task instance.
+     *
+     * @param string $cron
+     *
+     * @throws ApiException
+     *
+     * @return Schedule
+     */
+    public function scheduleTask(TaskInterface $task, $cron)
+    {
+        $name = \get_class($task);
+
+        $mutation = <<<'MUTATION'
+            mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
+                createTaskSchedule(input: $input) {
+                    schedule {
+                        cron
+                        id
+                        name
+                        target {
+                            ... on TaskTarget {
+                                codePathVersion
+                                initialLibraryVersion
+                                name
+                                programmingLanguage
+                                properties
+                                type
+                            }
+                        }
+                        insertedAt
+                        updatedAt
+                    }
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'environmentName' => $this->appEnv,
+                'cron' => $cron,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => static::PROG,
+                'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+                'taskName' => $name,
+            ],
+        ];
+
+        try {
+            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
+
+        $decodedBody = \json_decode($response->raw_body, true);
+
+        return Schedule::fromArray($decodedBody['data']['createTaskSchedule']['schedule']);
+    }
+
+    /**
+     * Schedule a workflow instance.
+     *
+     * @param string $cron
+     *
+     * @throws ApiException
+     *
+     * @return Schedule
+     */
+    public function scheduleWorkflow(WorkflowInterface $workflow, $cron)
+    {
+        $canonicalName = $name = \get_class($workflow);
+        if ($workflow instanceof VersionedWorkflow) {
+            $workflow = $workflow->getCurrentImplementation();
+            $name = \get_class($workflow);
+        }
+
+        $mutation = <<<'MUTATION'
+            mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
+                createWorkflowSchedule(input: $input) {
+                    schedule {
+                        cron
+                        id
+                        name
+                        target {
+                            ... on WorkflowTarget {
+                                canonicalName
+                                codePathVersion
+                                initialLibraryVersion
+                                name
+                                programmingLanguage
+                                properties
+                                type
+                            }
+                        }
+                        insertedAt
+                        updatedAt
+                    }
+                }
+            }
+MUTATION;
+
+        $variables = [
+            'input' => [
+                'environmentName' => $this->appEnv,
+                'cron' => $cron,
+                'canonicalName' => $canonicalName,
+                'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'programmingLanguage' => static::PROG,
+                'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
+                'workflowName' => $name,
+            ],
+        ];
+
+        try {
+            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+                'headers' => [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ],
+            ]);
+        } catch (ConnectionErrorException $e) {
+            throw ApiException::connectionError($e);
+        }
+        if (isset($response->body->errors)) {
+            throw ApiException::fromErrorList($response->body->errors);
+        }
+
+        $decodedBody = \json_decode($response->raw_body, true);
+
+        return Schedule::fromArray($decodedBody['data']['createWorkflowSchedule']['schedule']);
+    }
+
+    /**
      * Find a workflow instance.
      *
      * @param string $workflowName Workflow class name
@@ -359,6 +502,19 @@ class Client
     protected function getSendEventURL()
     {
         return $this->getWorkerUrl('events');
+    }
+
+    /**
+     * Returns the URL of the Alfred API.
+     *
+     * This method will first look at a `ZENATON_ALFRED_URL` environment variable and return its variable if defined.
+     * Otherwise, it will return the default production URL.
+     *
+     * @return string
+     */
+    protected function getAlfredUrl()
+    {
+        return \getenv('ZENATON_ALFRED_URL') ?: self::ZENATON_ALFRED_URL;
     }
 
     /**

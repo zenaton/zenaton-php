@@ -1,4 +1,5 @@
 <?php
+
 namespace Zenaton\Exceptions;
 
 use PHPUnit\Framework\TestCase;

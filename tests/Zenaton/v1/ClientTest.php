@@ -2,6 +2,7 @@
 
 namespace Zenaton;
 
+use Httpful\Request;
 use Httpful\Response;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -9,9 +10,13 @@ use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
+use Zenaton\Model\Scheduling\Schedule;
+use Zenaton\Model\Scheduling\TaskTarget;
+use Zenaton\Model\Scheduling\WorkflowTarget;
 use Zenaton\Services\Http;
 use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
+use Zenaton\Test\Mock\Tasks\NullTask;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
 use Zenaton\Workflows\Version as VersionedWorkflow; // Alias is required because of a bug in PHP 5.6 namespace shadowing. See https://bugs.php.net/bug.php?id=66862.
@@ -362,6 +367,163 @@ final class ClientTest extends TestCase
         $event = new DummyEvent();
 
         $client->sendEvent(NullWorkflow::class, 'Workflow to send event to', $event);
+    }
+
+    public function testScheduleWorkflow()
+    {
+        $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('47f5f00a-f29a-4b65-a7a5-b365b26dd92e');
+            })
+        ;
+        $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
+                createWorkflowSchedule(input: $input) {
+                    schedule {
+                        cron
+                        id
+                        name
+                        target {
+                            ... on WorkflowTarget {
+                                canonicalName
+                                codePathVersion
+                                initialLibraryVersion
+                                name
+                                programmingLanguage
+                                properties
+                                type
+                            }
+                        }
+                        insertedAt
+                        updatedAt
+                    }
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'environmentName' => 'FakeAppEnv',
+                'cron' => '* * * * *',
+                'canonicalName' => NullWorkflow::class,
+                'intentId' => '47f5f00a-f29a-4b65-a7a5-b365b26dd92e',
+                'programmingLanguage' => 'PHP',
+                'properties' => '{"a":[],"s":[]}',
+                'workflowName' => NullWorkflow::class,
+            ],
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
+
+        $mockedResponse = new Response(
+            '{"data":{"createWorkflowSchedule":{"schedule":{"cron":"* * * * *","id":"47f5f00a-f29a-4b65-a7a5-b365b26dd92e","insertedAt":"2019-08-20T15:22:31.859478Z","name":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","target":{"canonicalName":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","codePathVersion":null,"initialLibraryVersion":null,"name":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","programmingLanguage":"PHP","properties":"{\"a\":[],\"s\":[]}","type":"WORKFLOW"},"updatedAt":"2019-08-20T15:22:31.859478Z"}}}}',
+            'HTTP/1.1 200 OK',
+            Request::init()
+        );
+
+        $http
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
+            ->willReturn($mockedResponse)
+        ;
+        $schedule = $client->scheduleWorkflow(new NullWorkflow(), '* * * * *');
+
+        static::assertInstanceOf(Schedule::class, $schedule);
+        static::assertEquals('47f5f00a-f29a-4b65-a7a5-b365b26dd92e', $schedule->getId());
+        static::assertEquals('* * * * *', $schedule->getCron());
+        static::assertEquals(NullWorkflow::class, $schedule->getName());
+        static::assertInstanceOf(WorkflowTarget::class, $schedule->getTarget());
+        static::assertEquals(NullWorkflow::class, $schedule->getTarget()->getCanonicalName());
+        static::assertEquals(NullWorkflow::class, $schedule->getTarget()->getName());
+        static::assertEquals('PHP', $schedule->getTarget()->getProgrammingLanguage());
+        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getInsertedAt());
+        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getUpdatedAt());
+    }
+
+    public function testScheduleTask()
+    {
+        $client = Client::getInstance();
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9');
+            })
+        ;
+        $http = $this->createHttpMock();
+        $expectedQuery = <<<'BODY'
+            mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
+                createTaskSchedule(input: $input) {
+                    schedule {
+                        cron
+                        id
+                        name
+                        target {
+                            ... on TaskTarget {
+                                codePathVersion
+                                initialLibraryVersion
+                                name
+                                programmingLanguage
+                                properties
+                                type
+                            }
+                        }
+                        insertedAt
+                        updatedAt
+                    }
+                }
+            }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'environmentName' => 'FakeAppEnv',
+                'cron' => '* * * * *',
+                'intentId' => '9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9',
+                'programmingLanguage' => 'PHP',
+                'properties' => '{"a":[],"s":[]}',
+                'taskName' => NullTask::class,
+            ],
+        ];
+        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
+        $expectedOptions = [
+            'headers' => [
+                'App-Id' => 'FakeAppId',
+                'Api-Token' => 'FakeApiToken',
+            ],
+        ];
+
+        $mockedResponse = new Response(
+            '{"data":{"createTaskSchedule":{"schedule":{"cron":"* * * * *","id":"9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9","insertedAt":"2019-08-20T15:22:31.859478Z","name":"Zenaton\\\\Test\\\\Mock\\\\Tasks\\\\NullTask","target":{"codePathVersion":null,"initialLibraryVersion":null,"name":"Zenaton\\\\Test\\\\Mock\\\\Tasks\\\\NullTask","programmingLanguage":"PHP","properties":"{\"a\":[],\"s\":[]}","type":"TASK"},"updatedAt":"2019-08-20T15:22:31.859478Z"}}}}',
+            'HTTP/1.1 200 OK',
+            Request::init()
+        );
+
+        $http
+            ->expects(static::once())
+            ->method('post')
+            ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
+            ->willReturn($mockedResponse)
+        ;
+        $schedule = $client->scheduleTask(new NullTask(), '* * * * *');
+
+        static::assertInstanceOf(Schedule::class, $schedule);
+        static::assertEquals('9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9', $schedule->getId());
+        static::assertEquals('* * * * *', $schedule->getCron());
+        static::assertEquals(NullTask::class, $schedule->getName());
+        static::assertInstanceOf(TaskTarget::class, $schedule->getTarget());
+        static::assertEquals(NullTask::class, $schedule->getTarget()->getName());
+        static::assertEquals('PHP', $schedule->getTarget()->getProgrammingLanguage());
+        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getInsertedAt());
+        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getUpdatedAt());
     }
 
     /**

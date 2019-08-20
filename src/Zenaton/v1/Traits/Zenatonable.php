@@ -69,6 +69,15 @@ trait Zenatonable
         return Engine::getInstance()->execute([$this])[0];
     }
 
+    public function schedule($cron)
+    {
+        if (!\is_string($cron) || $cron === '') {
+            throw new \InvalidArgumentException('$cron parameter must be a non empty string.');
+        }
+
+        return Engine::getInstance()->schedule([$this], $cron)[0];
+    }
+
     public static function whereId($id)
     {
         return (new QueryBuilder(get_called_class()))->whereId($id);
