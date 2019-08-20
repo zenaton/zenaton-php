@@ -18,4 +18,33 @@ class ApiException extends ZenatonException
     {
         return new static("The API responded with an unexpected status code: {$code}.");
     }
+
+    /**
+     * Creates a new instance of the exception when a connection error was received.
+     *
+     * @return self
+     */
+    public static function connectionError(\Exception $previous)
+    {
+        return new static("A connection error occurred while trying to send a request to the Zenaton API: {$previous->getMessage()}.", 0, $previous);
+    }
+
+    /**
+     * Creates a new instance of the exception when an error list is received.
+     *
+     * @return self
+     */
+    public static function fromErrorList(array $errors)
+    {
+        $errorMessages = implode("\n", array_map(static function ($error) {
+            return '  - '.$error->message;
+        }, $errors));
+
+        $message = <<<MESSAGE
+The Zenaton API returned some errors:
+{$errorMessages}
+MESSAGE;
+
+        return new static($message);
+    }
 }
