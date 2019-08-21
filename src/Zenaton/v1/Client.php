@@ -4,6 +4,7 @@ namespace Zenaton;
 
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
+use Zenaton\Api\GraphQL\Mutations;
 use Zenaton\Exceptions\AgentException;
 use Zenaton\Exceptions\AgentNotListeningException;
 use Zenaton\Exceptions\AgentUpdateRequiredException;
@@ -265,30 +266,6 @@ class Client
     {
         $name = \get_class($task);
 
-        $mutation = <<<'MUTATION'
-            mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
-                createTaskSchedule(input: $input) {
-                    schedule {
-                        cron
-                        id
-                        name
-                        target {
-                            ... on TaskTarget {
-                                codePathVersion
-                                initialLibraryVersion
-                                name
-                                programmingLanguage
-                                properties
-                                type
-                            }
-                        }
-                        insertedAt
-                        updatedAt
-                    }
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'environmentName' => $this->appEnv,
@@ -301,7 +278,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => Mutations::CREATE_TASK_SCHEDULE, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -336,31 +313,6 @@ MUTATION;
             $name = \get_class($workflow);
         }
 
-        $mutation = <<<'MUTATION'
-            mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
-                createWorkflowSchedule(input: $input) {
-                    schedule {
-                        cron
-                        id
-                        name
-                        target {
-                            ... on WorkflowTarget {
-                                canonicalName
-                                codePathVersion
-                                initialLibraryVersion
-                                name
-                                programmingLanguage
-                                properties
-                                type
-                            }
-                        }
-                        insertedAt
-                        updatedAt
-                    }
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'environmentName' => $this->appEnv,
@@ -374,7 +326,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => Mutations::CREATE_WORKFLOW_SCHEDULE, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,

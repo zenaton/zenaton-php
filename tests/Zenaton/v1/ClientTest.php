@@ -381,28 +381,28 @@ final class ClientTest extends TestCase
         ;
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
-                createWorkflowSchedule(input: $input) {
-                    schedule {
-                        cron
-                        id
-                        name
-                        target {
-                            ... on WorkflowTarget {
-                                canonicalName
-                                codePathVersion
-                                initialLibraryVersion
-                                name
-                                programmingLanguage
-                                properties
-                                type
-                            }
+        mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
+            createWorkflowSchedule(input: $input) {
+                schedule {
+                    cron
+                    id
+                    name
+                    target {
+                        ... on WorkflowTarget {
+                            canonicalName
+                            codePathVersion
+                            initialLibraryVersion
+                            name
+                            programmingLanguage
+                            properties
+                            type
                         }
-                        insertedAt
-                        updatedAt
                     }
+                    insertedAt
+                    updatedAt
                 }
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
@@ -461,27 +461,27 @@ BODY;
         ;
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
-                createTaskSchedule(input: $input) {
-                    schedule {
-                        cron
-                        id
-                        name
-                        target {
-                            ... on TaskTarget {
-                                codePathVersion
-                                initialLibraryVersion
-                                name
-                                programmingLanguage
-                                properties
-                                type
-                            }
+        mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
+            createTaskSchedule(input: $input) {
+                schedule {
+                    cron
+                    id
+                    name
+                    target {
+                        ... on TaskTarget {
+                            codePathVersion
+                            initialLibraryVersion
+                            name
+                            programmingLanguage
+                            properties
+                            type
                         }
-                        insertedAt
-                        updatedAt
                     }
+                    insertedAt
+                    updatedAt
                 }
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
