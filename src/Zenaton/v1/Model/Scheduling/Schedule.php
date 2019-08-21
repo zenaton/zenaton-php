@@ -35,8 +35,8 @@ final class Schedule
         $schedule->cron = (string) $values['cron'];
         $schedule->name = isset($values['name']) ? (string) $values['name'] : null;
         $schedule->target = static::createTarget($values['target']);
-        $schedule->insertedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['insertedAt']);
-        $schedule->updatedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['updatedAt']);
+        $schedule->insertedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['insertedAt'], new \DateTimeZone('UTC'));
+        $schedule->updatedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['updatedAt'], new \DateTimeZone('UTC'));
 
         return $schedule;
     }
