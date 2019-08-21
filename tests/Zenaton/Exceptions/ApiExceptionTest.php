@@ -15,14 +15,13 @@ class ApiExceptionTest extends TestCase
         $error2->message = "This is a second error message.\nIt contains a line break because why not?";
 
         $apiException = ApiException::fromErrorList([$error1, $error2]);
-
-        self::assertSame(<<<EXPECTED
+        $expectedMessage = <<<EXPECTED
 The Zenaton API returned some errors:
   - This is a first error.
   - This is a second error message.
 It contains a line break because why not?
-EXPECTED,
-            $apiException->getMessage()
-        );
+EXPECTED;
+
+        self::assertSame($expectedMessage, $apiException->getMessage());
     }
 }
