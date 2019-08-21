@@ -14,6 +14,13 @@ namespace Zenaton\Runtime\Contexts;
 final class TaskContext
 {
     /**
+     * The task identifier.
+     *
+     * @var string
+     */
+    private $id;
+
+    /**
      * The current retry index.
      *
      * When the task is executed for the first time, the value will be `1`.
@@ -22,18 +29,35 @@ final class TaskContext
      *
      * @var null|int
      */
-    public $retryIndex;
-
-    /**
-     * The task identifier.
-     *
-     * @var null|string
-     */
-    public $id;
+    private $retryIndex;
 
     public function __construct(array $values = [])
     {
-        $this->retryIndex = isset($values['retry_index']) ? (int) $values['retry_index'] : null;
-        $this->id = isset($values['id']) ? (string) $values['id'] : null;
+        $this->id = (string) $values['id'];
+        $this->retryIndex = isset($values['retryIndex']) ? (int) $values['retryIndex'] : null;
+    }
+
+    /**
+     * Returns the task identifier.
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Returns the retry index of the task.
+     *
+     * When the task is executed for the first time, the value will be `1`.
+     * Every time the task is automatically retried, the value is increased by one.
+     * When a manual retry is instructed, the value goes back to `1`.
+     *
+     * @return null|int
+     */
+    public function getRetryIndex()
+    {
+        return $this->retryIndex;
     }
 }

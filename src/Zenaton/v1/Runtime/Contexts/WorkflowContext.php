@@ -10,12 +10,22 @@ final class WorkflowContext
     /**
      * The workflow identifier.
      *
-     * @var null|string
+     * @var string
      */
-    public $id;
+    private $id;
 
     public function __construct(array $values = [])
     {
-        $this->id = isset($values['id']) ? (string) $values['id'] : null;
+        $this->id = (string) $values['id'];
+    }
+
+    /**
+     * Returns the workflow identifier.
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 }
