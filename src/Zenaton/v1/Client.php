@@ -293,7 +293,7 @@ class Client
 
         $decodedBody = \json_decode($response->raw_body, true);
 
-        return Schedule::fromArray($decodedBody['data']['createTaskSchedule']['schedule']);
+        return new Schedule($decodedBody['data']['createTaskSchedule']['schedule']);
     }
 
     /**
@@ -341,7 +341,7 @@ class Client
 
         $decodedBody = \json_decode($response->raw_body, true);
 
-        return Schedule::fromArray($decodedBody['data']['createWorkflowSchedule']['schedule']);
+        return new Schedule($decodedBody['data']['createWorkflowSchedule']['schedule']);
     }
 
     /**

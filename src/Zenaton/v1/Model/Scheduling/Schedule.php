@@ -19,26 +19,14 @@ final class Schedule
     /** @var \DateTimeInterface */
     private $updatedAt;
 
-    private function __construct()
+    public function __construct(array $values)
     {
-    }
-
-    /**
-     * @internal should not be called by user code
-     *
-     * @return self
-     */
-    public static function fromArray(array $values = [])
-    {
-        $schedule = new static();
-        $schedule->id = (string) $values['id'];
-        $schedule->cron = (string) $values['cron'];
-        $schedule->name = isset($values['name']) ? (string) $values['name'] : null;
-        $schedule->target = static::createTarget($values['target']);
-        $schedule->insertedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['insertedAt'], new \DateTimeZone('UTC'));
-        $schedule->updatedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['updatedAt'], new \DateTimeZone('UTC'));
-
-        return $schedule;
+        $this->id = (string) $values['id'];
+        $this->cron = (string) $values['cron'];
+        $this->name = isset($values['name']) ? (string) $values['name'] : null;
+        $this->target = static::createTarget($values['target']);
+        $this->insertedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['insertedAt'], new \DateTimeZone('UTC'));
+        $this->updatedAt = \DateTimeImmutable::createFromFormat(static::API_DATE_FORMAT, $values['updatedAt'], new \DateTimeZone('UTC'));
     }
 
     /**
@@ -98,9 +86,9 @@ final class Schedule
     {
         switch ($targetData['type']) {
             case 'WORKFLOW':
-                return WorkflowTarget::fromArray($targetData);
+                return new WorkflowTarget($targetData);
             case 'TASK':
-                return TaskTarget::fromArray($targetData);
+                return new TaskTarget($targetData);
             default:
                 throw new \UnexpectedValueException(sprintf('Unable to create a target of type %s.', $targetData['type']));
         }

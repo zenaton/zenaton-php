@@ -15,24 +15,12 @@ final class WorkflowTarget
     /** @var array */
     private $properties;
 
-    private function __construct()
+    public function __construct(array $values)
     {
-    }
-
-    /**
-     * @internal should not be called by user code
-     *
-     * @return self
-     */
-    public static function fromArray(array $values = [])
-    {
-        $target = new static();
-        $target->name = (string) $values['name'];
-        $target->canonicalName = (string) $values['name'];
-        $target->programmingLanguage = (string) $values['programmingLanguage'];
-        $target->properties = (new Serializer())->decode($values['properties']);
-
-        return $target;
+        $this->name = (string) $values['name'];
+        $this->canonicalName = (string) $values['canonicalName'];
+        $this->programmingLanguage = (string) $values['programmingLanguage'];
+        $this->properties = (new Serializer())->decode($values['properties']);
     }
 
     /**
