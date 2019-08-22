@@ -1,5 +1,57 @@
 # Upgrade instructions
 
+## 0.4.0
+
+* A `context` property, and methods `::setContext()` and `::getContext()` have been added to the
+  `Zenatonable` trait.
+
+  If you have some tasks or workflows using the same names you will have to rename them.
+
+  Before:
+
+  ```php
+  class RegisterOrderTask implements TaskInterface
+  {
+      use Zenaton\Trait\Zenatonable;
+
+      private $context;
+
+      public function __construct($context)
+      {
+          $this->context = $context;
+      }
+
+      public function handle()
+      {
+          // [...]
+      }
+  }
+  ```
+
+  After:
+
+  ```php
+  class RegisterOrderTask implements TaskInterface
+  {
+      use Zenaton\Trait\Zenatonable;
+
+      private $orderContext;
+
+      public function __construct($context)
+      {
+          $this->orderContext = $context;
+      }
+
+      public function handle()
+      {
+          // [...]
+      }
+  }
+  ```
+
+  Please note that the `::setContext()` method is internal and must not be used. It is called by the
+  Zenaton Agent to set the runtime context of tasks and workflows.
+
 ## 0.3.0
 
 * Using `Zenatonable::dispatch()` on tasks outside of a workflow now executes tasks asynchronously.
