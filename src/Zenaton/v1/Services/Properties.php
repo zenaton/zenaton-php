@@ -4,9 +4,18 @@ namespace Zenaton\Services;
 
 use ReflectionClass;
 use UnexpectedValueException;
+use Zenaton\Interfaces\TaskInterface;
+use Zenaton\Interfaces\WorkflowInterface;
 
 class Properties
 {
+    /**
+     * Property names that are not allowed to be serialized for workflows and tasks.
+     *
+     * @var string[]
+     */
+    const EXCLUDED_PROPERTIES = ['context'];
+
     public function getNewInstanceWithoutProperties($name)
     {
         return (new ReflectionClass($name))->newInstanceWithoutConstructor();
@@ -38,8 +47,14 @@ class Properties
 
         // declared variables
         foreach ($this->getClassProperties($clone) as $property) {
-            // the PHP serialize method doesn't take static variables so we respect this philosophy
-            if (!$property->isStatic() && (!isset($valid) || in_array($property->getName(), $valid))) {
+            if (
+                // the PHP serialize method doesn't take static variables so we respect this philosophy
+                !$property->isStatic()
+                // if $valid is not set we serialize everything. if $valid is defined and contains the property name it can be serialized in respect to the __sleep method implementation
+                && (!isset($valid) || in_array($property->getName(), $valid, true))
+                // if property name is inside the list of excluded properties, we don't serialize it
+                && !in_array($property->getName(), $this->getExcludedPropertiesForObject($clone), true)
+            ) {
                 $property->setAccessible(true);
                 $value = $property->getValue($clone);
                 $properties[$property->getName()] = $value;
@@ -122,5 +137,19 @@ class Properties
         }
 
         return $reflectionClass->getProperties($filter);
+    }
+
+    /**
+     * Returns the list of properties to exclude from properties extraction for a given object.
+     *
+     * @return string[]
+     */
+    private function getExcludedPropertiesForObject($o)
+    {
+        if ($o instanceof WorkflowInterface || $o instanceof TaskInterface) {
+            return static::EXCLUDED_PROPERTIES;
+        }
+
+        return [];
     }
 }
