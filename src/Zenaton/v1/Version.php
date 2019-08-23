@@ -11,10 +11,10 @@ namespace Zenaton;
  */
 final class Version
 {
-    const FULL = '0.4.0';
-    const ID = 00400;
+    const FULL = '0.4.1-DEV';
+    const ID = 00401;
     const MAJOR = 0;
     const MINOR = 4;
-    const PATCH = 0;
-    const EXTRA = '';
+    const PATCH = 1;
+    const EXTRA = 'DEV';
 }
