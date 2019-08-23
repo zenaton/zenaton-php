@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 
+* Changed `Properties` class to never serialize the `context` property from tasks and workflows.
+
 ### Deprecated
 
 ### Removed
