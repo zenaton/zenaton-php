@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 
-* Added a `intent_id` property when dispatching workflows and tasks, sending events to workflows, and
+* Added an `intent_id` property when dispatching workflows and tasks, sending events to workflows, and
   pausing/resuming/killing workflows.
 * Added a `::getContext()` method in `Zenatonable` trait that is able to retrieve the runtime context
   of the workflow or task currently being executed.
@@ -37,14 +37,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 
 * Changed `Properties` class to never serialize the `context` property from tasks and workflows.
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [0.3.4] - 2019-06-05
 
