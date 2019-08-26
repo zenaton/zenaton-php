@@ -11,22 +11,7 @@ final class Mutations
         mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
             createWorkflowSchedule(input: $input) {
                 schedule {
-                    cron
                     id
-                    name
-                    target {
-                        ... on WorkflowTarget {
-                            canonicalName
-                            codePathVersion
-                            initialLibraryVersion
-                            name
-                            programmingLanguage
-                            properties
-                            type
-                        }
-                    }
-                    insertedAt
-                    updatedAt
                 }
             }
         }
@@ -36,21 +21,7 @@ MUTATION;
         mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
             createTaskSchedule(input: $input) {
                 schedule {
-                    cron
                     id
-                    name
-                    target {
-                        ... on TaskTarget {
-                            codePathVersion
-                            initialLibraryVersion
-                            name
-                            programmingLanguage
-                            properties
-                            type
-                        }
-                    }
-                    insertedAt
-                    updatedAt
                 }
             }
         }
