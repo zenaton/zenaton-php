@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 
+* Method `Zenaton\Traits\Zenatonable::schedule()` now has a return type of `void` instead of
+  `Zenaton\Model\Scheduling\Schedule`.
+
 ### Deprecated
 
 ### Removed

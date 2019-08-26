@@ -10,9 +10,6 @@ use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Model\Scheduling\Schedule;
-use Zenaton\Model\Scheduling\TaskTarget;
-use Zenaton\Model\Scheduling\WorkflowTarget;
 use Zenaton\Services\Http;
 use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
@@ -384,22 +381,7 @@ final class ClientTest extends TestCase
         mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
             createWorkflowSchedule(input: $input) {
                 schedule {
-                    cron
                     id
-                    name
-                    target {
-                        ... on WorkflowTarget {
-                            canonicalName
-                            codePathVersion
-                            initialLibraryVersion
-                            name
-                            programmingLanguage
-                            properties
-                            type
-                        }
-                    }
-                    insertedAt
-                    updatedAt
                 }
             }
         }
@@ -435,18 +417,9 @@ BODY;
             ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
             ->willReturn($mockedResponse)
         ;
-        $schedule = $client->scheduleWorkflow(new NullWorkflow(), '* * * * *');
+        $output = $client->scheduleWorkflow(new NullWorkflow(), '* * * * *');
 
-        static::assertInstanceOf(Schedule::class, $schedule);
-        static::assertEquals('47f5f00a-f29a-4b65-a7a5-b365b26dd92e', $schedule->getId());
-        static::assertEquals('* * * * *', $schedule->getCron());
-        static::assertEquals(NullWorkflow::class, $schedule->getName());
-        static::assertInstanceOf(WorkflowTarget::class, $schedule->getTarget());
-        static::assertEquals(NullWorkflow::class, $schedule->getTarget()->getCanonicalName());
-        static::assertEquals(NullWorkflow::class, $schedule->getTarget()->getName());
-        static::assertEquals('PHP', $schedule->getTarget()->getProgrammingLanguage());
-        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getInsertedAt());
-        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getUpdatedAt());
+        static::assertNull($output);
     }
 
     public function testScheduleTask()
@@ -464,21 +437,7 @@ BODY;
         mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
             createTaskSchedule(input: $input) {
                 schedule {
-                    cron
                     id
-                    name
-                    target {
-                        ... on TaskTarget {
-                            codePathVersion
-                            initialLibraryVersion
-                            name
-                            programmingLanguage
-                            properties
-                            type
-                        }
-                    }
-                    insertedAt
-                    updatedAt
                 }
             }
         }
@@ -513,17 +472,9 @@ BODY;
             ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
             ->willReturn($mockedResponse)
         ;
-        $schedule = $client->scheduleTask(new NullTask(), '* * * * *');
+        $output = $client->scheduleTask(new NullTask(), '* * * * *');
 
-        static::assertInstanceOf(Schedule::class, $schedule);
-        static::assertEquals('9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9', $schedule->getId());
-        static::assertEquals('* * * * *', $schedule->getCron());
-        static::assertEquals(NullTask::class, $schedule->getName());
-        static::assertInstanceOf(TaskTarget::class, $schedule->getTarget());
-        static::assertEquals(NullTask::class, $schedule->getTarget()->getName());
-        static::assertEquals('PHP', $schedule->getTarget()->getProgrammingLanguage());
-        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getInsertedAt());
-        static::assertInstanceOf(\DateTimeInterface::class, $schedule->getUpdatedAt());
+        static::assertNull($output);
     }
 
     /**

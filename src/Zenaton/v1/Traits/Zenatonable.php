@@ -75,7 +75,7 @@ trait Zenatonable
             throw new \InvalidArgumentException('$cron parameter must be a non empty string.');
         }
 
-        return Engine::getInstance()->schedule([$this], $cron)[0];
+        Engine::getInstance()->schedule([$this], $cron);
     }
 
     public static function whereId($id)

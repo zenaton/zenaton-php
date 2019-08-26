@@ -290,10 +290,6 @@ class Client
         if (isset($response->body->errors)) {
             throw ApiException::fromErrorList($response->body->errors);
         }
-
-        $decodedBody = \json_decode($response->raw_body, true);
-
-        return new Schedule($decodedBody['data']['createTaskSchedule']['schedule']);
     }
 
     /**
@@ -338,10 +334,6 @@ class Client
         if (isset($response->body->errors)) {
             throw ApiException::fromErrorList($response->body->errors);
         }
-
-        $decodedBody = \json_decode($response->raw_body, true);
-
-        return new Schedule($decodedBody['data']['createWorkflowSchedule']['schedule']);
     }
 
     /**
