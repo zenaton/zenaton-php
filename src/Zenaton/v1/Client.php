@@ -5,6 +5,7 @@ namespace Zenaton;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Api\GraphQL\Mutations;
+use Zenaton\Api\GraphQL\Queries;
 use Zenaton\Exceptions\ApiException;
 use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
@@ -152,20 +153,6 @@ class Client
      */
     public function startTask(TaskInterface $task)
     {
-        $mutation = <<<'MUTATION'
-            mutation dispatchTask($input: DispatchTaskInput!) {
-                dispatchTask(input: $input) {
-                    task {
-                        intentId
-                        name
-                        data
-                        maxProcessingTime
-                        programmingLanguage
-                    }
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'environmentName' => $this->appEnv,
@@ -178,7 +165,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::DISPATCH_TASK, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -198,7 +185,8 @@ MUTATION;
      *
      * @param WorkflowInterface $flow Workflow to start
      *
-     * @throws ApiException if the API returns some errors
+     * @throws ApiException                                 if the API returns some errors
+     * @throws \Zenaton\Exceptions\InvalidArgumentException if custom id is invalid
      */
     public function startWorkflow(WorkflowInterface $flow)
     {
@@ -223,19 +211,6 @@ MUTATION;
             }
         }
 
-        $mutation = <<<'MUTATION'
-            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
-                dispatchWorkflow(input: $input) {
-                    workflow {
-                        canonicalName
-                        id
-                        name
-                        properties
-                    }
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'customId' => $customId,
@@ -249,7 +224,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::DISPATCH_WORKFLOW, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -274,15 +249,6 @@ MUTATION;
      */
     public function killWorkflow($workflowName, $customId)
     {
-        $mutation = <<<'MUTATION'
-            mutation killWorkflow($input: KillWorkflowInput!) {
-                killWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'customId' => $customId,
@@ -294,7 +260,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::KILL_WORKFLOW, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -319,15 +285,6 @@ MUTATION;
      */
     public function pauseWorkflow($workflowName, $customId)
     {
-        $mutation = <<<'MUTATION'
-            mutation pauseWorkflow($input: PauseWorkflowInput!) {
-                pauseWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'customId' => $customId,
@@ -339,7 +296,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::PAUSE_WORKFLOW, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -364,15 +321,6 @@ MUTATION;
      */
     public function resumeWorkflow($workflowName, $customId)
     {
-        $mutation = <<<'MUTATION'
-            mutation resumeWorkflow($input: ResumeWorkflowInput!) {
-                resumeWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'customId' => $customId,
@@ -384,7 +332,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::RESUME_WORKFLOW, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -490,15 +438,6 @@ MUTATION;
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $query = <<<'QUERY'
-            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
-                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
-                    name
-                    properties
-                }
-            }
-QUERY;
-
         $variables = [
             'customId' => $customId,
             'environmentName' => $this->appEnv,
@@ -507,7 +446,7 @@ QUERY;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $query, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Queries::WORKFLOW, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,
@@ -544,18 +483,6 @@ QUERY;
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
-        $mutation = <<<'MUTATION'
-            mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
-                sendEventToWorkflowByNameAndCustomId(input: $input) {
-                    event {
-                        intentId
-                        name
-                        input
-                    }
-                }
-            }
-MUTATION;
-
         $variables = [
             'input' => [
                 'customId' => $customId,
@@ -570,7 +497,7 @@ MUTATION;
         ];
 
         try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => $mutation, 'variables' => $variables]), [
+            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::SEND_EVENT, 'variables' => $variables]), [
                 'headers' => [
                     'App-Id' => $this->appId,
                     'Api-Token' => $this->apiToken,

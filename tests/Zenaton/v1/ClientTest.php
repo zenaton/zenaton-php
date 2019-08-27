@@ -76,16 +76,16 @@ final class ClientTest extends TestCase
         $http = $this->createHttpMock();
 
         $expectedQuery = <<<'BODY'
-            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
-                dispatchWorkflow(input: $input) {
-                    workflow {
-                        canonicalName
-                        id
-                        name
-                        properties
-                    }
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    canonicalName
+                    id
+                    name
+                    properties
                 }
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
@@ -132,16 +132,16 @@ BODY;
         $http = $this->createHttpMock();
 
         $expectedQuery = <<<'BODY'
-            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
-                dispatchWorkflow(input: $input) {
-                    workflow {
-                        canonicalName
-                        id
-                        name
-                        properties
-                    }
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    canonicalName
+                    id
+                    name
+                    properties
                 }
             }
+        }
 BODY;
 
         $expectedVariables = [
@@ -189,16 +189,16 @@ BODY;
         $http = $this->createHttpMock();
 
         $expectedQuery = <<<'BODY'
-            mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
-                dispatchWorkflow(input: $input) {
-                    workflow {
-                        canonicalName
-                        id
-                        name
-                        properties
-                    }
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    canonicalName
+                    id
+                    name
+                    properties
                 }
             }
+        }
 BODY;
 
         $expectedVariables = [
@@ -264,12 +264,12 @@ BODY;
         $http = $this->createHttpMock();
 
         $expectedQuery = <<<'BODY'
-            mutation killWorkflow($input: KillWorkflowInput!) {
-                killWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
+        mutation killWorkflow($input: KillWorkflowInput!) {
+            killWorkflow(input: $input) {
+                id
+                intent_id
             }
+        }
 BODY;
 
         $expectedVariables = [
@@ -312,12 +312,12 @@ BODY;
         ;
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            mutation pauseWorkflow($input: PauseWorkflowInput!) {
-                pauseWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
+        mutation pauseWorkflow($input: PauseWorkflowInput!) {
+            pauseWorkflow(input: $input) {
+                id
+                intent_id
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
@@ -356,12 +356,12 @@ BODY;
         ;
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            mutation resumeWorkflow($input: ResumeWorkflowInput!) {
-                resumeWorkflow(input: $input) {
-                    id
-                    intent_id
-                }
+        mutation resumeWorkflow($input: ResumeWorkflowInput!) {
+            resumeWorkflow(input: $input) {
+                id
+                intent_id
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
@@ -393,12 +393,12 @@ BODY;
         $client = Client::getInstance();
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
-                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
-                    name
-                    properties
-                }
+        query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+            workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                name
+                properties
             }
+        }
 BODY;
         $expectedVariables = [
             'customId' => 'Soon to be resumed workflow',
@@ -463,12 +463,12 @@ BODY;
         $client = Client::getInstance();
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
-                workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
-                    name
-                    properties
-                }
+        query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+            workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                name
+                properties
             }
+        }
 BODY;
         $expectedVariables = [
             'customId' => 'Soon to be resumed workflow',
@@ -525,15 +525,15 @@ BODY;
         ;
         $http = $this->createHttpMock();
         $expectedQuery = <<<'BODY'
-            mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
-                sendEventToWorkflowByNameAndCustomId(input: $input) {
-                    event {
-                        intentId
-                        name
-                        input
-                    }
+        mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
+            sendEventToWorkflowByNameAndCustomId(input: $input) {
+                event {
+                    intentId
+                    name
+                    input
                 }
             }
+        }
 BODY;
         $expectedVariables = [
             'input' => [
