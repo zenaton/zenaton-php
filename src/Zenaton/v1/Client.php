@@ -259,8 +259,6 @@ class Client
      * @param string $cron
      *
      * @throws ApiException
-     *
-     * @return Schedule
      */
     public function scheduleTask(TaskInterface $task, $cron)
     {
@@ -298,8 +296,6 @@ class Client
      * @param string $cron
      *
      * @throws ApiException
-     *
-     * @return Schedule
      */
     public function scheduleWorkflow(WorkflowInterface $workflow, $cron)
     {
