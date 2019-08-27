@@ -12,7 +12,6 @@ use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Interfaces\WorkflowInterface;
-use Zenaton\Model\Scheduling\Schedule;
 use Zenaton\Services\Http;
 use Zenaton\Services\Properties;
 use Zenaton\Services\Serializer;
@@ -37,8 +36,11 @@ class Client
 
     const PROG = 'PHP';
 
+    /** @var null|string */
     protected $appId;
+    /** @var null|string */
     protected $apiToken;
+    /** @var null|string */
     protected $appEnv;
     /** @var Http */
     protected $http;
@@ -65,6 +67,13 @@ class Client
         $this->uuidFactory = new UuidFactory();
     }
 
+    /**
+     * Set App Id.
+     *
+     * @param string $appId
+     *
+     * @return $this
+     */
     public function setAppId($appId)
     {
         $this->appId = $appId;
@@ -72,6 +81,13 @@ class Client
         return $this;
     }
 
+    /**
+     * Set Api Token.
+     *
+     * @param string $apiToken
+     *
+     * @return $this
+     */
     public function setApiToken($apiToken)
     {
         $this->apiToken = $apiToken;
@@ -79,6 +95,13 @@ class Client
         return $this;
     }
 
+    /**
+     * Set App environment.
+     *
+     * @param string $appEnv
+     *
+     * @return $this
+     */
     public function setAppEnv($appEnv)
     {
         $this->appEnv = $appEnv;
@@ -87,43 +110,47 @@ class Client
     }
 
     /**
-     * @param string       $ressources
+     * Return the worker url to use for a given resource.
+     *
+     * @param string       $resource
      * @param array|string $params
      *
      * @return string
      *
      * @internal Used by the Zenaton agent. Should not be called by user code.
      */
-    public function getWorkerUrl($ressources = '', $params = [])
+    public function getWorkerUrl($resource = '', $params = [])
     {
         if (is_array($params)) {
-            return $this->getWorkerUrlV2($ressources, $params);
+            return $this->getWorkerUrlV2($resource, $params);
         }
 
         $url = (getenv('ZENATON_WORKER_URL') ?: self::ZENATON_WORKER_URL)
             .':'.(getenv('ZENATON_WORKER_PORT') ?: self::DEFAULT_WORKER_PORT)
             .'/api/'.self::WORKER_API_VERSION
-            .'/'.$ressources.'?';
+            .'/'.$resource.'?';
 
         return $this->addAppEnv($url, $params);
     }
 
     /**
-     * @param string       $ressources
+     * Return the website url to use for a given resource.
+     *
+     * @param string       $resource
      * @param array|string $params
      *
      * @return string
      *
      * @internal Used by the Zenaton agent. Should not be called by user code.
      */
-    public function getWebsiteUrl($ressources = '', $params = [])
+    public function getWebsiteUrl($resource = '', $params = [])
     {
         if (is_array($params)) {
-            return $this->getWebsiteUrlV2($ressources, $params);
+            return $this->getWebsiteUrlV2($resource, $params);
         }
 
         $url = (getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL)
-            .'/'.$ressources.'?'
+            .'/'.$resource.'?'
             .self::API_TOKEN.'='.$this->apiToken.'&';
 
         return $this->addAppEnv($url, $params);
@@ -132,7 +159,7 @@ class Client
     /**
      * Start a single task.
      *
-     * @throws ApiException If the API returns some errors
+     * @throws ApiException if the API returns some errors
      */
     public function startTask(TaskInterface $task)
     {
