@@ -35,24 +35,7 @@ class Client
     const APP_ID = 'app_id';
     const API_TOKEN = 'api_token';
 
-    const ATTR_INTENT_ID = 'intent_id';
-    const ATTR_ID = 'custom_id';
-    const ATTR_NAME = 'name';
-    const ATTR_CANONICAL = 'canonical_name';
-    const ATTR_DATA = 'data';
-    const ATTR_PROG = 'programming_language';
-    const ATTR_MODE = 'mode';
-    const ATTR_MAX_PROCESSING_TIME = 'maxProcessingTime';
-
     const PROG = 'PHP';
-
-    const EVENT_INPUT = 'event_input';
-    const EVENT_NAME = 'event_name';
-    const EVENT_DATA = 'event_data';
-
-    const WORKFLOW_KILL = 'kill';
-    const WORKFLOW_PAUSE = 'pause';
-    const WORKFLOW_RUN = 'run';
 
     protected $appId;
     protected $apiToken;
