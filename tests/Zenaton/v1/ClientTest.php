@@ -79,10 +79,7 @@ final class ClientTest extends TestCase
         mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
             dispatchWorkflow(input: $input) {
                 workflow {
-                    canonicalName
                     id
-                    name
-                    properties
                 }
             }
         }
@@ -135,10 +132,7 @@ BODY;
         mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
             dispatchWorkflow(input: $input) {
                 workflow {
-                    canonicalName
                     id
-                    name
-                    properties
                 }
             }
         }
@@ -192,10 +186,7 @@ BODY;
         mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
             dispatchWorkflow(input: $input) {
                 workflow {
-                    canonicalName
                     id
-                    name
-                    properties
                 }
             }
         }
@@ -267,7 +258,6 @@ BODY;
         mutation killWorkflow($input: KillWorkflowInput!) {
             killWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 BODY;
@@ -315,7 +305,6 @@ BODY;
         mutation pauseWorkflow($input: PauseWorkflowInput!) {
             pauseWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 BODY;
@@ -359,7 +348,6 @@ BODY;
         mutation resumeWorkflow($input: ResumeWorkflowInput!) {
             resumeWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 BODY;
@@ -529,8 +517,6 @@ BODY;
             sendEventToWorkflowByNameAndCustomId(input: $input) {
                 event {
                     intentId
-                    name
-                    input
                 }
             }
         }

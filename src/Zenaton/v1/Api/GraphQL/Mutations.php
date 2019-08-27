@@ -41,10 +41,7 @@ DISPATCH_TASK;
         mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
             dispatchWorkflow(input: $input) {
                 workflow {
-                    canonicalName
                     id
-                    name
-                    properties
                 }
             }
         }
@@ -54,7 +51,6 @@ DISPATCH_WORKFLOW;
         mutation killWorkflow($input: KillWorkflowInput!) {
             killWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 KILL_WORKFLOW;
@@ -63,7 +59,6 @@ KILL_WORKFLOW;
         mutation pauseWorkflow($input: PauseWorkflowInput!) {
             pauseWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 PAUSE_WORKFLOW;
@@ -72,7 +67,6 @@ PAUSE_WORKFLOW;
         mutation resumeWorkflow($input: ResumeWorkflowInput!) {
             resumeWorkflow(input: $input) {
                 id
-                intent_id
             }
         }
 RESUME_WORKFLOW;
@@ -82,8 +76,6 @@ RESUME_WORKFLOW;
             sendEventToWorkflowByNameAndCustomId(input: $input) {
                 event {
                     intentId
-                    name
-                    input
                 }
             }
         }
