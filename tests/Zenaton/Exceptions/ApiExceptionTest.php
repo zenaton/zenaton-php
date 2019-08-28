@@ -8,11 +8,13 @@ class ApiExceptionTest extends TestCase
 {
     public function testFromErrorList()
     {
-        $error1 = new \stdClass();
-        $error1->message = 'This is a first error.';
+        $error1 = [
+            'message' => 'This is a first error.'
+        ];
 
-        $error2 = new \stdClass();
-        $error2->message = "This is a second error message.\nIt contains a line break because why not?";
+        $error2 = [
+            'message' => "This is a second error message.\nIt contains a line break because why not?"
+        ];
 
         $apiException = ApiException::fromErrorList([$error1, $error2]);
         $expectedMessage = <<<EXPECTED

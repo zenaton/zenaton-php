@@ -23,7 +23,7 @@ class Client
     use SingletonTrait;
 
     const ZENATON_API_URL = 'https://api.zenaton.com/v1';
-    const ZENATON_ALFRED_URL = 'https://gateway.zenaton.com/api';
+    const ZENATON_GATEWAY_URL = 'https://gateway.zenaton.com/api';
     const ZENATON_WORKER_URL = 'http://localhost';
     const DEFAULT_WORKER_PORT = 4001;
     const WORKER_API_VERSION = 'v_newton';
@@ -42,8 +42,8 @@ class Client
     protected $apiToken;
     /** @var null|string */
     protected $appEnv;
-    /** @var Http */
-    protected $http;
+    /** @var \Zenaton\Api\GraphQL\Client */
+    protected $graphqlClient;
     /** @var Serializer */
     protected $serializer;
     /** @var Properties */
@@ -61,7 +61,7 @@ class Client
 
     public function construct()
     {
-        $this->http = new Http();
+        $this->graphqlClient = new \Zenaton\Api\GraphQL\Client(new Http(), $this->getGatewayUrl(), []);
         $this->serializer = new Serializer();
         $this->properties = new Properties();
         $this->uuidFactory = new UuidFactory();
@@ -149,7 +149,7 @@ class Client
             return $this->getWebsiteUrlV2($resource, $params);
         }
 
-        $url = (getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL)
+        $url = $this->getApiUrl()
             .'/'.$resource.'?'
             .self::API_TOKEN.'='.$this->apiToken.'&';
 
@@ -163,31 +163,23 @@ class Client
      */
     public function startTask(TaskInterface $task)
     {
-        $variables = [
-            'input' => [
-                'environmentName' => $this->appEnv,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'maxProcessingTime' => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
-                'programmingLanguage' => self::PROG,
-                'name' => \get_class($task),
-                'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::DISPATCH_TASK, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::DISPATCH_TASK,
+            [
+                'input' => [
+                    'environmentName' => $this->appEnv,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'maxProcessingTime' => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
+                    'programmingLanguage' => self::PROG,
+                    'name' => \get_class($task),
+                    'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -221,32 +213,24 @@ class Client
             }
         }
 
-        $variables = [
-            'input' => [
-                'customId' => $customId,
-                'environmentName' => $this->appEnv,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => self::PROG,
-                'canonicalName' => $canonical,
-                'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
-                'name' => \get_class($flow),
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::DISPATCH_WORKFLOW, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::DISPATCH_WORKFLOW,
+            [
+                'input' => [
+                    'customId' => $customId,
+                    'environmentName' => $this->appEnv,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => self::PROG,
+                    'canonicalName' => $canonical,
+                    'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
+                    'name' => \get_class($flow),
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -259,30 +243,22 @@ class Client
      */
     public function killWorkflow($workflowName, $customId)
     {
-        $variables = [
-            'input' => [
-                'customId' => $customId,
-                'environmentName' => $this->appEnv,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => self::PROG,
-                'name' => $workflowName,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::KILL_WORKFLOW, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::KILL_WORKFLOW,
+            [
+                'input' => [
+                    'customId' => $customId,
+                    'environmentName' => $this->appEnv,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => self::PROG,
+                    'name' => $workflowName,
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -295,30 +271,22 @@ class Client
      */
     public function pauseWorkflow($workflowName, $customId)
     {
-        $variables = [
-            'input' => [
-                'customId' => $customId,
-                'environmentName' => $this->appEnv,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => self::PROG,
-                'name' => $workflowName,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::PAUSE_WORKFLOW, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::PAUSE_WORKFLOW,
+            [
+                'input' => [
+                    'customId' => $customId,
+                    'environmentName' => $this->appEnv,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => self::PROG,
+                    'name' => $workflowName,
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -331,30 +299,22 @@ class Client
      */
     public function resumeWorkflow($workflowName, $customId)
     {
-        $variables = [
-            'input' => [
-                'customId' => $customId,
-                'environmentName' => $this->appEnv,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => self::PROG,
-                'name' => $workflowName,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::RESUME_WORKFLOW, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::RESUME_WORKFLOW,
+            [
+                'input' => [
+                    'customId' => $customId,
+                    'environmentName' => $this->appEnv,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => self::PROG,
+                    'name' => $workflowName,
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -366,32 +326,23 @@ class Client
      */
     public function scheduleTask(TaskInterface $task, $cron)
     {
-        $name = \get_class($task);
-
-        $variables = [
-            'input' => [
-                'environmentName' => $this->appEnv,
-                'cron' => $cron,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => static::PROG,
-                'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
-                'taskName' => $name,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => Mutations::CREATE_TASK_SCHEDULE, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+         $this->graphqlClient->request(
+            Mutations::CREATE_TASK_SCHEDULE,
+             [
+                'input' => [
+                    'environmentName' => $this->appEnv,
+                    'cron' => $cron,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => static::PROG,
+                    'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+                    'taskName' => \get_class($task),
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+         );
     }
 
     /**
@@ -409,31 +360,24 @@ class Client
             $name = \get_class($workflow);
         }
 
-        $variables = [
-            'input' => [
-                'environmentName' => $this->appEnv,
-                'cron' => $cron,
-                'canonicalName' => $canonicalName,
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => static::PROG,
-                'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
-                'workflowName' => $name,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getAlfredUrl(), \json_encode(['query' => Mutations::CREATE_WORKFLOW_SCHEDULE, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::CREATE_WORKFLOW_SCHEDULE,
+            [
+                'input' => [
+                    'environmentName' => $this->appEnv,
+                    'cron' => $cron,
+                    'canonicalName' => $canonicalName,
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => static::PROG,
+                    'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
+                    'workflowName' => $name,
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -448,38 +392,34 @@ class Client
      */
     public function findWorkflow($workflowName, $customId)
     {
-        $variables = [
-            'customId' => $customId,
-            'environmentName' => $this->appEnv,
-            'programmingLanguage' => self::PROG,
-            'workflowName' => $workflowName,
-        ];
+        $response = $this->graphqlClient->request(
+            Queries::WORKFLOW,
+            [
+                'customId' => $customId,
+                'environmentName' => $this->appEnv,
+                'programmingLanguage' => self::PROG,
+                'workflowName' => $workflowName,
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
 
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Queries::WORKFLOW, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
-                ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
+        if (isset($response['errors'])) {
             // If there is a NOT_FOUND error, we return null
-            $notFoundErrors = \array_filter($response->body->errors, static function ($error) {
-                return isset($error->type) && $error->type === 'NOT_FOUND';
+            $notFoundErrors = \array_filter($response['errors'], static function ($error) {
+                return isset($error['type']) && $error['type'] === 'NOT_FOUND';
             });
             if (\count($notFoundErrors) > 0) {
                 return null;
             }
 
             // Otherwise, we generate an exception from the error list
-            throw ApiException::fromErrorList($response->body->errors);
+            throw ApiException::fromErrorList($response['errors']);
         }
 
-        return $this->properties->getObjectFromNameAndProperties($response->body->data->workflow->name, $this->serializer->decode($response->body->data->workflow->properties));
+        return $this->properties->getObjectFromNameAndProperties($response['data']['workflow']['name'], $this->serializer->decode($response['data']['workflow']['properties']));
     }
 
     /**
@@ -493,33 +433,25 @@ class Client
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
-        $variables = [
-            'input' => [
-                'customId' => $customId,
-                'environmentName' => $this->appEnv,
-                'name' => get_class($event),
-                'input' => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
-                'data' => $this->serializer->encode($event),
-                'intentId' => $this->uuidFactory->uuid4()->toString(),
-                'programmingLanguage' => self::PROG,
-                'workflowName' => $workflowName,
-            ],
-        ];
-
-        try {
-            $response = $this->http->post($this->getApiUrl(), \json_encode(['query' => Mutations::SEND_EVENT, 'variables' => $variables]), [
-                'headers' => [
-                    'App-Id' => $this->appId,
-                    'Api-Token' => $this->apiToken,
+        $this->graphqlClient->request(
+            Mutations::SEND_EVENT,
+            [
+                'input' => [
+                    'customId' => $customId,
+                    'environmentName' => $this->appEnv,
+                    'name' => get_class($event),
+                    'input' => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
+                    'data' => $this->serializer->encode($event),
+                    'intentId' => $this->uuidFactory->uuid4()->toString(),
+                    'programmingLanguage' => self::PROG,
+                    'workflowName' => $workflowName,
                 ],
-            ]);
-        } catch (ConnectionErrorException $e) {
-            throw ApiException::connectionError($e);
-        }
-
-        if (isset($response->body->errors)) {
-            throw ApiException::fromErrorList($response->body->errors);
-        }
+            ],
+            [
+                'App-Id' => $this->appId,
+                'Api-Token' => $this->apiToken,
+            ]
+        );
     }
 
     /**
@@ -549,26 +481,13 @@ class Client
     {
         $url = sprintf(
             '%s/%s',
-            getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL,
+            $this->getApiUrl(),
             $ressources
         );
 
         $params[static::API_TOKEN] = $this->apiToken;
 
         return $this->addQueryParams($url, $params);
-    }
-
-    /**
-     * Returns the URL of the Alfred API.
-     *
-     * This method will first look at a `ZENATON_ALFRED_URL` environment variable and return its variable if defined.
-     * Otherwise, it will return the default production URL.
-     *
-     * @return string
-     */
-    protected function getAlfredUrl()
-    {
-        return \getenv('ZENATON_ALFRED_URL') ?: self::ZENATON_ALFRED_URL;
     }
 
     /**
@@ -623,5 +542,18 @@ class Client
     private function getApiUrl()
     {
         return \getenv('ZENATON_API_URL') ?: self::ZENATON_API_URL;
+    }
+
+    /**
+     * Returns the Zenaton Gateway url to send requests to.
+     *
+     * This will check the ZENATON_GATEWAY_URL environment variable first if it is defined. Otherwise, it will use the
+     * default production url.
+     *
+     * @return string
+     */
+    private function getGatewayUrl()
+    {
+        return \getenv('ZENATON_GATEWAY_URL') ?: self::ZENATON_GATEWAY_URL;
     }
 }

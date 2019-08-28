@@ -13,6 +13,8 @@ class ApiException extends ZenatonException
      * @param int $code
      *
      * @return \Zenaton\Exceptions\ApiException
+     *
+     * @internal should not be called by user code.
      */
     public static function unexpectedStatusCode($code)
     {
@@ -23,6 +25,8 @@ class ApiException extends ZenatonException
      * Creates a new instance of the exception when a connection error was received.
      *
      * @return self
+     *
+     * @internal should not be called by user code.
      */
     public static function connectionError(\Exception $previous)
     {
@@ -33,11 +37,13 @@ class ApiException extends ZenatonException
      * Creates a new instance of the exception when an error list is received.
      *
      * @return self
+     *
+     * @internal should not be called by user code.
      */
     public static function fromErrorList(array $errors)
     {
         $errorMessages = implode("\n", array_map(static function ($error) {
-            return '  - '.$error->message;
+            return '  - '.$error['message'];
         }, $errors));
 
         $message = <<<MESSAGE
