@@ -14,7 +14,7 @@ class ApiException extends ZenatonException
      *
      * @return \Zenaton\Exceptions\ApiException
      *
-     * @internal should not be called by user code.
+     * @internal should not be called by user code
      */
     public static function unexpectedStatusCode($code)
     {
@@ -26,7 +26,7 @@ class ApiException extends ZenatonException
      *
      * @return self
      *
-     * @internal should not be called by user code.
+     * @internal should not be called by user code
      */
     public static function connectionError(\Exception $previous)
     {
@@ -38,7 +38,7 @@ class ApiException extends ZenatonException
      *
      * @return self
      *
-     * @internal should not be called by user code.
+     * @internal should not be called by user code
      */
     public static function fromException(\Exception $previous)
     {
@@ -53,7 +53,7 @@ class ApiException extends ZenatonException
      *
      * @return self
      *
-     * @internal should not be called by user code.
+     * @internal should not be called by user code
      */
     public static function cannotParseResponseBody($body, $error)
     {
@@ -72,7 +72,7 @@ MESSAGE;
      *
      * @return self
      *
-     * @internal should not be called by user code.
+     * @internal should not be called by user code
      */
     public static function fromErrorList(array $errors)
     {

@@ -2,13 +2,10 @@
 
 namespace Zenaton;
 
-use Httpful\Request;
-use Httpful\Response;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Exceptions\ApiException;
-use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Services\Http;
@@ -706,7 +703,7 @@ BODY;
     /**
      * Inject a mocked Http instance into the Client singleton instance.
      *
-     * @return \Zenaton\Api\GraphQL\Client|\PHPUnit_Framework_MockObject_MockObject
+     * @return \PHPUnit_Framework_MockObject_MockObject|\Zenaton\Api\GraphQL\Client
      */
     private function createGraphQLClientMock()
     {

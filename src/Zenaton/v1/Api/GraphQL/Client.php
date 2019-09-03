@@ -25,7 +25,6 @@ class Client
      *  - `headers`: A map of headers to add to every request that will be made using this client instance.
      *
      * @param string $endpoint
-     * @param array  $options
      */
     public function __construct(Http $httpClient, $endpoint, array $options)
     {
@@ -38,12 +37,10 @@ class Client
      * Sends a request to a GraphQL endpoint.
      *
      * @param string $query
-     * @param array  $variables
-     * @param array  $headers
-     *
-     * @return array
      *
      * @throws \Zenaton\Exceptions\ApiException if there is a connection error or an error is returned from the API
+     *
+     * @return array
      */
     public function request($query, array $variables = [], array $headers = [])
     {
@@ -64,9 +61,7 @@ class Client
     }
 
     /**
-     * Returns the headers to add to GraphQL requests
-     *
-     * @param array $headers
+     * Returns the headers to add to GraphQL requests.
      *
      * @return array
      */

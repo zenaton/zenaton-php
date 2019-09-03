@@ -7,7 +7,6 @@ use Ramsey\Uuid\UuidFactoryInterface;
 use Zenaton\Api\GraphQL\Mutations;
 use Zenaton\Api\GraphQL\Queries;
 use Zenaton\Exceptions\ApiException;
-use Zenaton\Exceptions\ConnectionErrorException;
 use Zenaton\Exceptions\InvalidArgumentException;
 use Zenaton\Interfaces\EventInterface;
 use Zenaton\Interfaces\TaskInterface;
@@ -326,18 +325,18 @@ class Client
      */
     public function scheduleTask(TaskInterface $task, $cron)
     {
-         $this->graphqlClient->request(
+        $this->graphqlClient->request(
             Mutations::CREATE_TASK_SCHEDULE,
              [
-                'input' => [
-                    'environmentName' => $this->appEnv,
-                    'cron' => $cron,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => static::PROG,
-                    'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
-                    'taskName' => \get_class($task),
-                ],
-            ],
+                 'input' => [
+                     'environmentName' => $this->appEnv,
+                     'cron' => $cron,
+                     'intentId' => $this->uuidFactory->uuid4()->toString(),
+                     'programmingLanguage' => static::PROG,
+                     'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+                     'taskName' => \get_class($task),
+                 ],
+             ],
             [
                 'App-Id' => $this->appId,
                 'Api-Token' => $this->apiToken,
