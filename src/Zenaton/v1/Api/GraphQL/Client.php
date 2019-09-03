@@ -51,9 +51,16 @@ class Client
             $response = $this->httpClient->post($this->endpoint, \json_encode(['query' => $query, 'variables' => $variables]), ['headers' => $this->getRequestHeaders($headers)]);
         } catch (ConnectionErrorException $e) {
             throw ApiException::connectionError($e);
+        } catch (\Exception $e) {
+            throw ApiException::fromException($e);
         }
 
-        return \json_decode($response->raw_body, true);
+        $decoded = \json_decode($response->raw_body, true);
+        if (\json_last_error() !== JSON_ERROR_NONE) {
+            throw ApiException::cannotParseResponseBody($response->raw_body, \json_last_error_msg());
+        }
+
+        return $decoded;
     }
 
     /**

@@ -34,6 +34,40 @@ class ApiException extends ZenatonException
     }
 
     /**
+     * Creates a new instance of the exception when an exception is thrown.
+     *
+     * @return self
+     *
+     * @internal should not be called by user code.
+     */
+    public static function fromException(\Exception $previous)
+    {
+        return new static("An exception was thrown while trying to send a request to the Zenaton API: {$previous->getMessage()}.", 0, $previous);
+    }
+
+    /**
+     * Creates a new instance of the exception when the response body contains invalid JSON.
+     *
+     * @param string $body
+     * @param string $error
+     *
+     * @return self
+     *
+     * @internal should not be called by user code.
+     */
+    public static function cannotParseResponseBody($body, $error)
+    {
+        $message = <<<'MESSAGE'
+Cannot parse response body coming from the Zenaton API: %s.
+
+The following response body was returned from the API:
+%s
+MESSAGE;
+
+        return new static(\sprintf($message, $error, $body));
+    }
+
+    /**
      * Creates a new instance of the exception when an error list is received.
      *
      * @return self

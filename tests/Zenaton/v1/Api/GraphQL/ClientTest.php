@@ -27,6 +27,40 @@ class ClientTest extends TestCase
         $client->request('');
     }
 
+    public function testRequestThrowsAnExceptionInCaseOfInvalidJsonReturned()
+    {
+        $this->expectException(ApiException::class);
+
+        $mockedResponse = new Response(
+            'Crappy content returned by the server <strong>possibly containing some weird html</strong>, etc.',
+            "HTTP/1.1 400 OK\n",
+            Request::init()
+        );
+
+        $http = $this->createMock(Http::class);
+        $http
+            ->method('post')
+            ->willReturn($mockedResponse)
+        ;
+
+        $client = new Client($http, static::ENDPOINT, []);
+        $response = $client->request('');
+    }
+
+    public function testRequestThrowsAnExceptionInCaseOfHttpfulUnableToParseJson()
+    {
+        $this->expectException(ApiException::class);
+
+        $http = $this->createMock(Http::class);
+        $http
+            ->method('post')
+            ->willThrowException(new \Exception('Unable to parse response as JSON'))
+        ;
+
+        $client = new Client($http, static::ENDPOINT, []);
+        $response = $client->request('');
+    }
+
     public function testRequestReturnsDecodedResponseBody()
     {
         $mockedResponse = new Response(
