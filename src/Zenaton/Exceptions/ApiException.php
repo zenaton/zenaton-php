@@ -45,6 +45,20 @@ class ApiException extends ZenatonException
         return new static("An exception was thrown while trying to send a request to the Zenaton API: {$previous->getMessage()}.", 0, $previous);
     }
 
+    public static function unauthenticated($appId, $apiToken)
+    {
+        $message = <<<'MESSAGE'
+Authentication refused by the Zenaton API using the following credentials:
+- App Id: %s
+- Api Token: %s
+
+This can mean you forgot to set your App Id and Api Token on the `Zenaton\Client` object.
+You can set your credentials using the `Zenaton\Client::init()` method.
+MESSAGE;
+
+        return new static(\sprintf($message, $appId, $apiToken));
+    }
+
     /**
      * Creates a new instance of the exception when the response body contains invalid JSON.
      *

@@ -162,23 +162,25 @@ class Client
      */
     public function startTask(TaskInterface $task)
     {
-        $this->graphqlClient->request(
-            Mutations::DISPATCH_TASK,
-            [
-                'input' => [
-                    'environmentName' => $this->appEnv,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'maxProcessingTime' => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
-                    'programmingLanguage' => self::PROG,
-                    'name' => \get_class($task),
-                    'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($task) {
+            return $this->graphqlClient->request(
+                Mutations::DISPATCH_TASK,
+                [
+                    'input' => [
+                        'environmentName' => $this->appEnv,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'maxProcessingTime' => method_exists($task, 'getMaxProcessingTime') ? $task->getMaxProcessingTime() : null,
+                        'programmingLanguage' => self::PROG,
+                        'name' => \get_class($task),
+                        'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -212,24 +214,26 @@ class Client
             }
         }
 
-        $this->graphqlClient->request(
-            Mutations::DISPATCH_WORKFLOW,
-            [
-                'input' => [
-                    'customId' => $customId,
-                    'environmentName' => $this->appEnv,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => self::PROG,
-                    'canonicalName' => $canonical,
-                    'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
-                    'name' => \get_class($flow),
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($customId, $canonical, $flow) {
+            return $this->graphqlClient->request(
+                Mutations::DISPATCH_WORKFLOW,
+                [
+                    'input' => [
+                        'customId' => $customId,
+                        'environmentName' => $this->appEnv,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => self::PROG,
+                        'canonicalName' => $canonical,
+                        'data' => $this->serializer->encode($this->properties->getPropertiesFromObject($flow)),
+                        'name' => \get_class($flow),
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -242,22 +246,24 @@ class Client
      */
     public function killWorkflow($workflowName, $customId)
     {
-        $this->graphqlClient->request(
-            Mutations::KILL_WORKFLOW,
-            [
-                'input' => [
-                    'customId' => $customId,
-                    'environmentName' => $this->appEnv,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => self::PROG,
-                    'name' => $workflowName,
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($customId, $workflowName) {
+            return $this->graphqlClient->request(
+                Mutations::KILL_WORKFLOW,
+                [
+                    'input' => [
+                        'customId' => $customId,
+                        'environmentName' => $this->appEnv,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => self::PROG,
+                        'name' => $workflowName,
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -270,22 +276,24 @@ class Client
      */
     public function pauseWorkflow($workflowName, $customId)
     {
-        $this->graphqlClient->request(
-            Mutations::PAUSE_WORKFLOW,
-            [
-                'input' => [
-                    'customId' => $customId,
-                    'environmentName' => $this->appEnv,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => self::PROG,
-                    'name' => $workflowName,
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($customId, $workflowName) {
+            return $this->graphqlClient->request(
+                Mutations::PAUSE_WORKFLOW,
+                [
+                    'input' => [
+                        'customId' => $customId,
+                        'environmentName' => $this->appEnv,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => self::PROG,
+                        'name' => $workflowName,
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -298,22 +306,24 @@ class Client
      */
     public function resumeWorkflow($workflowName, $customId)
     {
-        $this->graphqlClient->request(
-            Mutations::RESUME_WORKFLOW,
-            [
-                'input' => [
-                    'customId' => $customId,
-                    'environmentName' => $this->appEnv,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => self::PROG,
-                    'name' => $workflowName,
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($customId, $workflowName) {
+            return $this->graphqlClient->request(
+                Mutations::RESUME_WORKFLOW,
+                [
+                    'input' => [
+                        'customId' => $customId,
+                        'environmentName' => $this->appEnv,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => self::PROG,
+                        'name' => $workflowName,
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -325,23 +335,25 @@ class Client
      */
     public function scheduleTask(TaskInterface $task, $cron)
     {
-        $this->graphqlClient->request(
-            Mutations::CREATE_TASK_SCHEDULE,
-             [
-                 'input' => [
-                     'environmentName' => $this->appEnv,
-                     'cron' => $cron,
-                     'intentId' => $this->uuidFactory->uuid4()->toString(),
-                     'programmingLanguage' => static::PROG,
-                     'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
-                     'taskName' => \get_class($task),
-                 ],
-             ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-         );
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($task, $cron) {
+            return $this->graphqlClient->request(
+                Mutations::CREATE_TASK_SCHEDULE,
+                [
+                    'input' => [
+                        'environmentName' => $this->appEnv,
+                        'cron' => $cron,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => static::PROG,
+                        'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($task)),
+                        'taskName' => \get_class($task),
+                    ],
+                ],
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -359,24 +371,26 @@ class Client
             $name = \get_class($workflow);
         }
 
-        $this->graphqlClient->request(
-            Mutations::CREATE_WORKFLOW_SCHEDULE,
-            [
-                'input' => [
-                    'environmentName' => $this->appEnv,
-                    'cron' => $cron,
-                    'canonicalName' => $canonicalName,
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => static::PROG,
-                    'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
-                    'workflowName' => $name,
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($workflow, $canonicalName, $cron, $name) {
+            return $this->graphqlClient->request(
+                Mutations::CREATE_WORKFLOW_SCHEDULE,
+                [
+                    'input' => [
+                        'environmentName' => $this->appEnv,
+                        'cron' => $cron,
+                        'canonicalName' => $canonicalName,
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => static::PROG,
+                        'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
+                        'workflowName' => $name,
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -432,25 +446,27 @@ class Client
      */
     public function sendEvent($workflowName, $customId, EventInterface $event)
     {
-        $this->graphqlClient->request(
-            Mutations::SEND_EVENT,
-            [
-                'input' => [
-                    'customId' => $customId,
-                    'environmentName' => $this->appEnv,
-                    'name' => get_class($event),
-                    'input' => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
-                    'data' => $this->serializer->encode($event),
-                    'intentId' => $this->uuidFactory->uuid4()->toString(),
-                    'programmingLanguage' => self::PROG,
-                    'workflowName' => $workflowName,
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($workflowName, $customId, $event) {
+            return $this->graphqlClient->request(
+                Mutations::SEND_EVENT,
+                [
+                    'input' => [
+                        'customId' => $customId,
+                        'environmentName' => $this->appEnv,
+                        'name' => get_class($event),
+                        'input' => $this->serializer->encode($this->properties->getPropertiesFromObject($event)),
+                        'data' => $this->serializer->encode($event),
+                        'intentId' => $this->uuidFactory->uuid4()->toString(),
+                        'programmingLanguage' => self::PROG,
+                        'workflowName' => $workflowName,
+                    ],
                 ],
-            ],
-            [
-                'App-Id' => $this->appId,
-                'Api-Token' => $this->apiToken,
-            ]
-        );
+                [
+                    'App-Id' => $this->appId,
+                    'Api-Token' => $this->apiToken,
+                ]
+            );
+        });
     }
 
     /**
@@ -554,5 +570,21 @@ class Client
     private function getGatewayUrl()
     {
         return \getenv('ZENATON_GATEWAY_URL') ?: self::ZENATON_GATEWAY_URL;
+    }
+
+    /**
+     * Sends a GraphQL request and throw an exception if there are errors returned by the API.
+     *
+     * @return array
+     */
+    private function sendGatewayRequestAndThrowOnErrors(\Closure $closure)
+    {
+        $response = $closure();
+
+        if (isset($response['errors'])) {
+            throw ApiException::fromErrorList($response['errors']);
+        }
+
+        return $response;
     }
 }

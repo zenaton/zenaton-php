@@ -52,6 +52,10 @@ class Client
             throw ApiException::fromException($e);
         }
 
+        if ($response->code === 403) {
+            throw ApiException::unauthenticated($response->request->headers['App-Id'], $response->request->headers['Api-Token']);
+        }
+
         $decoded = \json_decode($response->raw_body, true);
         if (\json_last_error() !== JSON_ERROR_NONE) {
             throw ApiException::cannotParseResponseBody($response->raw_body, \json_last_error_msg());
