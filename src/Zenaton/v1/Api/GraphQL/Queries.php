@@ -8,8 +8,8 @@ namespace Zenaton\Api\GraphQL;
 final class Queries
 {
     const WORKFLOW = <<<'WORKFLOW'
-        query workflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
-            workflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+        query findWorkflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+            findWorkflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
                 name
                 properties
             }

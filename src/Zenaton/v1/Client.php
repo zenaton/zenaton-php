@@ -432,7 +432,7 @@ class Client
             throw ApiException::fromErrorList($response['errors']);
         }
 
-        return $this->properties->getObjectFromNameAndProperties($response['data']['workflow']['name'], $this->serializer->decode($response['data']['workflow']['properties']));
+        return $this->properties->getObjectFromNameAndProperties($response['data']['findWorkflow']['name'], $this->serializer->decode($response['data']['findWorkflow']['properties']));
     }
 
     /**
