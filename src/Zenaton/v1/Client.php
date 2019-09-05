@@ -53,9 +53,10 @@ class Client
     public static function init($appId, $apiToken, $appEnv)
     {
         Client::getInstance()
-          ->setAppId($appId)
-          ->setApiToken($apiToken)
-          ->setAppEnv($appEnv);
+            ->setAppId($appId)
+            ->setApiToken($apiToken)
+            ->setAppEnv($appEnv)
+        ;
     }
 
     public function construct()
@@ -422,7 +423,7 @@ class Client
         if (isset($response['errors'])) {
             // If there is a NOT_FOUND error, we return null
             $notFoundErrors = \array_filter($response['errors'], static function ($error) {
-                return isset($error['type']) && $error['type'] === 'NOT_FOUND';
+                return isset($error['type']) && 'NOT_FOUND' === $error['type'];
             });
             if (\count($notFoundErrors) > 0) {
                 return null;
@@ -470,42 +471,6 @@ class Client
     }
 
     /**
-     * @param string $resource
-     *
-     * @return string
-     */
-    private function getWorkerUrlV2($resource = '', array $params = [])
-    {
-        $url = sprintf(
-            '%s:%s/api/%s/%s',
-            getenv('ZENATON_WORKER_URL') ?: static::ZENATON_WORKER_URL,
-            getenv('ZENATON_WORKER_PORT') ?: static::DEFAULT_WORKER_PORT,
-            static::WORKER_API_VERSION,
-            $resource
-        );
-
-        return $this->addQueryParams($url, $params);
-    }
-
-    /**
-     * @param string $ressources
-     *
-     * @return string
-     */
-    private function getWebsiteUrlV2($ressources = '', array $params = [])
-    {
-        $url = sprintf(
-            '%s/%s',
-            $this->getApiUrl(),
-            $ressources
-        );
-
-        $params[static::API_TOKEN] = $this->apiToken;
-
-        return $this->addQueryParams($url, $params);
-    }
-
-    /**
      * @param string $url
      * @param string $params
      *
@@ -544,6 +509,42 @@ class Client
         }
 
         return sprintf('%s?%s', $url, http_build_query($params));
+    }
+
+    /**
+     * @param string $resource
+     *
+     * @return string
+     */
+    private function getWorkerUrlV2($resource = '', array $params = [])
+    {
+        $url = sprintf(
+            '%s:%s/api/%s/%s',
+            getenv('ZENATON_WORKER_URL') ?: static::ZENATON_WORKER_URL,
+            getenv('ZENATON_WORKER_PORT') ?: static::DEFAULT_WORKER_PORT,
+            static::WORKER_API_VERSION,
+            $resource
+        );
+
+        return $this->addQueryParams($url, $params);
+    }
+
+    /**
+     * @param string $ressources
+     *
+     * @return string
+     */
+    private function getWebsiteUrlV2($ressources = '', array $params = [])
+    {
+        $url = sprintf(
+            '%s/%s',
+            $this->getApiUrl(),
+            $ressources
+        );
+
+        $params[static::API_TOKEN] = $this->apiToken;
+
+        return $this->addQueryParams($url, $params);
     }
 
     /**

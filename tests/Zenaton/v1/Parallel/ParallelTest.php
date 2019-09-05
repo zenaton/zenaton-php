@@ -7,10 +7,18 @@ use Zenaton\Engine\Engine;
 use Zenaton\Interfaces\TaskInterface;
 use Zenaton\Test\SingletonTesting;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Parallel\Parallel
+ */
 class ParallelTest extends TestCase
 {
     use SingletonTesting;
 
+    /**
+     * @covers ::dispatch
+     */
     public function testDispatchItemsGivenInConstructor()
     {
         $engine = $this->replaceSingletonWithMock(Engine::class);
@@ -30,6 +38,9 @@ class ParallelTest extends TestCase
         $parallel->dispatch();
     }
 
+    /**
+     * @covers ::execute
+     */
     public function testExecuteItemsGivenInConstructor()
     {
         $engine = $this->replaceSingletonWithMock(Engine::class);

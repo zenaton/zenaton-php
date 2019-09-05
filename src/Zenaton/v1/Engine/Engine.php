@@ -85,7 +85,7 @@ class Engine
         $this->checkArguments($jobs, __METHOD__);
 
         // local execution
-        if (\count($jobs) === 0) {
+        if (0 === \count($jobs)) {
             return [];
         }
 

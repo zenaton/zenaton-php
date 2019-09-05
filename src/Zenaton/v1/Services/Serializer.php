@@ -82,6 +82,7 @@ class Serializer
         if (array_key_exists(self::KEY_DATA, $array)) {
             return $array[self::KEY_DATA];
         }
+
         throw new UnexpectedValueException('Unknown key in: '.$json);
     }
 

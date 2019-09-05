@@ -9,10 +9,18 @@ use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Query\Builder
+ */
 class BuilderTest extends TestCase
 {
     use SingletonTesting;
 
+    /**
+     * @covers ::__construct
+     */
     public function testNewBuilderWithNotAWorkflow()
     {
         $this->expectException(ExternalZenatonException::class);
@@ -20,6 +28,9 @@ class BuilderTest extends TestCase
         $builder = new Builder(\DateTime::class);
     }
 
+    /**
+     * @covers ::find
+     */
     public function testFindWhenSupplyingAnId()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -37,6 +48,9 @@ class BuilderTest extends TestCase
         ;
     }
 
+    /**
+     * @covers ::send
+     */
     public function testSend()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -56,6 +70,9 @@ class BuilderTest extends TestCase
         ;
     }
 
+    /**
+     * @covers ::kill
+     */
     public function testKill()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -73,6 +90,9 @@ class BuilderTest extends TestCase
         ;
     }
 
+    /**
+     * @covers ::pause
+     */
     public function testPause()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -90,6 +110,9 @@ class BuilderTest extends TestCase
         ;
     }
 
+    /**
+     * @covers ::resume
+     */
     public function testResume()
     {
         $client = $this->replaceSingletonWithMock(Client::class);

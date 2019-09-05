@@ -16,6 +16,11 @@ use Zenaton\Test\Mock\Workflow\IdentifiedWorkflow;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Client
+ */
 final class ClientTest extends TestCase
 {
     use SingletonTesting;
@@ -44,6 +49,9 @@ final class ClientTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * @covers ::init
+     */
     public function testInit()
     {
         $client = Client::getInstance();
@@ -58,6 +66,9 @@ final class ClientTest extends TestCase
         $bounded();
     }
 
+    /**
+     * @covers ::startWorkflow
+     */
     public function testStartBasicWorkflow()
     {
         $client = Client::getInstance();
@@ -108,6 +119,9 @@ BODY;
         static::assertNull($client->startWorkflow(new NullWorkflow()));
     }
 
+    /**
+     * @covers ::startWorkflow
+     */
     public function testStartVersionWorkflow()
     {
         $client = Client::getInstance();
@@ -158,6 +172,9 @@ BODY;
         static::assertNull($client->startWorkflow(new Test\Mock\Workflow\VersionedWorkflow()));
     }
 
+    /**
+     * @covers ::startWorkflow
+     */
     public function testStartWorkflowWithId()
     {
         $client = Client::getInstance();
@@ -209,7 +226,10 @@ BODY;
     }
 
     /**
+     * @covers ::startWorkflow
      * @dataProvider getTestStartWorkflowWithInvalidIdData
+     *
+     * @param mixed $identifier
      */
     public function testStartWorkflowWithInvalidId($identifier)
     {
@@ -228,6 +248,9 @@ BODY;
         yield ['a very l'.str_repeat('o', 256).'ng identifier'];
     }
 
+    /**
+     * @covers ::killWorkflow
+     */
     public function testKillWorkflow()
     {
         $client = Client::getInstance();
@@ -273,6 +296,9 @@ BODY;
         static::assertNull($client->killWorkflow(NullWorkflow::class, 'Soon to be dead workflow'));
     }
 
+    /**
+     * @covers ::pauseWorkflow
+     */
     public function testPauseWorkflow()
     {
         $client = Client::getInstance();
@@ -317,6 +343,9 @@ BODY;
         static::assertNull($client->pauseWorkflow(NullWorkflow::class, 'Soon to be paused workflow'));
     }
 
+    /**
+     * @covers ::resumeWorkflow
+     */
     public function testResumeWorkflow()
     {
         $client = Client::getInstance();
@@ -361,6 +390,9 @@ BODY;
         static::assertNull($client->resumeWorkflow(NullWorkflow::class, 'Soon to be resumed workflow'));
     }
 
+    /**
+     * @covers ::findWorkflow
+     */
     public function testFindWorkflow()
     {
         $client = Client::getInstance();
@@ -407,6 +439,9 @@ BODY;
         static::assertInstanceOf(NullWorkflow::class, $workflow);
     }
 
+    /**
+     * @covers ::findWorkflow
+     */
     public function testFindWorkflowThrowsAnExceptionWhenApiReturnsAnError()
     {
         $this->expectException(ApiException::class);
@@ -430,6 +465,9 @@ BODY;
         $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
     }
 
+    /**
+     * @covers ::findWorkflow
+     */
     public function testFindWorkflowReturnsNullWhenWorkflowDoesNotExists()
     {
         $client = Client::getInstance();
@@ -477,6 +515,9 @@ BODY;
         static::assertNull($workflow);
     }
 
+    /**
+     * @covers ::sendEvent
+     */
     public function testSendEvent()
     {
         $client = Client::getInstance();
@@ -529,6 +570,9 @@ BODY;
         static::assertNull($client->sendEvent(NullWorkflow::class, 'Workflow to send event to', $event));
     }
 
+    /**
+     * @covers ::scheduleWorkflow
+     */
     public function testScheduleWorkflow()
     {
         $client = Client::getInstance();
@@ -579,6 +623,9 @@ BODY;
         static::assertNull($output);
     }
 
+    /**
+     * @covers ::scheduleTask
+     */
     public function testScheduleTask()
     {
         $client = Client::getInstance();
@@ -629,7 +676,12 @@ BODY;
     }
 
     /**
+     * @covers ::getWorkerUrl
      * @dataProvider getTestGetWorkerUrlWithParamsAsArrayData
+     *
+     * @param mixed $resource
+     * @param mixed $params
+     * @param mixed $expected
      */
     public function testGetWorkerUrlWithParamsAsArray($resource, $params, $expected)
     {
@@ -649,7 +701,12 @@ BODY;
     }
 
     /**
+     * @covers ::getWorkerUrl
      * @dataProvider getTestGetWorkerUrlWithParamsAsStringData
+     *
+     * @param mixed $resource
+     * @param mixed $params
+     * @param mixed $expected
      */
     public function testGetWorkerUrlWithParamsAsString($resource, $params, $expected)
     {
@@ -680,6 +737,8 @@ BODY;
      * Creates a mock of a Workflow having an identifier.
      *
      * @param string $identifier The workflow identifier
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject|WorkflowInterface
      */
     private function createWorkflowWithIdentifierMock($identifier = 'WorkflowIdentifier')
     {
@@ -719,6 +778,8 @@ BODY;
 
     /**
      * Inject a mocked UuidFactory instance into the Client singleton instance.
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject|UuidFactoryInterface
      */
     private function createUuidFactoryMock()
     {
