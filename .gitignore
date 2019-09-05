@@ -1,5 +1,6 @@
 .DS_Store
 /.env
 /.php_cs.cache
+/.vscode
 /composer.lock
 /vendor/
