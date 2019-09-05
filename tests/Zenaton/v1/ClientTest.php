@@ -2,8 +2,6 @@
 
 namespace Zenaton;
 
-use Httpful\Request;
-use Httpful\Response;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidFactoryInterface;
@@ -14,9 +12,9 @@ use Zenaton\Services\Http;
 use Zenaton\Test\Injector;
 use Zenaton\Test\Mock\Event\DummyEvent;
 use Zenaton\Test\Mock\Tasks\NullTask;
+use Zenaton\Test\Mock\Workflow\IdentifiedWorkflow;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 use Zenaton\Test\SingletonTesting;
-use Zenaton\Workflows\Version as VersionedWorkflow; // Alias is required because of a bug in PHP 5.6 namespace shadowing. See https://bugs.php.net/bug.php?id=66862.
 
 final class ClientTest extends TestCase
 {
@@ -63,71 +61,151 @@ final class ClientTest extends TestCase
     public function testStartBasicWorkflow()
     {
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $http
-            ->expects($this->once())
-            ->method('post')
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('78ca2686-1024-4223-8b07-4b9a664a7bab');
+            })
         ;
 
-        $workflow = $this->createMock(WorkflowInterface::class);
+        $expectedQuery = <<<'BODY'
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    id
+                }
+            }
+        }
+BODY;
 
-        $client->startWorkflow($workflow);
+        $expectedVariables = [
+            'input' => [
+                'customId' => null,
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '78ca2686-1024-4223-8b07-4b9a664a7bab',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => null,
+                'data' => '{"a":[],"s":[]}',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
+        ;
+
+        static::assertNull($client->startWorkflow(new NullWorkflow()));
     }
 
     public function testStartVersionWorkflow()
     {
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $http
-            ->expects($this->once())
-            ->method('post')
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('d0a33416-8c5b-4d2f-804d-4c413faed83f');
+            })
         ;
 
-        $workflow = $this
-            ->getMockBuilder(VersionedWorkflow::class)
-            ->setMethods([
-                'versions',
-            ])
-            ->getMock()
-        ;
-        $workflow
-            ->expects($this->any())
-            ->method('versions')
-            ->willReturn([
-                NullWorkflow::class,
-            ])
+        $expectedQuery = <<<'BODY'
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    id
+                }
+            }
+        }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => null,
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'd0a33416-8c5b-4d2f-804d-4c413faed83f',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => Test\Mock\Workflow\VersionedWorkflow::class,
+                'data' => '{"a":[],"s":[]}',
+                'name' => Test\Mock\Workflow\VersionedWorkflow_v0::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
-        $client->startWorkflow($workflow);
+        static::assertNull($client->startWorkflow(new Test\Mock\Workflow\VersionedWorkflow()));
     }
 
     public function testStartWorkflowWithId()
     {
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $http
-            ->expects($this->once())
-            ->method('post')
+        $uuidFactory = $this->createUuidFactoryMock();
+        $uuidFactory
+            ->method('uuid4')
+            ->willReturnCallback(function () {
+                return Uuid::fromString('e7eccb45-dcdf-46b2-b94c-205e778d4f6f');
+            })
         ;
 
-        $workflow = $this
-            ->getMockBuilder(WorkflowInterface::class)
-            ->setMethods([
-                'getId',
-                'handle',
-            ])
-            ->getMock()
-        ;
-        $workflow
-            ->expects($this->any())
-            ->method('getId')
-            ->willReturn('WorkflowIdentifier')
+        $expectedQuery = <<<'BODY'
+        mutation dispatchWorkflow($input: DispatchWorkflowInput!) {
+            dispatchWorkflow(input: $input) {
+                workflow {
+                    id
+                }
+            }
+        }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'static-identifier',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'e7eccb45-dcdf-46b2-b94c-205e778d4f6f',
+                'programmingLanguage' => 'PHP',
+                'canonicalName' => null,
+                'data' => '{"a":[],"s":[]}',
+                'name' => Test\Mock\Workflow\IdentifiedWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
-        $client->startWorkflow($workflow);
+        static::assertNull($client->startWorkflow(new IdentifiedWorkflow()));
     }
 
     /**
@@ -137,7 +215,6 @@ final class ClientTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        Client::init('FakeAppId', 'FakeApiToken', 'FakeAppEnv');
         $client = Client::getInstance();
         $workflow = $this->createWorkflowWithIdentifierMock($identifier);
 
@@ -161,22 +238,39 @@ final class ClientTest extends TestCase
                 return Uuid::fromString('194910b6-cadd-4d2a-8d55-366a09654df6');
             })
         ;
-        $http = $this->createHttpMock();
-        $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+dead+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'kill',
-                    'intent_id' => '194910b6-cadd-4d2a-8d55-366a09654df6',
-                ]
-            )
+
+        $expectedQuery = <<<'BODY'
+        mutation killWorkflow($input: KillWorkflowInput!) {
+            killWorkflow(input: $input) {
+                id
+            }
+        }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be dead workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '194910b6-cadd-4d2a-8d55-366a09654df6',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
-        $client->killWorkflow(NullWorkflow::class, 'Soon to be dead workflow');
+        static::assertNull($client->killWorkflow(NullWorkflow::class, 'Soon to be dead workflow'));
     }
 
     public function testPauseWorkflow()
@@ -189,22 +283,38 @@ final class ClientTest extends TestCase
                 return Uuid::fromString('c9d5de11-a513-408b-bc30-82a85fe82c07');
             })
         ;
-        $http = $this->createHttpMock();
-        $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+paused+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'pause',
-                    'intent_id' => 'c9d5de11-a513-408b-bc30-82a85fe82c07',
-                ]
-            )
+
+        $expectedQuery = <<<'BODY'
+        mutation pauseWorkflow($input: PauseWorkflowInput!) {
+            pauseWorkflow(input: $input) {
+                id
+            }
+        }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be paused workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => 'c9d5de11-a513-408b-bc30-82a85fe82c07',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
-        $client->pauseWorkflow(NullWorkflow::class, 'Soon to be paused workflow');
+        static::assertNull($client->pauseWorkflow(NullWorkflow::class, 'Soon to be paused workflow'));
     }
 
     public function testResumeWorkflow()
@@ -217,52 +327,79 @@ final class ClientTest extends TestCase
                 return Uuid::fromString('1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb');
             })
         ;
-        $http = $this->createHttpMock();
-        $http
-            ->expects($this->once())
-            ->method('put')
-            ->with(
-                'http://localhost:4001/api/v_newton/instances?custom_id=Soon+to+be+resumed+workflow&app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'mode' => 'run',
-                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
-                ]
-            )
+
+        $expectedQuery = <<<'BODY'
+        mutation resumeWorkflow($input: ResumeWorkflowInput!) {
+            resumeWorkflow(input: $input) {
+                id
+            }
+        }
+BODY;
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Soon to be resumed workflow',
+                'environmentName' => 'FakeAppEnv',
+                'intentId' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
+                'programmingLanguage' => 'PHP',
+                'name' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
-        $client->resumeWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
+        static::assertNull($client->resumeWorkflow(NullWorkflow::class, 'Soon to be resumed workflow'));
     }
 
     public function testFindWorkflow()
     {
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $body = (object) [
-            'data' => (object) [
-                'name' => NullWorkflow::class,
-                'properties' => '{"a":[1,2,3],"s":[]}',
+        $expectedQuery = <<<'BODY'
+        query findWorkflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+            findWorkflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                name
+                properties
+            }
+        }
+BODY;
+        $expectedVariables = [
+            'customId' => 'Soon to be resumed workflow',
+            'environmentName' => 'FakeAppEnv',
+            'programmingLanguage' => 'PHP',
+            'workflowName' => NullWorkflow::class,
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $body = [
+            'data' => [
+                'findWorkflow' => [
+                    'name' => NullWorkflow::class,
+                    'properties' => '{"a":[1,2,3],"s":[]}',
+                ],
             ],
         ];
-        $response = $this
-            ->getMockBuilder(Response::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $response
-            ->expects($this->once())
-            ->method('hasErrors')
-            ->willReturn(false)
-        ;
-        $response->body = $body;
 
-        $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
-            ->willReturn($response)
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn($body)
         ;
 
         $workflow = $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -275,30 +412,19 @@ final class ClientTest extends TestCase
         $this->expectException(ApiException::class);
 
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $body = (object) [
-            'error' => 'No workflow instance found with the id : 12',
-        ];
-
-        $response = $this
-            ->getMockBuilder(Response::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $response
-            ->expects($this->once())
-            ->method('hasErrors')
-            ->willReturn(true)
-        ;
-        $response->body = $body;
-        $response->code = 500;
-
-        $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
-            ->willReturn($response)
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with(static::anything(), static::anything(), static::anything())
+            ->willReturn([
+                'errors' => [
+                    [
+                        'message' => 'This is a completely fake error from the API',
+                    ],
+                ],
+            ])
         ;
 
         $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -307,25 +433,43 @@ final class ClientTest extends TestCase
     public function testFindWorkflowReturnsNullWhenWorkflowDoesNotExists()
     {
         $client = Client::getInstance();
-        $http = $this->createHttpMock();
 
-        $body = (object) [
-            'error' => 'No workflow instance found with the id : 12',
+        $expectedQuery = <<<'BODY'
+        query findWorkflow($workflowName: String, $customId: ID, $environmentName: String, $programmingLanguage: String) {
+            findWorkflow(environmentName: $environmentName, programmingLanguage: $programmingLanguage, customId: $customId, name: $workflowName) {
+                name
+                properties
+            }
+        }
+BODY;
+
+        $expectedVariables = [
+            'customId' => 'Soon to be resumed workflow',
+            'environmentName' => 'FakeAppEnv',
+            'programmingLanguage' => 'PHP',
+            'workflowName' => NullWorkflow::class,
         ];
 
-        $response = $this
-            ->getMockBuilder(Response::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $response->body = $body;
-        $response->code = 404;
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
 
-        $http
-            ->expects($this->once())
-            ->method('get')
-            ->with('https://api.zenaton.com/v1/instances?custom_id=Soon+to+be+resumed+workflow&name=Zenaton%5CTest%5CMock%5CWorkflow%5CNullWorkflow&programming_language=PHP&api_token=FakeApiToken&app_id=FakeAppId&app_env=FakeAppEnv')
-            ->willReturn($response)
+        $body = [
+            'errors' => [
+                [
+                    'type' => 'NOT_FOUND',
+                    'message' => 'No workflow instance found with the id : 12',
+                ],
+            ],
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn($body)
         ;
 
         $workflow = $client->findWorkflow(NullWorkflow::class, 'Soon to be resumed workflow');
@@ -339,31 +483,50 @@ final class ClientTest extends TestCase
         $uuidFactory = $this->createUuidFactoryMock();
         $uuidFactory
             ->method('uuid4')
-            ->willReturnCallback(function () {
+            ->willReturnCallback(static function () {
                 return Uuid::fromString('1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb');
             })
         ;
-        $http = $this->createHttpMock();
-        $http
-            ->expects($this->once())
-            ->method('post')
-            ->with(
-                'http://localhost:4001/api/v_newton/events?app_id=FakeAppId&app_env=FakeAppEnv',
-                [
-                    'programming_language' => 'PHP',
-                    'name' => NullWorkflow::class,
-                    'custom_id' => 'Workflow to send event to',
-                    'event_name' => DummyEvent::class,
-                    'event_input' => '{"a":[],"s":[]}',
-                    'event_data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
-                    'intent_id' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
-                ]
-            )
+
+        $expectedQuery = <<<'BODY'
+        mutation sendEventToWorkflowByNameAndCustomId($input: SendEventToWorkflowByNameAndCustomIdInput!) {
+            sendEventToWorkflowByNameAndCustomId(input: $input) {
+                event {
+                    intentId
+                }
+            }
+        }
+BODY;
+
+        $expectedVariables = [
+            'input' => [
+                'customId' => 'Workflow to send event to',
+                'environmentName' => 'FakeAppEnv',
+                'name' => DummyEvent::class,
+                'input' => '{"a":[],"s":[]}',
+                'data' => '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Test\\\\Mock\\\\Event\\\\DummyEvent","p":[]}]}',
+                'intentId' => '1ed3a42b-69c4-4a4c-b1ec-fb1dc1f483cb',
+                'programmingLanguage' => 'PHP',
+                'workflowName' => NullWorkflow::class,
+            ],
+        ];
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
+        ];
+
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
+            ->expects(static::once())
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
 
         $event = new DummyEvent();
 
-        $client->sendEvent(NullWorkflow::class, 'Workflow to send event to', $event);
+        static::assertNull($client->sendEvent(NullWorkflow::class, 'Workflow to send event to', $event));
     }
 
     public function testScheduleWorkflow()
@@ -376,7 +539,7 @@ final class ClientTest extends TestCase
                 return Uuid::fromString('47f5f00a-f29a-4b65-a7a5-b365b26dd92e');
             })
         ;
-        $http = $this->createHttpMock();
+
         $expectedQuery = <<<'BODY'
         mutation createWorkflowSchedule($input: CreateWorkflowScheduleInput!) {
             createWorkflowSchedule(input: $input) {
@@ -397,26 +560,20 @@ BODY;
                 'workflowName' => NullWorkflow::class,
             ],
         ];
-        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
-        $expectedOptions = [
-            'headers' => [
-                'App-Id' => 'FakeAppId',
-                'Api-Token' => 'FakeApiToken',
-            ],
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
         ];
 
-        $mockedResponse = new Response(
-            '{"data":{"createWorkflowSchedule":{"schedule":{"cron":"* * * * *","id":"47f5f00a-f29a-4b65-a7a5-b365b26dd92e","insertedAt":"2019-08-20T15:22:31.859478Z","name":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","target":{"canonicalName":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","codePathVersion":null,"initialLibraryVersion":null,"name":"Zenaton\\\\Test\\\\Mock\\\\Workflow\\\\NullWorkflow","programmingLanguage":"PHP","properties":"{\"a\":[],\"s\":[]}","type":"WORKFLOW"},"updatedAt":"2019-08-20T15:22:31.859478Z"}}}}',
-            "HTTP/1.1 200 OK\n",
-            Request::init()
-        );
-
-        $http
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
             ->expects(static::once())
-            ->method('post')
-            ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
-            ->willReturn($mockedResponse)
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
+
         $output = $client->scheduleWorkflow(new NullWorkflow(), '* * * * *');
 
         static::assertNull($output);
@@ -432,7 +589,7 @@ BODY;
                 return Uuid::fromString('9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9');
             })
         ;
-        $http = $this->createHttpMock();
+
         $expectedQuery = <<<'BODY'
         mutation createTaskSchedule($input: CreateTaskScheduleInput!) {
             createTaskSchedule(input: $input) {
@@ -452,26 +609,20 @@ BODY;
                 'taskName' => NullTask::class,
             ],
         ];
-        $expectedBody = \json_encode(['query' => $expectedQuery, 'variables' => $expectedVariables]);
-        $expectedOptions = [
-            'headers' => [
-                'App-Id' => 'FakeAppId',
-                'Api-Token' => 'FakeApiToken',
-            ],
+
+        $expectedHeaders = [
+            'App-Id' => 'FakeAppId',
+            'Api-Token' => 'FakeApiToken',
         ];
 
-        $mockedResponse = new Response(
-            '{"data":{"createTaskSchedule":{"schedule":{"cron":"* * * * *","id":"9c3cbc93-f394-4a3d-ab3e-5f6f884d9ab9","insertedAt":"2019-08-20T15:22:31.859478Z","name":"Zenaton\\\\Test\\\\Mock\\\\Tasks\\\\NullTask","target":{"codePathVersion":null,"initialLibraryVersion":null,"name":"Zenaton\\\\Test\\\\Mock\\\\Tasks\\\\NullTask","programmingLanguage":"PHP","properties":"{\"a\":[],\"s\":[]}","type":"TASK"},"updatedAt":"2019-08-20T15:22:31.859478Z"}}}}',
-            "HTTP/1.1 200 OK\n",
-            Request::init()
-        );
-
-        $http
+        $graphql = $this->createGraphQLClientMock();
+        $graphql
             ->expects(static::once())
-            ->method('post')
-            ->with('https://gateway.zenaton.com/api', $expectedBody, $expectedOptions)
-            ->willReturn($mockedResponse)
+            ->method('request')
+            ->with($expectedQuery, $expectedVariables, $expectedHeaders)
+            ->willReturn(null)
         ;
+
         $output = $client->scheduleTask(new NullTask(), '* * * * *');
 
         static::assertNull($output);
@@ -541,7 +692,7 @@ BODY;
             ->getMock()
         ;
         $workflow
-            ->expects($this->any())
+            ->expects(static::any())
             ->method('getId')
             ->willReturn($identifier)
         ;
@@ -552,15 +703,15 @@ BODY;
     /**
      * Inject a mocked Http instance into the Client singleton instance.
      *
-     * @return Http|\PHPUnit_Framework_MockObject_MockObject
+     * @return \PHPUnit_Framework_MockObject_MockObject|\Zenaton\Api\GraphQL\Client
      */
-    private function createHttpMock()
+    private function createGraphQLClientMock()
     {
         $client = Client::getInstance();
-        $mock = $this->createMock(Http::class);
+        $mock = $this->createMock(\Zenaton\Api\GraphQL\Client::class);
 
         $this->inject(function () use ($mock) {
-            $this->http = $mock;
+            $this->graphqlClient = $mock;
         }, $client);
 
         return $mock;

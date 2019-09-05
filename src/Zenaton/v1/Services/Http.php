@@ -7,7 +7,7 @@ use Httpful\Request;
 use Zenaton\Exceptions\ConnectionErrorException as ZenatonConnectionErrorException;
 
 /**
- * @internal should not be used by user code
+ * @internal should not be called by user code
  */
 class Http
 {
