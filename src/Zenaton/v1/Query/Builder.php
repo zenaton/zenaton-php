@@ -51,6 +51,8 @@ class Builder
     /**
      * Create a new pending job dispatch.
      *
+     * @param mixed $id
+     *
      * @return self
      */
     public function whereId($id)

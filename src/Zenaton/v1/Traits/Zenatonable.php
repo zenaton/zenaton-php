@@ -71,7 +71,7 @@ trait Zenatonable
 
     public function schedule($cron)
     {
-        if (!\is_string($cron) || $cron === '') {
+        if (!\is_string($cron) || '' === $cron) {
             throw new \InvalidArgumentException('$cron parameter must be a non empty string.');
         }
 

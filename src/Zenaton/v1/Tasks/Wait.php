@@ -26,6 +26,14 @@ class Wait implements WaitInterface
         $this->event = $event;
     }
 
+    /**
+     * Be a bit less fragile by linearizing only useful data.
+     */
+    public function __sleep()
+    {
+        return ['event', '_buffer'];
+    }
+
     public function handle()
     {
         // No waiting when executed locally
@@ -34,13 +42,5 @@ class Wait implements WaitInterface
     public function getEvent()
     {
         return $this->event;
-    }
-
-    /**
-     * Be a bit less fragile by linearizing only useful data.
-     */
-    public function __sleep()
-    {
-        return ['event', '_buffer'];
     }
 }

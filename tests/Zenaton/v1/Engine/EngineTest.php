@@ -10,6 +10,11 @@ use Zenaton\Interfaces\WorkflowInterface;
 use Zenaton\Test\Mock\Processor\NullProcessor;
 use Zenaton\Test\SingletonTesting;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Engine\Engine
+ */
 class EngineTest extends TestCase
 {
     use SingletonTesting;
@@ -28,6 +33,9 @@ class EngineTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * @covers ::execute
+     */
     public function testExecuteCallsHandleMethodOfJobsWhenProcessorIsNotSet()
     {
         $jobs = [];
@@ -50,6 +58,9 @@ class EngineTest extends TestCase
         $engine->execute($jobs);
     }
 
+    /**
+     * @covers ::execute
+     */
     public function testExecuteUsesProcessorWhenItIsSet()
     {
         $task = $this->createMock(TaskInterface::class);
@@ -63,6 +74,9 @@ class EngineTest extends TestCase
         $engine->execute([$task]);
     }
 
+    /**
+     * @covers ::execute
+     */
     public function testExecuteJobNotWorkflowOrTaskThrowsAnException()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -73,6 +87,9 @@ class EngineTest extends TestCase
         $engine->execute([$job]);
     }
 
+    /**
+     * @covers ::dispatch
+     */
     public function testDispatchWorkflowAsksClientToStartTheWorkflowWhenProcessorIsNotSet()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -89,6 +106,9 @@ class EngineTest extends TestCase
         static::assertSame([null], $outputs);
     }
 
+    /**
+     * @covers ::dispatch
+     */
     public function testDispatchTaskAsksClientToStartTaskWhenProcessorIsNotSet()
     {
         $client = $this->replaceSingletonWithMock(Client::class);
@@ -106,6 +126,9 @@ class EngineTest extends TestCase
         static::assertSame([null], $outputs);
     }
 
+    /**
+     * @covers ::dispatch
+     */
     public function testDispatchUsesProcessorWhenItIsSet()
     {
         $engine = Engine::getInstance();

@@ -140,12 +140,15 @@ trait WithTimestamp
             switch ($this->_mode) {
                 case self::$_MODE_AT:
                     $then = $then->addDay();
+
                     break;
                 case self::$_MODE_WEEK_DAY:
                     $then = $then->addWeek();
+
                     break;
                 case self::$_MODE_MONTH_DAY:
                     $then = $then->addMonth();
+
                     break;
                 default:
                     throw new InternalZenatonException('Unknown mode: '.$this->_mode);
@@ -282,14 +285,14 @@ trait WithTimestamp
     {
         // Find in the buffer if the method `at` was used to set the time
         $time = array_reduce($this->_buffer, function ($carry, $item) {
-            if ($item[0] === 'at') {
+            if ('at' === $item[0]) {
                 return $item[1];
             }
 
             return $carry;
         }, null);
 
-        if ($time === null) {
+        if (null === $time) {
             return false;
         }
 

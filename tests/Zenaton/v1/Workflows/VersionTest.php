@@ -7,10 +7,19 @@ use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Test\Mock\Workflow\ExecutingClosureWorkflow;
 use Zenaton\Test\Mock\Workflow\NullWorkflow;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Workflows\Version
+ */
 final class VersionTest extends TestCase
 {
     /**
+     * @covers ::getCurrentImplementation
      * @dataProvider getTestGetCurrentImplementationReturnsAnInstanceData
+     *
+     * @param mixed $versions
+     * @param mixed $expected
      */
     public function testGetCurrentImplementationReturnsAnInstance($versions, $expected)
     {
@@ -44,7 +53,10 @@ final class VersionTest extends TestCase
     }
 
     /**
+     * @covers ::getCurrentImplementation
      * @dataProvider getTestGetCurrentImplementationThrowsAnExceptionWhenInvalidVersionsData
+     *
+     * @param mixed $versions
      */
     public function testGetCurrentImplementationThrowsAnExceptionWhenInvalidVersions($versions)
     {
@@ -69,6 +81,9 @@ final class VersionTest extends TestCase
         yield ['Zenaton'];
     }
 
+    /**
+     * @covers ::getCurrentImplementation
+     */
     public function testHandleExecutesHandleOfCurrentVersion()
     {
         $assertions = function () {

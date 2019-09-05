@@ -4,6 +4,11 @@ namespace Zenaton\Services;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Services\Serializer
+ */
 final class SerializerTest extends TestCase
 {
     /** @var Serializer */
@@ -15,7 +20,11 @@ final class SerializerTest extends TestCase
     }
 
     /**
+     * @covers ::encode
      * @dataProvider getTestEncodeData
+     *
+     * @param mixed $scalar
+     * @param mixed $expected
      */
     public function testEncode($scalar, $expected)
     {
@@ -184,7 +193,7 @@ final class SerializerTest extends TestCase
         ];
 
         // Objects inheriting other objects
-        yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"grandParentProperty":"zenaton","zenaton":"is dope","parentProperty":21,"parentConstructorDefinedProperty":22,"parentOverridableProperty":false,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
+        yield [new ChildClass(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\ChildClass","p":{"zenaton":"is dope","grandParentProperty":"zenaton","parentOverridableProperty":false,"parentProperty":21,"parentConstructorDefinedProperty":22,"childProperty":42,"childConstructorDefinedProperty":43}}]}'];
 
         // Objects implementing Traversable
         yield [new SimpleCollection(), '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
@@ -200,10 +209,13 @@ final class SerializerTest extends TestCase
         yield [$object, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\CannotBeCloned","p":{"a":42}}]}'];
     }
 
+    /**
+     * @covers ::encode
+     */
     public function testEncodeAResourceReturnsSerializationOfIntegerZero()
     {
         $handle = fopen(__FILE__, 'r');
-        if ($handle === false) {
+        if (false === $handle) {
             static::fail('Cannot open file the current file using read access.');
         }
 
@@ -215,7 +227,11 @@ final class SerializerTest extends TestCase
     }
 
     /**
+     * @covers ::decode
      * @dataProvider getTestDecodeData
+     *
+     * @param mixed $expectationsCallback
+     * @param mixed $encodedString
      */
     public function testDecode($expectationsCallback, $encodedString)
     {
@@ -408,6 +424,9 @@ final class SerializerTest extends TestCase
         }, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
     }
 
+    /**
+     * @covers ::decode
+     */
     public function testDecodeStringContainingWrongKeyThrowsAnException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -415,14 +434,15 @@ final class SerializerTest extends TestCase
         $this->serializer->decode('{"z":"","s":[]}');
     }
 
+    /**
+     * @covers ::decode
+     */
     public function testDecodeMalformedJsonThrowsAnException()
     {
         $this->expectException(\UnexpectedValueException::class);
 
         $this->serializer->decode('{"z":"","s":[]');
     }
-
-    //public function testDecodedClosuresReturnsCorrectResult($closure, $expectedResult)
 
     private static function uglify($string)
     {
@@ -450,15 +470,15 @@ class C3
 
 class GrandParentClass
 {
-    private $grandParentProperty = 'zenaton';
     public $zenaton = 'is dope';
+    private $grandParentProperty = 'zenaton';
 }
 
 class ParentClass extends GrandParentClass
 {
+    protected $parentOverridableProperty = true;
     private $parentProperty = 21;
     private $parentConstructorDefinedProperty;
-    protected $parentOverridableProperty = true;
 
     public function __construct()
     {

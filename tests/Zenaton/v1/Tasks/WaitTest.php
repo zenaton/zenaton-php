@@ -9,6 +9,11 @@ use PHPUnit\Framework\TestCase;
 use Zenaton\Exceptions\ExternalZenatonException;
 use Zenaton\Test\Mock\Event\DummyEvent;
 
+/**
+ * @internal
+ *
+ * @coversDefaultClass \Zenaton\Tasks\Wait
+ */
 class WaitTest extends TestCase
 {
     public function setUp()
@@ -21,6 +26,10 @@ class WaitTest extends TestCase
         Chronos::setTestNow();
     }
 
+    /**
+     * @covers ::__construct
+     * @covers ::getEvent
+     */
     public function testNewInstanceWithoutEvent()
     {
         $wait = new Wait();
@@ -29,6 +38,10 @@ class WaitTest extends TestCase
         static::assertNull($wait->getEvent());
     }
 
+    /**
+     * @covers ::__construct
+     * @covers ::getEvent
+     */
     public function testNewInstanceWithValidEvent()
     {
         $wait = new Wait(DummyEvent::class);
@@ -38,7 +51,10 @@ class WaitTest extends TestCase
     }
 
     /**
+     * @covers ::__construct
      * @dataProvider getTestNewInstanceWithInvalidEventThrowsAnExceptionData
+     *
+     * @param mixed $value
      */
     public function testNewInstanceWithInvalidEventThrowsAnException($value)
     {
@@ -56,6 +72,16 @@ class WaitTest extends TestCase
         yield ['zenaton'];
     }
 
+    /**
+     * @covers ::_getDuration
+     * @covers ::days
+     * @covers ::hours
+     * @covers ::minutes
+     * @covers ::months
+     * @covers ::seconds
+     * @covers ::weeks
+     * @covers ::years
+     */
     public function testAddingTimeReturnsTheCorrectResult()
     {
         $wait = new Wait();
@@ -96,6 +122,9 @@ class WaitTest extends TestCase
         static::assertEquals($expected(), $wait->_getDuration());
     }
 
+    /**
+     * @covers ::_getDuration
+     */
     public function testGetDurationWithoutAddingTimeReturnsNull()
     {
         $wait = new Wait();
@@ -103,6 +132,10 @@ class WaitTest extends TestCase
         static::assertNull($wait->_getDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::timestamp
+     */
     public function testGetTimestampOrDurationWhenWaitingForATimestamp()
     {
         $wait = new Wait();
@@ -114,6 +147,10 @@ class WaitTest extends TestCase
         static::assertSame([$targetTimestamp, null], $wait->_getTimestampOrDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     */
     public function testGetTimestampOrDurationWhenWaitingForAFutureTime()
     {
         $wait = new Wait();
@@ -125,6 +162,10 @@ class WaitTest extends TestCase
         static::assertSame([$date->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     */
     public function testGetTimestampOrDurationWhenWaitingForAPastTime()
     {
         $wait = new Wait();
@@ -140,7 +181,16 @@ class WaitTest extends TestCase
     }
 
     /**
+     * @covers ::friday
+     * @covers ::monday
+     * @covers ::saturday
+     * @covers ::sunday
+     * @covers ::thursday
+     * @covers ::tuesday
+     * @covers ::wednesday
      * @dataProvider getTestGetTimestampOrDurationWhenUsingWeekDayData
+     *
+     * @param mixed $day
      */
     public function testGetTimestampOrDurationWhenUsingWeekDay($day)
     {
@@ -166,6 +216,10 @@ class WaitTest extends TestCase
         ];
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::monday
+     */
     public function testGetTimestampOrDurationWhenAlreadyMondayAndWaitingForNextMonday()
     {
         $date = Chronos::create(2018, 12, 3, 11, 00, 00);
@@ -179,6 +233,11 @@ class WaitTest extends TestCase
         static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::monday
+     */
     public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndLaterTime()
     {
         $date = Chronos::create(2018, 12, 3, 11, 00, 00);
@@ -195,6 +254,11 @@ class WaitTest extends TestCase
         static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::monday
+     */
     public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndPastTime()
     {
         $date = Chronos::create(2018, 12, 3, 11, 00, 00);
@@ -211,6 +275,11 @@ class WaitTest extends TestCase
         static::assertSame([$expectedDate->getTimestamp(), null], $wait->_getTimestampOrDuration());
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::monday
+     */
     public function testGetTimestampOrDurationWhenUsingCurrentWeekDayAndCurrentTime()
     {
         $date = Chronos::create(2018, 12, 3, 11, 00, 00);
@@ -228,7 +297,11 @@ class WaitTest extends TestCase
     }
 
     /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::dayOfMonth
      * @dataProvider getWaitForCurrentDayData
+     *
+     * @param mixed $day
      */
     public function testGetTimestampOrDurationWhenWaitingForCurrentDayWaitsOneMonth(ChronosInterface $current, $day, ChronosInterface $expected)
     {
@@ -252,6 +325,9 @@ class WaitTest extends TestCase
     }
 
     /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::dayOfMonth
      * @dataProvider getWaitForCurrentDayAtFutureTimeData
      */
     public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtFutureTimeWaitsFewHours(ChronosInterface $current, ChronosInterface $expected)
@@ -273,7 +349,12 @@ class WaitTest extends TestCase
     }
 
     /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::dayOfMonth
      * @dataProvider getWaitForCurrentDayAtPastTimeData
+     *
+     * @param mixed $day
      */
     public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtPastTimeWaitsOneMonth(ChronosInterface $current, $day, ChronosInterface $expected)
     {
@@ -297,6 +378,11 @@ class WaitTest extends TestCase
         yield [Chronos::create(2018, 03, 31, 11, 00, 00), 31, Chronos::create(2018, 4, 30, 9, 00, 00)];
     }
 
+    /**
+     * @covers ::_getTimestampOrDuration
+     * @covers ::at
+     * @covers ::dayOfMonth
+     */
     public function testGetTimestampOrDurationWhenWaitingForCurrentDayAtCurrentTimeWaitsOneMonth()
     {
         $date = Chronos::create(2018, 12, 3, 11, 00, 00);

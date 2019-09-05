@@ -61,11 +61,11 @@ trait SingletonTesting
     {
         $traits = class_uses($classname);
         // Class does not exist
-        if ($traits === false) {
+        if (false === $traits) {
             throw new \UnexpectedValueException("Class \"{$classname}\" does not exist or cannot be autoloaded.");
         }
         if ($traits === [] || !in_array(SingletonTrait::class, $traits, true)) {
-            throw new \UnexpectedValueException("Class \"{$classname}\" is not using \"Zenaton\Traits\SingletonTrait\"");
+            throw new \UnexpectedValueException("Class \"{$classname}\" is not using \"Zenaton\\Traits\\SingletonTrait\"");
         }
     }
 }

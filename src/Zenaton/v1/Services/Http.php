@@ -25,7 +25,8 @@ class Http
         $f = static function () use ($url) {
             return Request::get($url)
                 ->expectsJson()
-                ->send();
+                ->send()
+            ;
         };
 
         return $this->request($f);
@@ -84,7 +85,8 @@ class Http
                 ->sendsJson()
                 ->body($body)
                 ->expectsJson()
-                ->send();
+                ->send()
+            ;
         };
 
         return $this->request($f);

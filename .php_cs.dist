@@ -1,29 +1,11 @@
 <?php
 
-$finder = PhpCsFixer\Finder::create()->in(['src/', 'tests/']);
+$finder = PhpCsFixer\Finder::create()->in([__DIR__.'/src/', __DIR__.'/tests/']);
 
 $config = PhpCsFixer\Config::create()
     ->setRules([
-        '@PSR2' => true,
+        '@PhpCsFixer' => true,
         '@PHP56Migration' => true,
-        '@Symfony' => true,
-        'align_multiline_comment' => true,
-        'array_indentation' => true,
-        'array_syntax' => ['syntax' => 'short'],
-        'combine_consecutive_issets' => true,
-        'combine_consecutive_unsets' => true,
-        'explicit_string_variable' => true,
-        'linebreak_after_opening_tag' => true,
-        'no_superfluous_phpdoc_tags' => true,
-        'no_useless_else' => true,
-        'no_useless_return' => true,
-        'ordered_imports' => true,
-        'phpdoc_order' => true,
-        'phpdoc_trim_consecutive_blank_line_separation' => true,
-        'phpdoc_types_order' => true,
-        'return_assignment' => true,
-        // 'strict_comparison' => true,
-        'yoda_style' => false,
     ])
     ->setFinder($finder)
 ;

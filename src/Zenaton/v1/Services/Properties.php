@@ -142,6 +142,8 @@ class Properties
     /**
      * Returns the list of properties to exclude from properties extraction for a given object.
      *
+     * @param mixed $o
+     *
      * @return string[]
      */
     private function getExcludedPropertiesForObject($o)
