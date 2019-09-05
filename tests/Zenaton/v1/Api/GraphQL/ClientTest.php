@@ -11,15 +11,12 @@ use Zenaton\Services\Http;
 /**
  * @internal
  *
- * @coversDefaultClass \Zenaton\Api\GraphQL\Client
+ * @covers \Zenaton\Api\GraphQL\Client
  */
 class ClientTest extends TestCase
 {
     const ENDPOINT = 'http://localhost/graphql';
 
-    /**
-     * @covers ::request
-     */
     public function testRequestThrowsAnExceptionInCaseOfConnectionError()
     {
         $this->expectException(ApiException::class);
@@ -35,9 +32,6 @@ class ClientTest extends TestCase
         $client->request('');
     }
 
-    /**
-     * @covers ::request
-     */
     public function testRequestThrowsAnExceptionInCaseOfInvalidJsonReturned()
     {
         $this->expectException(ApiException::class);
@@ -58,9 +52,6 @@ class ClientTest extends TestCase
         $response = $client->request('');
     }
 
-    /**
-     * @covers ::request
-     */
     public function testRequestThrowsAnExceptionInCaseOfHttpfulUnableToParseJson()
     {
         $this->expectException(ApiException::class);
@@ -75,9 +66,6 @@ class ClientTest extends TestCase
         $response = $client->request('');
     }
 
-    /**
-     * @covers ::request
-     */
     public function testRequestReturnsDecodedResponseBody()
     {
         $mockedResponse = new Response(

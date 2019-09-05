@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  *
- * @coversDefaultClass \Zenaton\Services\Serializer
+ * @covers \Zenaton\Services\Serializer
  */
 final class SerializerTest extends TestCase
 {
@@ -20,7 +20,6 @@ final class SerializerTest extends TestCase
     }
 
     /**
-     * @covers ::encode
      * @dataProvider getTestEncodeData
      *
      * @param mixed $scalar
@@ -209,9 +208,6 @@ final class SerializerTest extends TestCase
         yield [$object, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\CannotBeCloned","p":{"a":42}}]}'];
     }
 
-    /**
-     * @covers ::encode
-     */
     public function testEncodeAResourceReturnsSerializationOfIntegerZero()
     {
         $handle = fopen(__FILE__, 'r');
@@ -227,7 +223,6 @@ final class SerializerTest extends TestCase
     }
 
     /**
-     * @covers ::decode
      * @dataProvider getTestDecodeData
      *
      * @param mixed $expectationsCallback
@@ -424,9 +419,6 @@ final class SerializerTest extends TestCase
         }, '{"o":"@zenaton#0","s":[{"n":"Zenaton\\\\Services\\\\SimpleCollection","p":[]}]}'];
     }
 
-    /**
-     * @covers ::decode
-     */
     public function testDecodeStringContainingWrongKeyThrowsAnException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -434,9 +426,6 @@ final class SerializerTest extends TestCase
         $this->serializer->decode('{"z":"","s":[]}');
     }
 
-    /**
-     * @covers ::decode
-     */
     public function testDecodeMalformedJsonThrowsAnException()
     {
         $this->expectException(\UnexpectedValueException::class);
