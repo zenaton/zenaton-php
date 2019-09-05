@@ -10,12 +10,11 @@ use Zenaton\Test\Mock\Workflow\NullWorkflow;
 /**
  * @internal
  *
- * @coversDefaultClass \Zenaton\Workflows\Version
+ * @covers \Zenaton\Workflows\Version
  */
 final class VersionTest extends TestCase
 {
     /**
-     * @covers ::getCurrentImplementation
      * @dataProvider getTestGetCurrentImplementationReturnsAnInstanceData
      *
      * @param mixed $versions
@@ -53,7 +52,6 @@ final class VersionTest extends TestCase
     }
 
     /**
-     * @covers ::getCurrentImplementation
      * @dataProvider getTestGetCurrentImplementationThrowsAnExceptionWhenInvalidVersionsData
      *
      * @param mixed $versions
@@ -81,9 +79,6 @@ final class VersionTest extends TestCase
         yield ['Zenaton'];
     }
 
-    /**
-     * @covers ::getCurrentImplementation
-     */
     public function testHandleExecutesHandleOfCurrentVersion()
     {
         $assertions = function () {

@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  *
- * @coversDefaultClass \Zenaton\Traits\IsImplementationOfTrait
+ * @covers \Zenaton\Traits\IsImplementationOfTrait
  */
 final class IsImplementationOfTraitTest extends TestCase
 {
@@ -18,25 +18,16 @@ final class IsImplementationOfTraitTest extends TestCase
         $this->IsImplementationOfMock = new IsImplementationOfMock();
     }
 
-    /**
-     * @covers ::isImplementationOf
-     */
     public function testIsImplementationOfReturnsTrueWhenAClassImplementsAnInterface()
     {
         static::assertTrue($this->IsImplementationOfMock->classImplements(\ArrayIterator::class, \Iterator::class));
     }
 
-    /**
-     * @covers ::isImplementationOf
-     */
     public function testIsImplementationOfReturnsFalseWhenAClassDoesNotImplementAnInterface()
     {
         static::assertFalse($this->IsImplementationOfMock->classImplements(\ArrayIterator::class, \OuterIterator::class));
     }
 
-    /**
-     * @covers ::isImplementationOf
-     */
     public function testIsImplementationOfReturnsFalseWhenNotGivenAString()
     {
         static::assertFalse($this->IsImplementationOfMock->classImplements(123, \Countable::class));
