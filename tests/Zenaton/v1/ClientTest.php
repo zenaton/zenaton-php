@@ -392,6 +392,7 @@ BODY;
                 'cron' => '* * * * *',
                 'canonicalName' => NullWorkflow::class,
                 'intentId' => '47f5f00a-f29a-4b65-a7a5-b365b26dd92e',
+                'customId' => null,
                 'programmingLanguage' => 'PHP',
                 'properties' => '{"a":[],"s":[]}',
                 'workflowName' => NullWorkflow::class,

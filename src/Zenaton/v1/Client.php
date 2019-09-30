@@ -71,9 +71,9 @@ class Client
     public static function init($appId, $apiToken, $appEnv)
     {
         Client::getInstance()
-          ->setAppId($appId)
-          ->setApiToken($apiToken)
-          ->setAppEnv($appEnv);
+            ->setAppId($appId)
+            ->setApiToken($apiToken)
+            ->setAppEnv($appEnv);
     }
 
     public function construct()
@@ -305,12 +305,27 @@ class Client
             $name = \get_class($workflow);
         }
 
+        $customId = null;
+        if (method_exists($workflow, 'getId')) {
+            $customId = $workflow->getId();
+            if (!is_string($customId) && !is_int($customId)) {
+                throw new InvalidArgumentException('Provided Id must be a string or an integer');
+            }
+            // convert it to a string
+            $customId = (string) $customId;
+            // should be not more than 256 bytes;
+            if (strlen($customId) > self::MAX_ID_SIZE) {
+                throw new InvalidArgumentException('Provided Id must not exceed '.self::MAX_ID_SIZE.' bytes');
+            }
+        }
+
         $variables = [
             'input' => [
                 'environmentName' => $this->appEnv,
                 'cron' => $cron,
                 'canonicalName' => $canonicalName,
                 'intentId' => $this->uuidFactory->uuid4()->toString(),
+                'customId' => $customId,
                 'programmingLanguage' => static::PROG,
                 'properties' => $this->serializer->encode($this->properties->getPropertiesFromObject($workflow)),
                 'workflowName' => $name,
