@@ -41,7 +41,7 @@ class Client
     protected $apiToken;
     /** @var null|string */
     protected $appEnv;
-    /** @var \Zenaton\Api\GraphQL\Client */
+    /** @var Api\GraphQL\Client */
     protected $graphqlClient;
     /** @var Serializer */
     protected $serializer;
@@ -61,7 +61,7 @@ class Client
 
     public function construct()
     {
-        $this->graphqlClient = new \Zenaton\Api\GraphQL\Client(new Http(), $this->getGatewayUrl(), []);
+        $this->graphqlClient = new Api\GraphQL\Client(new Http(), $this->getGatewayUrl(), []);
         $this->serializer = new Serializer();
         $this->properties = new Properties();
         $this->uuidFactory = new UuidFactory();
@@ -189,8 +189,8 @@ class Client
      *
      * @param WorkflowInterface $flow Workflow to start
      *
-     * @throws ApiException                                 if the API returns some errors
-     * @throws \Zenaton\Exceptions\InvalidArgumentException if custom id is invalid
+     * @throws ApiException             if the API returns some errors
+     * @throws InvalidArgumentException if custom id is invalid
      */
     public function startWorkflow(WorkflowInterface $flow)
     {
@@ -350,6 +350,7 @@ class Client
      * @param string $cron
      *
      * @throws ApiException
+     * @throws InvalidArgumentException
      */
     public function scheduleWorkflow(WorkflowInterface $workflow, $cron)
     {
@@ -565,6 +566,8 @@ class Client
     /**
      * Sends a GraphQL request and throw an exception if there are errors returned by the API.
      *
+     * @throws ApiException
+     *
      * @return array
      */
     private function sendGatewayRequestAndThrowOnErrors(\Closure $closure)
@@ -581,9 +584,9 @@ class Client
     /**
      * Returns the custom id of a workflow.
      *
-     * @return string|null
-     *
      * @throws InvalidArgumentException
+     *
+     * @return null|string
      */
     private function getCustomIdFromWorkflow(WorkflowInterface $workflow)
     {
