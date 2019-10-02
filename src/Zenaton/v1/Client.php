@@ -200,20 +200,7 @@ class Client
             // replace $flow by true current implementation
             $flow = $flow->getCurrentImplementation();
         }
-
-        $customId = null;
-        if (method_exists($flow, 'getId')) {
-            $customId = $flow->getId();
-            if (!is_string($customId) && !is_int($customId)) {
-                throw new InvalidArgumentException('Provided Id must be a string or an integer');
-            }
-            // convert it to a string
-            $customId = (string) $customId;
-            // should be not more than 256 bytes;
-            if (strlen($customId) > self::MAX_ID_SIZE) {
-                throw new InvalidArgumentException('Provided Id must not exceed '.self::MAX_ID_SIZE.' bytes');
-            }
-        }
+        $customId = $this->getCustomIdFromWorkflow($flow);
 
         $this->sendGatewayRequestAndThrowOnErrors(function () use ($customId, $canonical, $flow) {
             return $this->graphqlClient->request(
@@ -371,22 +358,9 @@ class Client
             $workflow = $workflow->getCurrentImplementation();
             $name = \get_class($workflow);
         }
+        $customId = $this->getCustomIdFromWorkflow($workflow);
 
-        $customId = null;
-        if (method_exists($workflow, 'getId')) {
-            $customId = $workflow->getId();
-            if (!is_string($customId) && !is_int($customId)) {
-                throw new InvalidArgumentException('Provided Id must be a string or an integer');
-            }
-            // convert it to a string
-            $customId = (string) $customId;
-            // should be not more than 256 bytes;
-            if (strlen($customId) > self::MAX_ID_SIZE) {
-                throw new InvalidArgumentException('Provided Id must not exceed '.self::MAX_ID_SIZE.' bytes');
-            }
-        }
-
-        $this->sendGatewayRequestAndThrowOnErrors(function () use ($workflow, $canonicalName, $cron, $name) {
+        $this->sendGatewayRequestAndThrowOnErrors(function () use ($workflow, $canonicalName, $cron, $name, $customId) {
             return $this->graphqlClient->request(
                 Mutations::CREATE_WORKFLOW_SCHEDULE,
                 [
@@ -602,5 +576,32 @@ class Client
         }
 
         return $response;
+    }
+
+    /**
+     * Returns the custom id of a workflow.
+     *
+     * @return string|null
+     *
+     * @throws InvalidArgumentException
+     */
+    private function getCustomIdFromWorkflow(WorkflowInterface $workflow)
+    {
+        if (!\method_exists($workflow, 'getId')) {
+            return null;
+        }
+
+        $customId = $workflow->getId();
+        if (!\is_string($customId) && !\is_int($customId)) {
+            throw new InvalidArgumentException('Provided Id must be a string or an integer');
+        }
+        // convert it to a string
+        $customId = (string) $customId;
+        // should be not more than 256 bytes;
+        if (\strlen($customId) > self::MAX_ID_SIZE) {
+            throw new InvalidArgumentException('Provided Id must not exceed '.self::MAX_ID_SIZE.' bytes');
+        }
+
+        return $customId;
     }
 }
