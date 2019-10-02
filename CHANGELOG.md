@@ -23,6 +23,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Security
 
+## [0.5.1] - 2019-10-02
+
+### Added
+
+* Added `custom_id` argument for workflow schedule.
+
 ## [0.5.0] - 2019-08-26
 
 ### Changed
@@ -97,7 +103,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `::tuesday()`, `::wednesday()`, `::thursday()`, `::friday()`, `::saturday()` and `::sunday()`, and also in the
   `::dayOfMonth()` method.
 
-[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/zenaton/zenaton-php/compare/0.5.1...0.5
+[0.5.1]: https://github.com/zenaton/zenaton-php/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/zenaton/zenaton-php/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/zenaton/zenaton-php/compare/0.3.4...0.4.0
 [0.3.4]: https://github.com/zenaton/zenaton-php/compare/0.3.3...0.3.4
