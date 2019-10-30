@@ -90,9 +90,17 @@ MESSAGE;
      */
     public static function fromErrorList(array $errors)
     {
-        $errorMessages = implode("\n", array_map(static function ($error) {
-            return '  - '.$error['message'];
-        }, $errors));
+        $hasWrongErrorFormat = \array_reduce($errors, static function ($carry, $error) {
+            return $carry || !\is_array($error) || !isset($error['message']) || !\is_string($error['message']);
+        }, false);
+
+        if ($hasWrongErrorFormat) {
+            $errorMessages = \var_export($errors, true);
+        } else {
+            $errorMessages = \implode("\n", array_map(static function ($error) {
+                return '  - '.$error['message'];
+            }, $errors));
+        }
 
         $message = <<<MESSAGE
 The Zenaton API returned some errors:
