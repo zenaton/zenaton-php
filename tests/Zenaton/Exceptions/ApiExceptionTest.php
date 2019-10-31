@@ -34,4 +34,17 @@ EXPECTED;
 
         self::assertSame($expectedMessage, $apiException->getMessage());
     }
+
+    public function testFromErrorListWithWrongErrorFormat()
+    {
+        $apiException = ApiException::fromErrorList(['This is a first error.']);
+        $expectedMessage = <<<'EXPECTED'
+The Zenaton API returned some errors:
+array (
+  0 => 'This is a first error.',
+)
+EXPECTED;
+
+        self::assertSame($expectedMessage, $apiException->getMessage());
+    }
 }
