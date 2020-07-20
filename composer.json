@@ -1,4 +1,5 @@
 {
+    "abandoned": true,
     "name": "zenaton/zenaton-php",
     "type": "library",
     "description": "Zenaton PHP library",
